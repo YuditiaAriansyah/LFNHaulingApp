@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cost Center Master - LFN</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
+        :root {
+            --navy: #0f172a; --navy-mid: #1e293b;
+            --accent: #0f766e; --accent-dim: rgba(15,118,110,0.15); --accent-light: rgba(15,118,110,0.08);
+            --bg-page: #F8FAFC; --bg-card: #ffffff; --border-color: #e2e8f0;
+            --text-primary: #1e293b; --text-secondary: #64748b;
+        }
+        body { background: var(--bg-page); min-height: 100vh; color: var(--text-primary); }
+        .navbar { background: rgba(15,23,42,0.97); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); padding: 0.7rem 0; box-shadow: 0 1px 20px rgba(0,0,0,0.3); }
+        .navbar-brand { font-weight: 700; font-size: 1.4rem; color: #fff !important; display: flex; align-items: center; gap: 10px; }
+        .navbar-brand i { color: var(--accent); font-size: 1.8rem; }
+        .navbar-nav { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
+        .nav-group { display: flex; align-items: center; gap: 2px; }
+        .nav-group-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: rgba(255,255,255,0.25); padding: 0 10px 0 6px; margin-right: 2px; border-right: 1px solid rgba(255,255,255,0.12); white-space: nowrap; }
+        .nav-link { color: rgba(255,255,255,0.6) !important; font-weight: 500; font-size: 0.82rem; padding: 0.45rem 0.7rem !important; border-radius: 8px; transition: all 0.2s; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+        .nav-link i { font-size: 0.95rem; opacity: 0.7; }
+        .nav-link:hover, .nav-link.active { color: #fff !important; background: var(--accent-dim); }
+        .nav-link.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 60%; background: var(--accent); border-radius: 0 2px 2px 0; }
+        .page-header { background: linear-gradient(135deg, var(--navy), var(--navy-mid)); color: white; padding: 24px 28px; border-radius: 12px; margin-bottom: 24px; }
+        .page-header h1 { margin: 0; font-size: 1.4rem; font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 10px; }
+        .page-header p { margin: 4px 0 0; opacity: 0.6; font-size: 0.875rem; }
+        .card { border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 1px 4px rgba(0,0,0,0.05); overflow: hidden; }
+        .card-header { background: #fff; border-bottom: 1px solid var(--border-color); padding: 16px 24px; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: space-between; }
+        .card-body { padding: 24px; }
+        .stat-card { background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); border-top: 3px solid var(--accent); padding: 18px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+        .stat-card h6 { color: var(--text-secondary); font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+        .stat-card .number { font-size: 1.8rem; font-weight: 700; color: var(--text-primary); line-height: 1.1; }
+        .stat-card .sub { font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px; }
+        .progress-bar { background: var(--accent); }
+        .form-label { font-weight: 500; color: var(--text-primary); font-size: 0.85rem; }
+        .form-control, .form-select { border-radius: 10px; border: 1.5px solid var(--border-color); padding: 10px 14px; font-size: 0.9rem; transition: border-color 0.2s, box-shadow 0.2s; background: #fff; color: var(--text-primary); }
+        .form-control:focus, .form-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); outline: none; }
+        .btn-primary { background: var(--accent); border: none; border-radius: 10px; padding: 10px 20px; font-weight: 600; font-size: 0.88rem; transition: all 0.2s; }
+        .btn-primary:hover { background: #0d5c56; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15,118,110,0.3); }
+        .btn-outline-secondary { border-radius: 10px; border: 1.5px solid var(--border-color); color: var(--text-secondary); font-weight: 500; }
+        .btn-outline-secondary:hover { background: var(--bg-page); border-color: #cbd5e1; }
+        .btn-sm { border-radius: 8px; font-size: 0.8rem; padding: 6px 12px; }
+        .table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 0.875rem; }
+        .table thead th { background: #f8fafc; color: var(--text-secondary); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 14px; border-bottom: 2px solid var(--border-color); white-space: nowrap; }
+        .table tbody td { padding: 13px 14px; border-bottom: 1px solid var(--border-color); vertical-align: middle; color: var(--text-primary); }
+        .table tbody tr:hover { background: #f8fafc; }
+        .table-responsive { border-radius: 10px; overflow: hidden; border: 1px solid var(--border-color); }
+        .badge { border-radius: 50px; font-weight: 600; font-size: 0.72rem; padding: 4px 10px; letter-spacing: 0.3px; }
+        .badge-active { background: rgba(34,197,94,0.12); color: #15803d; }
+        .badge-inactive { background: rgba(100,116,139,0.12); color: #475569; }
+        .badge-ops { background: rgba(59,130,246,0.1); color: #1d4ed8; }
+        .badge-admin { background: rgba(167,139,250,0.12); color: #6d28d9; }
+        .badge-project { background: rgba(251,191,36,0.12); color: #b45309; }
+        .modal-content { border-radius: 16px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .modal-header { border-bottom: 1px solid var(--border-color); padding: 20px 24px; }
+        .modal-body { padding: 24px; }
+        .modal-footer { border-top: 1px solid var(--border-color); padding: 16px 24px; }
+        .budget-bar { height: 6px; border-radius: 3px; background: #e2e8f0; overflow: hidden; }
+        .budget-bar-fill { height: 100%; border-radius: 3px; background: var(--accent); transition: width 0.3s; }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="bi bi-diagram-3"></i> LFN</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto flex-wrap">
+                    <li class="nav-item"><a class="nav-link" href="/"><i class="bi bi-house"></i> Home</a></li>
+                    <li class="nav-group">
+                        <span class="nav-group-label">Master</span>
+                        <a class="nav-link" href="master-site.html"><i class="bi bi-geo-alt"></i> Site</a>
+                        <a class="nav-link active" href="master-cost-center.html"><i class="bi bi-diagram-3"></i> Cost Center</a>
+                        <a class="nav-link" href="master-user.html"><i class="bi bi-people"></i> User</a>
+                    </li>
+                    <li class="nav-group">
+                        <span class="nav-group-label">Operasi</span>
+                        <a class="nav-link" href="data-Upload-Fuel.html"><i class="bi bi-fuel-pump"></i> Fuel</a>
+                        <a class="nav-link" href="rm.html"><i class="bi bi-tools"></i> R&M</a>
+                        <a class="nav-link" href="fleet.html"><i class="bi bi-car-front"></i> Fleet</a>
+                    </li>
+                    <li class="nav-group">
+                        <span class="nav-group-label">Keuangan</span>
+                        <a class="nav-link" href="finance.html"><i class="bi bi-wallet2"></i> Finance</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <div class="page-header">
+            <h1><i class="bi bi-diagram-3" style="color:var(--accent)"></i> Cost Center Master</h1>
+            <p>Kelola cost center untuk alokasi biaya per site dan departemen</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="row mb-4 g-3">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <h6>Total Cost Center</h6>
+                    <div class="number" id="statTotal">-</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <h6>Total Allocasi</h6>
+                    <div class="number" id="statAlloc">-</div>
+                    <div class="sub">Rupiah</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <h6>Operational</h6>
+                    <div class="number" id="statOps">-</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <h6>Admin</h6>
+                    <div class="number" id="statAdmin">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Card -->
+        <div class="card">
+            <div class="card-header">
+                <span><i class="bi bi-list-ul me-2"></i>Daftar Cost Center</span>
+                <button class="btn btn-primary btn-sm" onclick="openAddModal()">
+                    <i class="bi bi-plus-lg me-1"></i> Tambah Cost Center
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-3">
+                        <select class="form-select" id="filterSite" onchange="loadCC()">
+                            <option value="">Semua Site</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="filterType" onchange="loadCC()">
+                            <option value="">Semua Tipe</option>
+                            <option value="OPERATIONAL">Operational</option>
+                            <option value="ADMIN">Admin</option>
+                            <option value="PROJECT">Project</option>
+                            <option value="SALES">Sales</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="filterStatus" onchange="loadCC()">
+                            <option value="">Semua Status</option>
+                            <option value="ACTIVE">Active</option>
+                            <option value="INACTIVE">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" id="searchInput" placeholder="Cari kode atau nama..." oninput="debounceSearch()">
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Kode</th>
+                                <th>Nama Cost Center</th>
+                                <th>Site</th>
+                                <th>Tipe</th>
+                                <th>Allocated</th>
+                                <th>Used</th>
+                                <th>Available</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ccTableBody">
+                            <tr><td colspan="9" class="text-center text-muted py-4">Memuat data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <span class="text-muted" style="font-size:0.82rem" id="recordInfo"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal fade" id="ccModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle"><i class="bi bi-diagram-3 me-2"></i>Tambah Cost Center</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editId">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Cost Center Code <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="ccCode" placeholder="e.g. CC-OPS-TNG" maxlength="30" style="text-transform:uppercase">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Nama Cost Center <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="ccName" placeholder="e.g. Operations Tanjung" maxlength="100">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Site</label>
+                            <select class="form-select" id="ccSite">
+                                <option value="">-- Pilih Site --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Tipe</label>
+                            <select class="form-select" id="ccType">
+                                <option value="OPERATIONAL">Operational</option>
+                                <option value="ADMIN">Admin</option>
+                                <option value="PROJECT">Project</option>
+                                <option value="SALES">Sales</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Parent Code</label>
+                            <input type="text" class="form-control" id="ccParent" placeholder="Parent cost center (opsional)">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Level</label>
+                            <select class="form-select" id="ccLevel">
+                                <option value="1">Level 1 (Root)</option>
+                                <option value="2">Level 2 (Sub)</option>
+                                <option value="3">Level 3 (Detail)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Allocated Budget (Rp)</label>
+                            <input type="number" class="form-control" id="ccAllocated" placeholder="0" min="0" step="1000">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Used Budget (Rp)</label>
+                            <input type="number" class="form-control" id="ccUsed" placeholder="0" min="0" step="1000">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Committed Budget (Rp)</label>
+                            <input type="number" class="form-control" id="ccCommitted" placeholder="0" min="0" step="1000">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Remarks</label>
+                            <textarea class="form-control" id="ccRemarks" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="saveBtn" onclick="saveCC()">
+                        <i class="bi bi-check-lg me-1"></i> Simpan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let ccModal;
+        let allCC = [];
+        let allSites = [];
+        let searchTimeout;
+
+        const fmt = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', notation: 'compact', maximumFractionDigits: 1 });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            ccModal = new bootstrap.Modal(document.getElementById('ccModal'));
+            loadSitesForDropdown();
+            loadCC();
+        });
+
+        async function loadSitesForDropdown() {
+            try {
+                const res = await fetch('/api/sites/master?status=ACTIVE');
+                allSites = await res.json();
+                const opts = allSites.map(s => `<option value="${s.siteCode}">${s.siteCode} - ${s.siteName}</option>`).join('');
+                document.getElementById('ccSite').innerHTML = '<option value="">-- Pilih Site --</option>' + opts;
+                document.getElementById('filterSite').innerHTML = '<option value="">Semua Site</option>' + opts;
+            } catch {}
+        }
+
+        async function loadCC() {
+            const siteCode = document.getElementById('filterSite').value;
+            const status = document.getElementById('filterStatus').value;
+            const type = document.getElementById('filterType').value;
+            let url = '/api/cost-centers/master';
+            const params = [];
+            if (siteCode) params.push(`siteCode=${siteCode}`);
+            if (status) params.push(`status=${status}`);
+            if (type) params.push(`type=${type}`);
+            if (params.length) url += '?' + params.join('&');
+
+            try {
+                const res = await fetch(url);
+                allCC = await res.json();
+                updateStats();
+                renderTable();
+            } catch (err) {
+                document.getElementById('ccTableBody').innerHTML = `<tr><td colspan="9" class="text-center text-danger py-4">Gagal memuat: ${err.message}</td></tr>`;
+            }
+        }
+
+        function updateStats() {
+            const ops = allCC.filter(c => c.type === 'OPERATIONAL').length;
+            const admin = allCC.filter(c => c.type === 'ADMIN').length;
+            const totalAlloc = allCC.reduce((sum, c) => sum + (c.allocatedBudget || 0), 0);
+            document.getElementById('statTotal').textContent = allCC.length;
+            document.getElementById('statAlloc').textContent = fmt.format(totalAlloc);
+            document.getElementById('statOps').textContent = ops;
+            document.getElementById('statAdmin').textContent = admin;
+        }
+
+        function renderTable() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allCC.filter(c =>
+                (c.costCenterCode || '').toLowerCase().includes(search) ||
+                (c.costCenterName || '').toLowerCase().includes(search) ||
+                (c.siteCode || '').toLowerCase().includes(search)
+            );
+
+            if (!filtered.length) {
+                document.getElementById('ccTableBody').innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4">Tidak ada data</td></tr>`;
+                document.getElementById('recordInfo').textContent = `0 dari ${allCC.length} cost center`;
+                return;
+            }
+
+            const html = filtered.map(c => {
+                const alloc = c.allocatedBudget || 0;
+                const used = c.usedBudget || 0;
+                const comm = c.committedBudget || 0;
+                const avail = alloc - used - comm;
+                const pct = alloc > 0 ? Math.min(100, Math.round((used / alloc) * 100)) : 0;
+                const availPct = avail < 0 ? 'text-danger' : 'text-success';
+                return `
+                <tr>
+                    <td><span class="badge" style="background:var(--accent-dim);color:var(--accent);">${c.costCenterCode}</span></td>
+                    <td><strong>${c.costCenterName || '-'}</strong></td>
+                    <td><small>${c.siteCode || '-'}</small></td>
+                    <td><span class="badge ${c.type === 'OPERATIONAL' ? 'badge-ops' : c.type === 'ADMIN' ? 'badge-admin' : 'badge-project'}">${c.type || 'OPERATIONAL'}</span></td>
+                    <td><small>${fmt.format(alloc)}</small></td>
+                    <td>
+                        <small>${fmt.format(used)}</small>
+                        <div class="budget-bar mt-1"><div class="budget-bar-fill" style="width:${pct}%"></div></div>
+                    </td>
+                    <td class="${availPct}"><strong>${fmt.format(avail)}</strong></td>
+                    <td><span class="badge ${c.status === 'ACTIVE' ? 'badge-active' : 'badge-inactive'}">${c.status}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-secondary me-1" onclick="editCC(${c.id})" title="Edit"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm ${c.status === 'ACTIVE' ? 'btn-outline-danger' : 'btn-outline-success'}" onclick="toggleStatus(${c.id},'${c.status}')" title="${c.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}">
+                            <i class="bi ${c.status === 'ACTIVE' ? 'bi-toggle-off' : 'bi-toggle-on'}"></i>
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('');
+            document.getElementById('ccTableBody').innerHTML = html;
+            document.getElementById('recordInfo').textContent = `${filtered.length} dari ${allCC.length} cost center`;
+        }
+
+        function debounceSearch() { clearTimeout(searchTimeout); searchTimeout = setTimeout(renderTable, 300); }
+
+        function openAddModal() {
+            document.getElementById('editId').value = '';
+            document.getElementById('modalTitle').innerHTML = '<i class="bi bi-diagram-3 me-2"></i>Tambah Cost Center';
+            document.getElementById('saveBtn').innerHTML = '<i class="bi bi-check-lg me-1"></i> Simpan';
+            document.getElementById('ccCode').disabled = false;
+            clearForm();
+            ccModal.show();
+        }
+
+        async function editCC(id) {
+            const c = allCC.find(x => x.id === id); if (!c) return;
+            document.getElementById('editId').value = c.id;
+            document.getElementById('ccCode').value = c.costCenterCode;
+            document.getElementById('ccCode').disabled = true;
+            document.getElementById('ccName').value = c.costCenterName || '';
+            document.getElementById('ccSite').value = c.siteCode || '';
+            document.getElementById('ccType').value = c.type || 'OPERATIONAL';
+            document.getElementById('ccParent').value = c.parentCode || '';
+            document.getElementById('ccLevel').value = c.level || '1';
+            document.getElementById('ccAllocated').value = c.allocatedBudget || 0;
+            document.getElementById('ccUsed').value = c.usedBudget || 0;
+            document.getElementById('ccCommitted').value = c.committedBudget || 0;
+            document.getElementById('ccRemarks').value = c.remarks || '';
+            document.getElementById('modalTitle').innerHTML = '<i class="bi bi-pencil me-2"></i>Edit Cost Center';
+            document.getElementById('saveBtn').innerHTML = '<i class="bi bi-check-lg me-1"></i> Update';
+            ccModal.show();
+        }
+
+        function clearForm() {
+            ['ccCode','ccName','ccParent','ccAllocated','ccUsed','ccCommitted','ccRemarks'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('ccSite').value = '';
+            document.getElementById('ccType').value = 'OPERATIONAL';
+            document.getElementById('ccLevel').value = '1';
+        }
+
+        async function saveCC() {
+            const id = document.getElementById('editId').value;
+            const ccCode = document.getElementById('ccCode').value.trim();
+            const ccName = document.getElementById('ccName').value.trim();
+            if (!ccCode || !ccName) { Swal.fire({ icon: 'warning', title: 'Wajib diisi', text: 'Kode dan Nama Cost Center harus diisi' }); return; }
+
+            const payload = {
+                costCenterCode: ccCode,
+                costCenterName: ccName,
+                siteCode: document.getElementById('ccSite').value,
+                type: document.getElementById('ccType').value,
+                parentCode: document.getElementById('ccParent').value || null,
+                level: document.getElementById('ccLevel').value,
+                allocatedBudget: parseFloat(document.getElementById('ccAllocated').value) || 0,
+                usedBudget: parseFloat(document.getElementById('ccUsed').value) || 0,
+                committedBudget: parseFloat(document.getElementById('ccCommitted').value) || 0,
+                remarks: document.getElementById('ccRemarks').value
+            };
+
+            try {
+                const res = await fetch(id ? `/api/cost-centers/master/${id}` : '/api/cost-centers/master', {
+                    method: id ? 'PUT' : 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Save failed');
+                Swal.fire({ icon: 'success', title: 'Berhasil', text: id ? 'Cost Center diupdate' : 'Cost Center ditambahkan', timer: 1500, showConfirmButton: false });
+                ccModal.hide();
+                loadCC();
+            } catch (err) { Swal.fire({ icon: 'error', title: 'Gagal', text: err.message }); }
+        }
+
+        async function toggleStatus(id, currentStatus) {
+            const action = currentStatus === 'ACTIVE' ? 'deactivate' : 'activate';
+            const confirm = await Swal.fire({ icon: 'question', title: 'Konfirmasi', text: `${action === 'deactivate' ? 'Deactivate' : 'Activate'} cost center ini?`, showCancelButton: true, confirmButtonText: 'Ya', cancelButtonText: 'Batal' });
+            if (!confirm.isConfirmed) return;
+            try {
+                const res = await fetch(`/api/cost-centers/master/${id}`, { method: 'DELETE' });
+                if (!res.ok) throw new Error('Update failed');
+                Swal.fire({ icon: 'success', title: 'Berhasil', text: `Cost Center di${action}`, timer: 1500, showConfirmButton: false });
+                loadCC();
+            } catch (err) { Swal.fire({ icon: 'error', title: 'Gagal', text: err.message }); }
+        }
+    </script>
+</body>
+</html>

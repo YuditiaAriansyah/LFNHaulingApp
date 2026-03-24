@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Department Master - LFN</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
+        :root {
+            --navy: #0f172a; --navy-mid: #1e293b;
+            --accent: #7c3aed; --accent-dim: rgba(124,58,237,0.15);
+            --bg-page: #F8FAFC; --bg-card: #ffffff; --border-color: #e2e8f0;
+            --text-primary: #1e293b; --text-secondary: #64748b;
+        }
+        body { background: var(--bg-page); min-height: 100vh; color: var(--text-primary); }
+        .navbar { background: rgba(15,23,42,0.97); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); padding: 0.7rem 0; box-shadow: 0 1px 20px rgba(0,0,0,0.3); }
+        .navbar-brand { font-weight: 700; font-size: 1.4rem; color: #fff !important; display: flex; align-items: center; gap: 10px; }
+        .navbar-brand i { color: var(--accent); font-size: 1.8rem; }
+        .navbar-nav { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
+        .nav-group { display: flex; align-items: center; gap: 2px; }
+        .nav-group-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: rgba(255,255,255,0.25); padding: 0 10px 0 6px; margin-right: 2px; border-right: 1px solid rgba(255,255,255,0.12); white-space: nowrap; }
+        .nav-link { color: rgba(255,255,255,0.6) !important; font-weight: 500; font-size: 0.82rem; padding: 0.45rem 0.7rem !important; border-radius: 8px; transition: all 0.2s; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+        .nav-link i { font-size: 0.95rem; opacity: 0.7; }
+        .nav-link:hover, .nav-link.active { color: #fff !important; background: var(--accent-dim); }
+        .page-header { background: linear-gradient(135deg, var(--navy), var(--navy-mid)); color: white; padding: 24px 28px; border-radius: 12px; margin-bottom: 24px; }
+        .page-header h1 { margin: 0; font-size: 1.4rem; font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 10px; }
+        .page-header p { margin: 4px 0 0; opacity: 0.6; font-size: 0.875rem; }
+        .card { border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 1px 4px rgba(0,0,0,0.05); overflow: hidden; }
+        .card-header { background: #fff; border-bottom: 1px solid var(--border-color); padding: 16px 24px; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: space-between; }
+        .card-body { padding: 24px; }
+        .stat-card { background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); border-top: 3px solid var(--accent); padding: 18px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+        .stat-card h6 { color: var(--text-secondary); font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+        .stat-card .number { font-size: 1.8rem; font-weight: 700; color: var(--text-primary); line-height: 1.1; }
+        .form-label { font-weight: 500; color: var(--text-primary); font-size: 0.85rem; }
+        .form-control, .form-select { border-radius: 10px; border: 1.5px solid var(--border-color); padding: 10px 14px; font-size: 0.9rem; transition: border-color 0.2s, box-shadow 0.2s; background: #fff; color: var(--text-primary); }
+        .form-control:focus, .form-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); outline: none; }
+        .btn-primary { background: var(--accent); border: none; border-radius: 10px; padding: 10px 20px; font-weight: 600; font-size: 0.88rem; transition: all 0.2s; color: #fff; }
+        .btn-primary:hover { background: #6321d4; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(124,58,237,0.4); }
+        .btn-outline-primary { border-radius: 10px; border: 1.5px solid var(--accent); color: var(--accent); font-weight: 500; font-size: 0.82rem; padding: 8px 16px; }
+        .btn-outline-primary:hover { background: var(--accent-dim); }
+        .btn-outline-secondary { border-radius: 10px; border: 1.5px solid var(--border-color); color: var(--text-secondary); font-weight: 500; }
+        .btn-outline-secondary:hover { background: var(--bg-page); }
+        .btn-outline-danger { border-radius: 10px; border: 1.5px solid #ef4444; color: #ef4444; font-size: 0.82rem; padding: 8px 14px; }
+        .btn-outline-danger:hover { background: #fef2f2; }
+        .btn-sm { border-radius: 8px; font-size: 0.8rem; padding: 6px 12px; }
+        .table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 0.875rem; }
+        .table thead th { background: #f8fafc; color: var(--text-secondary); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 14px; border-bottom: 2px solid var(--border-color); white-space: nowrap; }
+        .table tbody td { padding: 13px 14px; border-bottom: 1px solid var(--border-color); vertical-align: middle; color: var(--text-primary); }
+        .table tbody tr:hover { background: #f8fafc; }
+        .table-responsive { border-radius: 10px; overflow: hidden; border: 1px solid var(--border-color); }
+        .badge { border-radius: 50px; font-weight: 600; font-size: 0.72rem; padding: 4px 10px; letter-spacing: 0.3px; }
+        .badge-active { background: rgba(34,197,94,0.12); color: #15803d; }
+        .badge-inactive { background: rgba(100,116,139,0.12); color: #475569; }
+        .badge.bg-primary { background: rgba(37,99,235,0.1) !important; color: #1d4ed8 !important; }
+        .badge.bg-info { background: rgba(14,165,233,0.1) !important; color: #0284c7 !important; }
+        .badge.bg-secondary { background: rgba(100,116,139,0.1) !important; color: #475569 !important; }
+        .modal-content { border-radius: 16px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .modal-header { border-bottom: 1px solid var(--border-color); padding: 20px 24px; }
+        .modal-body { padding: 24px; }
+        .modal-footer { border-top: 1px solid var(--border-color); padding: 16px 24px; }
+        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.85); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
+        .spinner { width: 40px; height: 40px; border: 4px solid var(--border-color); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .no-data { text-align: center; padding: 48px; color: var(--text-secondary); }
+        .no-data i { font-size: 3rem; opacity: 0.3; margin-bottom: 12px; }
+    </style>
+</head>
+<body>
+    <div id="loadingOverlay" class="loading-overlay" style="display:none">
+        <div class="spinner"></div>
+        <span style="color:var(--text-secondary);font-weight:500">Memuat...</span>
+    </div>
+
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="bi bi-diagram-3"></i> LFN</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto flex-wrap">
+                    <li class="nav-item"><a class="nav-link" href="/"><i class="bi bi-house"></i> Home</a></li>
+                    <li class="nav-group">
+                        <span class="nav-group-label">P1 Master</span>
+                        <a class="nav-link" href="master-site.html"><i class="bi bi-geo-alt"></i> Site</a>
+                        <a class="nav-link" href="master-cost-center.html"><i class="bi bi-diagram-3"></i> Cost Center</a>
+                        <a class="nav-link" href="master-user.html"><i class="bi bi-people"></i> User</a>
+                    </li>
+                    <li class="nav-group">
+                        <span class="nav-group-label">P2 Master</span>
+                        <a class="nav-link" href="master-department.html"><i class="bi bi-diagram-3"></i> Dept</a>
+                        <a class="nav-link" href="master-material.html"><i class="bi bi-box-seam"></i> Material</a>
+                        <a class="nav-link" href="master-uom.html"><i class="bi bi-rulers"></i> UOM</a>
+                        <a class="nav-link" href="master-workflow.html"><i class="bi bi-arrow-right-circle"></i> Workflow</a>
+                    </li>
+                    <li class="nav-group">
+                        <span class="nav-group-label">Operasi</span>
+                        <a class="nav-link" href="data-Upload-Fuel.html"><i class="bi bi-fuel-pump"></i> Fuel</a>
+                        <a class="nav-link" href="rm.html"><i class="bi bi-tools"></i> R&amp;M</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <div class="page-header">
+            <h1><i class="bi bi-diagram-3" style="color:#7c3aed"></i> Department Master</h1>
+            <p>Kelola struktur organisasi (Divisi, Departemen, Section)</p>
+        </div>
+
+        <div class="row mb-4 g-3">
+            <div class="col-md-3"><div class="stat-card"><h6>Total Dept</h6><div class="number" id="statTotal">-</div></div></div><div class="col-md-3"><div class="stat-card"><h6>Dept Aktif</h6><div class="number" id="statActive">-</div></div></div><div class="col-md-3"><div class="stat-card"><h6>Divisi</h6><div class="number" id="statDivision">-</div></div></div><div class="col-md-3"><div class="stat-card"><h6>Departemen</h6><div class="number" id="statDept">-</div></div></div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <span>Filter</span>
+                <button class="btn btn-primary" onclick="openForm()"><i class="bi bi-plus-lg"></i> Tambah Baru</button>
+            </div>
+            <div class="card-body pb-2">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" id="filterStatus" onchange="loadData()">
+                            <option value="">Semua</option>
+                            <option value="ACTIVE">ACTIVE</option>
+                            <option value="INACTIVE">INACTIVE</option>
+                        </select>
+                    </div>
+                    <div class="col-md-auto">
+                        <button class="btn btn-outline-secondary" onclick="document.getElementById('filterStatus').value='';loadData()"><i class="bi bi-x-circle"></i> Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead><tr><th>Code</th><th>Nama Dept</th><th>Level</th><th>Parent</th><th>Site</th><th>Cost Center</th><th>Status</th><th style='width:110px'>Aksi</th></tr></thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                    <div id="noData" class="no-data" style="display:none">
+                        <i class="bi bi-inbox"></i>
+                        <p>Belum ada data. Klik "Tambah Baru" untuk menambahkan.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="formModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Tambah Baru</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="mainForm">
+                        <input type="hidden" id="fId">
+                        <div class="row g-3">
+                            <div class="col-md-4"><label class="form-label">Kode Dept</label><input type="text" class="form-control" id="fDeptCode" required></div>
+            <div class="col-md-8"><label class="form-label">Nama Dept</label><input type="text" class="form-control" id="fDeptName" required></div>
+            <div class="col-md-4"><label class="form-label">Level</label><select class="form-select" id="fLevel" ><option value="">-- Pilih --</option><option value="DIVISION">DIVISION</option><option value="DEPARTMENT">DEPARTMENT</option><option value="SECTION">SECTION</option></select></div>
+            <div class="col-md-4"><label class="form-label">Parent Code</label><input type="text" class="form-control" id="fParentCode" ></div>
+            <div class="col-md-4"><label class="form-label">Site Code</label><input type="text" class="form-control" id="fSiteCode" ></div>
+            <div class="col-md-6"><label class="form-label">Cost Center</label><input type="text" class="form-control" id="fCostCenter" ></div>
+            <div class="col-md-6"><label class="form-label">Nama Kepala</label><input type="text" class="form-control" id="fHeadName" ></div>
+            <div class="col-md-6"><label class="form-label">Jabatan Kepala</label><input type="text" class="form-control" id="fHeadTitle" ></div>
+            <div class="col-md-12"><label class="form-label">Remarks</label><textarea class="form-control" id="fRemarks"  rows="2"></textarea></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="saveForm()"><i class="bi bi-check-lg"></i> Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API = "https://lfn-hauling-903235665988.asia-southeast1.run.app/api/departments/master";
+        const MODAL = new bootstrap.Modal(document.getElementById("formModal"));
+        let editingId = null;
+
+        function showLoading(show) {
+            document.getElementById("loadingOverlay").style.display = show ? "flex" : "none";
+        }
+
+        function badgeClass(val) {
+            if (val === 'DIVISION') return 'bg-primary';if (val === 'DEPARTMENT') return 'bg-info';if (val === 'SECTION') return 'bg-secondary';if (val === 'ACTIVE') return 'badge-active';if (val === 'INACTIVE') return 'badge-inactive';
+            return "";
+        }
+
+        async function loadData() {
+            showLoading(true);
+            try {
+                const params = new URLSearchParams();
+                const status = document.getElementById("filterStatus").value;
+                if (status) params.append("status", status);
+                const res = await fetch(API + (params.toString() ? "?" + params : ""));
+                if (!res.ok) throw new Error(await res.text());
+                const data = await res.json();
+                renderTable(data);
+                renderStats(data);
+            } catch (e) {
+                console.error(e);
+                Swal.fire("Gagal", "Tidak dapat memuat data dari server.", "error");
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById("tableBody");
+            const noData = document.getElementById("noData");
+            if (!data || data.length === 0) {
+                tbody.innerHTML = "";
+                noData.style.display = "block";
+                return;
+            }
+            noData.style.display = "none";
+            tbody.innerHTML = data.map(r => `
+                <tr>
+                    <td>{r.deptCode ?? '-'}</td><td>{r.deptName ?? '-'}</td><td>{r.level ?? '-'}</td><td>{r.parentCode ?? '-'}</td><td>{r.siteCode ?? '-'}</td><td>{r.costCenter ?? '-'}</td><td><span class="badge" :class="badgeClass(r.status)">{r.status}</span></td><td><button class="btn btn-sm btn-outline-primary me-1" onclick="editRow(r.id)"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-outline-danger" onclick="deleteRow(r.id)"><i class="bi bi-trash"></i></button></td>
+                </tr>
+            `).join("");
+        }
+
+        function renderStats(data) {
+            if (!data) return;
+            document.getElementById("statTotal").textContent = data.length;
+            document.getElementById("statActive").textContent = data.filter(d => d.status === "ACTIVE").length;
+            
+    document.getElementById("statDivision").textContent = data.filter(d => d.level === "DIVISION").length;
+    document.getElementById("statDept").textContent = data.filter(d => d.level === "DEPARTMENT").length;
+
+        }
+
+        function openForm(id) {
+            editingId = id;
+            document.getElementById("fId").value = "";
+            document.getElementById("modalTitle").textContent = id ? "Edit Data" : "Tambah Baru";
+            document.querySelectorAll("#mainForm input, #mainForm select, #mainForm textarea").forEach(el => {
+                if (el.type === "hidden") return;
+                el.value = "";
+            });
+            if (id) loadRow(id);
+            MODAL.show();
+        }
+
+        async function loadRow(id) {
+            const res = await fetch(API + "/" + id);
+            if (!res.ok) return;
+            const r = await res.json();
+            document.getElementById('fDeptCode').value = r.DeptCode ?? '';
+            document.getElementById('fDeptName').value = r.DeptName ?? '';
+            document.getElementById('fLevel').value = r.Level ?? '';
+            document.getElementById('fParentCode').value = r.ParentCode ?? '';
+            document.getElementById('fSiteCode').value = r.SiteCode ?? '';
+            document.getElementById('fCostCenter').value = r.CostCenter ?? '';
+            document.getElementById('fHeadName').value = r.HeadName ?? '';
+            document.getElementById('fHeadTitle').value = r.HeadTitle ?? '';
+            document.getElementById('fRemarks').value = r.Remarks ?? '';
+        }
+
+        async function editRow(id) { openForm(id); }
+
+        async function deleteRow(id) {
+            const ok = await Swal.fire({ title: "Hapus Data?", text: "Data yang dihapus tidak bisa dikembalikan.", icon: "warning", showCancelButton: true, confirmButtonColor: "#ef4444", confirmButtonText: "Ya, Hapus!" });
+            if (!ok.isConfirmed) return;
+            const res = await fetch(API + "/" + id, { method: "DELETE" });
+            if (res.ok) { Swal.fire("Berhasil","Data dihapus","success"); loadData(); }
+            else { const e = await res.json(); Swal.fire("Error", e.error || "Gagal hapus","error"); }
+        }
+
+        async function saveForm() {
+            const body = {};
+            body.DeptCode = document.getElementById("fDeptCode").value || null;
+            body.DeptName = document.getElementById("fDeptName").value || null;
+            body.Level = document.getElementById("fLevel").value || null;
+            body.ParentCode = document.getElementById("fParentCode").value || null;
+            body.SiteCode = document.getElementById("fSiteCode").value || null;
+            body.CostCenter = document.getElementById("fCostCenter").value || null;
+            body.HeadName = document.getElementById("fHeadName").value || null;
+            body.HeadTitle = document.getElementById("fHeadTitle").value || null;
+            body.Remarks = document.getElementById("fRemarks").value || null;
+            Object.keys(body).forEach(k => { if (body[k] === "") body[k] = null; });
+            const method = editingId ? "PUT" : "POST";
+            const url = editingId ? API + "/" + editingId : API;
+            const res = await fetch(url, { method, headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) });
+            if (res.ok) { Swal.fire("Berhasil","Data disimpan","success"); MODAL.hide(); loadData(); }
+            else { const e = await res.json(); Swal.fire("Error", e.error || "Gagal menyimpan","error"); }
+        }
+
+        loadData();
+    </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+@HaulingDemoApp_HostAddress = http://localhost:5178
+
+GET {{HaulingDemoApp_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

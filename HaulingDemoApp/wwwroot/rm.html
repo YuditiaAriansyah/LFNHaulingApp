@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LFN R&M - Repair & Maintenance</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        <style>
+        :root {
+            --primary-color: #1e3a5f;
+            --secondary-color: #0f766e;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --bg-page: #F8FAFC;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --accent-color: #0f766e;
+            --accent-light: #f0fdfa;
+            --navy: #1e3a5f;
+        }
+        .navbar { background: var(--navy); padding: 0.75rem 0; border-bottom: 1px solid rgba(255,255,255,0.08); box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+        .navbar-brand { font-weight: 700; font-size: 1.35rem; color: #fff !important; display: flex; align-items: center; gap: 8px; }
+        .navbar-brand i { color: #38bdf8; font-size: 1.6rem; }
+        .nav-group { display: flex; align-items: center; gap: 2px; }
+        .nav-group-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.35); padding: 0 8px; margin-right: 4px; border-right: 1px solid rgba(255,255,255,0.15); }
+        .nav-link { color: rgba(255,255,255,0.65) !important; font-weight: 500; font-size: 0.875rem; padding: 0.5rem 0.75rem !important; border-radius: 8px; transition: all 0.2s ease; display: flex; align-items: center; gap: 6px; position: relative; }
+        .nav-link i { font-size: 1rem; opacity: 0.8; }
+        .nav-link:hover, .nav-link.active { color: #fff !important; background: rgba(15,118,110,0.25); }
+        .nav-link.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 60%; background: #38bdf8; border-radius: 0 2px 2px 0; }
+        body { background-color: var(--bg-page); min-height: 100vh; padding-top: 76px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: var(--text-primary); line-height: 1.6; }
+        .main-container { background: var(--bg-card); border-radius: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04); border: 1px solid var(--border-color); padding: 28px 32px; margin-top: 20px; }
+        .page-header { background: linear-gradient(135deg, #1e3a5f 0%, #0f766e 100%); color: white; padding: 24px 28px; border-radius: 12px; margin-bottom: 28px; box-shadow: 0 4px 12px rgba(15,118,110,0.3); }
+        .page-header h1 { margin: 0 0 4px 0; font-size: 1.5rem; font-weight: 700; letter-spacing: -0.01em; }
+        .page-header p { margin: 0; opacity: 0.75; font-size: 0.875rem; }
+        .stats-card { background: var(--bg-card); border-radius: 12px; padding: 20px 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04); border: 1px solid var(--border-color); text-align: center; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .stats-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .stats-card h6 { color: var(--text-secondary); margin-bottom: 10px; font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stats-card .number { font-size: 1.625rem; font-weight: 700; line-height: 1.2; }
+        .stats-card.wo { border-top: 3px solid var(--secondary-color); }
+        .stats-card.wo .number { color: var(--secondary-color); }
+        .stats-card.pm { border-top: 3px solid var(--success-color); }
+        .stats-card.pm .number { color: var(--success-color); }
+        .stats-card.cm { border-top: 3px solid var(--danger-color); }
+        .stats-card.cm .number { color: var(--danger-color); }
+        .stats-card.downtime { border-top: 3px solid var(--warning-color); }
+        .stats-card.downtime .number { color: var(--warning-color); }
+        .stats-card.cost { border-top: 3px solid #7c3aed; }
+        .stats-card.cost .number { color: #7c3aed; }
+        .filter-section { background: var(--bg-page); padding: 20px 24px; border-radius: 12px; margin-bottom: 24px; border: 1px solid var(--border-color); border-left: 4px solid var(--secondary-color); }
+        .form-label { font-weight: 600; color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; }
+        .form-select, .form-control { border-radius: 10px; border: 1.5px solid var(--border-color); padding: 10px 14px; font-size: 0.875rem; background: #fff; color: var(--text-primary); transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+        .form-select:focus, .form-control:focus { border-color: var(--secondary-color); box-shadow: 0 0 0 3px rgba(15,118,110,0.1); outline: none; }
+        .btn { border-radius: 10px; padding: 9px 22px; font-weight: 600; font-size: 0.875rem; transition: all 0.2s ease; border: none; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-primary { background: var(--secondary-color); color: white; }
+        .btn-primary:hover { background: #0d5e56; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15,118,110,0.35); }
+        .btn-success { background: var(--success-color); color: white; }
+        .btn-success:hover { background: #059669; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16,185,129,0.35); }
+        .btn-danger { background: var(--danger-color); color: white; }
+        .btn-danger:hover { background: #dc2626; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(239,68,68,0.35); }
+        .btn-warning { background: var(--warning-color); color: white; }
+        .table-responsive { border-radius: 12px; overflow: hidden; }
+        .table { margin-bottom: 0; font-size: 0.875rem; }
+        .table thead th { background: var(--bg-page); color: var(--text-secondary); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--border-color) !important; padding: 12px 16px; white-space: nowrap; }
+        .table tbody tr { transition: background-color 0.15s ease; border-bottom: 1px solid var(--border-color); }
+        .table tbody tr:last-child { border-bottom: none; }
+        .table tbody tr:hover { background-color: #f8fafc; }
+        .table tbody td { padding: 13px 16px; vertical-align: middle; color: var(--text-primary); }
+        .badge { padding: 4px 12px; border-radius: 50px; font-weight: 600; font-size: 0.7rem; letter-spacing: 0.3px; text-transform: uppercase; }
+        .badge-open { background: #dbeafe; color: #1e40af; }
+        .badge-inprogress { background: #fef3c7; color: #92400e; }
+        .badge-completed { background: #d1fae5; color: #065f46; }
+        .badge-cancelled { background: #f1f5f9; color: #475569; }
+        .badge-scheduled { background: #dbeafe; color: #1e40af; }
+        .badge-overdue { background: #fee2e2; color: #991b1b; }
+        .badge-reported { background: #f3e8ff; color: #6b21a8; }
+        .badge-low { background: #f1f5f9; color: #475569; }
+        .badge-medium { background: #fef3c7; color: #92400e; }
+        .badge-high { background: #fed7aa; color: #9a3412; }
+        .badge-critical { background: #fee2e2; color: #991b1b; }
+        .badge-breakdown { background: #fee2e2; color: #991b1b; }
+        .badge-corrective { background: #f3e8ff; color: #6b21a8; }
+        .badge-emergency { background: #fee2e2; color: #991b1b; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .nav-tabs { border-bottom: 2px solid var(--border-color); margin-bottom: 24px; gap: 4px; }
+        .nav-tabs .nav-link { border: none; color: var(--text-secondary); font-weight: 500; font-size: 0.875rem; padding: 10px 20px; border-radius: 8px 8px 0 0; background: transparent; margin-right: 0; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s ease; }
+        .nav-tabs .nav-link:hover { color: var(--secondary-color); background: var(--accent-light); }
+        .nav-tabs .nav-link.active { color: var(--secondary-color); background: transparent; border-bottom-color: var(--secondary-color); font-weight: 600; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .action-buttons .btn { padding: 5px 10px; font-size: 0.75rem; border-radius: 8px; }
+        .modal-header { background: var(--secondary-color); color: white; border-radius: 12px 12px 0 0; padding: 20px 24px; }
+        .modal-header .btn-close { filter: invert(1); }
+        .form-section { background: var(--bg-page); padding: 20px 24px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--border-color); }
+        .form-section h6 { color: var(--text-primary); margin-bottom: 16px; font-weight: 600; }
+        .required { color: var(--danger-color); }
+
+        /* Tabs - override Bootstrap default dark style */
+        .nav-tabs { border-bottom: 2px solid var(--border-color); gap: 4px; padding: 0; margin-bottom: 0; }
+        .nav-tabs .nav-item { margin-bottom: 0; }
+        .nav-tabs .nav-link {
+            color: var(--text-secondary) !important;
+            background: #f1f5f9;
+            border: 1.5px solid var(--border-color);
+            border-bottom: none;
+            padding: 10px 20px;
+            border-radius: 10px 10px 0 0;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            margin-right: 4px;
+        }
+        .nav-tabs .nav-link i { font-size: 0.9rem; margin-right: 4px; opacity: 0.7; }
+        .nav-tabs .nav-link:hover {
+            color: var(--accent) !important;
+            background: var(--accent-light);
+            border-color: var(--accent);
+        }
+        .nav-tabs .nav-link.active {
+            color: #fff !important;
+            background: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+        }
+        .nav-tabs .nav-link.active i { opacity: 1; }
+        .nav-pills .nav-link { border-radius: 10px; }
+        .nav-pills .nav-link.active { background: var(--accent); color: #fff !important; }
+
+    </style>
+
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="bi bi-tools me-2"></i>LFN R&M</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a  class="nav-link" href="/" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-house me-1"></i> Home</a></li>
+                    <li class="nav-item"><a  class="nav-link" href="datalist-fuel.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-fuel-pump me-1"></i> Fuel</a></li>
+                    <li class="nav-item"><a  class="nav-link" href="inventory.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-boxes me-1"></i> Inventory</a></li>
+                    <li class="nav-item"><a  class="nav-link" href="fleet.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-car-front me-1"></i> Fleet</a></li>
+                    <li class="nav-item"><a  class="nav-link active" href="rm.html" style="background:#0f766e!important;color:#fff!important;border:1.5px solid #0f766e!important;border-bottom:none!important;"<i class="bi bi-tools me-1"></i> R&M</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="main-container">
+            <div class="page-header text-center">
+                <h1><i class="bi bi-tools"></i> Repair & Maintenance</h1>
+                <p>Work Order, Preventive Maintenance & Corrective Management</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row mb-4" id="statsCards">
+                <div class="col-md-2"><div class="stats-card wo"><h6><i class="bi bi-clipboard-check"></i> Total WO</h6><div class="number" id="statTotalWO">0</div></div></div>
+                <div class="col-md-2"><div class="stats-card wo"><h6><i class="bi bi-hourglass-split"></i> Open WO</h6><div class="number" id="statOpenWO">0</div></div></div>
+                <div class="col-md-2"><div class="stats-card pm"><h6><i class="bi bi-calendar-check"></i> Total PM</h6><div class="number" id="statTotalPM">0</div></div></div>
+                <div class="col-md-2"><div class="stats-card pm"><h6><i class="bi bi-exclamation-triangle"></i> Overdue PM</h6><div class="number" id="statOverduePM">0</div></div></div>
+                <div class="col-md-2"><div class="stats-card cm"><h6><i class="bi bi-wrench"></i> Breakdown</h6><div class="number" id="statBreakdown">0</div></div></div>
+                <div class="col-md-2"><div class="stats-card downtime"><h6><i class="bi bi-clock-history"></i> Downtime</h6><div class="number" id="statDowntime">0h</div></div></div>
+            </div>
+
+            <!-- Tabs -->
+            <ul class="nav nav-tabs">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="woTab" onclick="switchTab('wo')" type="button" role="tab" style="background:#0f766e!important;color:#fff!important;border:1.5px solid #0f766e!important;border-bottom:none!important;">
+                        <i class="bi bi-clipboard-check me-2"></i>Work Orders
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pmTab" onclick="switchTab('pm')" type="button" role="tab" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;">
+                        <i class="bi bi-calendar-check me-2"></i>PM Schedule
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="cmTab" onclick="switchTab('cm')" type="button" role="tab" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;">
+                        <i class="bi bi-tools me-2"></i>Corrective Maint.
+                    </button>
+                </li>
+            </ul>
+
+            <!-- ==================== WORK ORDER TAB ==================== -->
+            <div class="tab-content active" id="woContent">
+                <div class="filter-section">
+                    <h5><i class="bi bi-funnel-fill"></i> Filter Work Order</h5>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label">Site</label>
+                            <select class="form-select" id="woFilterSite">
+                                <option value="all">All Sites</option>
+                                <option value="Sungai Dua">Sungai Dua</option>
+                                <option value="Sebamban">Sebamban</option>
+                                <option value="Mandala">Mandala</option>
+                                <option value="Tanjung">Tanjung</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="woFilterStatus">
+                                <option value="all">All Status</option>
+                                <option value="OPEN">Open</option>
+                                <option value="IN_PROGRESS">In Progress</option>
+                                <option value="COMPLETED">Completed</option>
+                                <option value="CANCELLED">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Unit No</label>
+                            <input type="text" class="form-control" id="woFilterUnit" placeholder="Search unit...">
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button class="btn btn-primary me-2" onclick="loadWorkOrders()"><i class="bi bi-search"></i> Apply</button>
+                            <button class="btn btn-outline-secondary" onclick="resetWOFilter()"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mb-3">
+                    <button class="btn btn-primary" onclick="openWOForm()"><i class="bi bi-plus-circle"></i> New Work Order</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table" id="woTable">
+                        <thead>
+                            <tr>
+                                <th>No</th><th>WO Number</th><th>Date</th><th>Site</th><th>Unit No</th><th>Type</th><th>Priority</th><th>Status</th><th>Assigned To</th><th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="woTableBody">
+                            <tr><td colspan="10" class="text-center text-muted py-4"><i class="bi bi-hourglass-split fs-3 d-block mb-2"></i>Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ==================== PREVENTIVE MAINTENANCE TAB ==================== -->
+            <div class="tab-content" id="pmContent">
+                <div class="filter-section">
+                    <h5><i class="bi bi-funnel-fill"></i> Filter PM</h5>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label">Site</label>
+                            <select class="form-select" id="pmFilterSite">
+                                <option value="all">All Sites</option>
+                                <option value="Sungai Dua">Sungai Dua</option>
+                                <option value="Sebamban">Sebamban</option>
+                                <option value="Mandala">Mandala</option>
+                                <option value="Tanjung">Tanjung</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="pmFilterStatus">
+                                <option value="all">All Status</option>
+                                <option value="SCHEDULED">Scheduled</option>
+                                <option value="IN_PROGRESS">In Progress</option>
+                                <option value="COMPLETED">Completed</option>
+                                <option value="OVERDUE">Overdue</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Unit No</label>
+                            <input type="text" class="form-control" id="pmFilterUnit" placeholder="Search unit...">
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button class="btn btn-primary me-2" onclick="loadPM()"><i class="bi bi-search"></i> Apply</button>
+                            <button class="btn btn-outline-secondary" onclick="resetPMFilter()"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mb-3">
+                    <button class="btn btn-success" onclick="openPMForm()"><i class="bi bi-plus-circle"></i> New PM Schedule</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table" id="pmTable">
+                        <thead>
+                            <tr>
+                                <th>No</th><th>PM Number</th><th>Date</th><th>Site</th><th>Unit No</th><th>PM Type</th><th>Status</th><th>Scheduled</th><th>HM Value</th><th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pmTableBody">
+                            <tr><td colspan="10" class="text-center text-muted py-4"><i class="bi bi-hourglass-split fs-3 d-block mb-2"></i>Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ==================== CORRECTIVE & BREAKDOWN TAB ==================== -->
+            <div class="tab-content" id="cmContent">
+                <div class="filter-section">
+                    <h5><i class="bi bi-funnel-fill"></i> Filter Corrective</h5>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label">Site</label>
+                            <select class="form-select" id="cmFilterSite">
+                                <option value="all">All Sites</option>
+                                <option value="Sungai Dua">Sungai Dua</option>
+                                <option value="Sebamban">Sebamban</option>
+                                <option value="Mandala">Mandala</option>
+                                <option value="Tanjung">Tanjung</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="cmFilterStatus">
+                                <option value="all">All Status</option>
+                                <option value="REPORTED">Reported</option>
+                                <option value="DIAGNOSING">Diagnosing</option>
+                                <option value="WAITING_PARTS">Waiting Parts</option>
+                                <option value="IN_REPAIR">In Repair</option>
+                                <option value="COMPLETED">Completed</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Unit No</label>
+                            <input type="text" class="form-control" id="cmFilterUnit" placeholder="Search unit...">
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button class="btn btn-primary me-2" onclick="loadCorrective()"><i class="bi bi-search"></i> Apply</button>
+                            <button class="btn btn-outline-secondary" onclick="resetCMFilter()"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mb-3">
+                    <button class="btn btn-danger" onclick="openCMForm()"><i class="bi bi-plus-circle"></i> New Corrective/Breakdown</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table" id="cmTable">
+                        <thead>
+                            <tr>
+                                <th>No</th><th>CM Number</th><th>Date</th><th>Site</th><th>Unit No</th><th>Type</th><th>Priority</th><th>Status</th><th>Downtime</th><th>Cost</th><th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cmTableBody">
+                            <tr><td colspan="11" class="text-center text-muted py-4"><i class="bi bi-hourglass-split fs-3 d-block mb-2"></i>Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== WORK ORDER MODAL ==================== -->
+    <div class="modal fade" id="woModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-clipboard me-2"></i>Work Order</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="woForm">
+                        <input type="hidden" id="woId">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">WO Number</label>
+                                    <input type="text" class="form-control" id="woNumber" placeholder="Auto-generated">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Date</label>
+                                    <input type="date" class="form-control" id="woDate">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Site <span class="required">*</span></label>
+                                    <select class="form-select" id="woSite" required>
+                                        <option value="">Select Site</option>
+                                        <option value="Sungai Dua">Sungai Dua</option>
+                                        <option value="Sebamban">Sebamban</option>
+                                        <option value="Mandala">Mandala</option>
+                                        <option value="Tanjung">Tanjung</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Unit No <span class="required">*</span></label>
+                                    <input type="text" class="form-control" id="woUnitNo" required placeholder="e.g., SD-001">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Merk/Type</label>
+                                    <input type="text" class="form-control" id="woMerkType" placeholder="e.g., Volvo, CAT">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Category</label>
+                                    <select class="form-select" id="woCategory">
+                                        <option value="">Select Category</option>
+                                        <option value="Dump Truck">Dump Truck</option>
+                                        <option value="Excavator">Excavator</option>
+                                        <option value="Bulldozer">Bulldozer</option>
+                                        <option value="Wheel Loader">Wheel Loader</option>
+                                        <option value="Grader">Grader</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Type <span class="required">*</span></label>
+                                    <select class="form-select" id="woType" required>
+                                        <option value="PREVENTIVE">Preventive</option>
+                                        <option value="CORRECTIVE">Corrective</option>
+                                        <option value="BREAKDOWN">Breakdown</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Priority <span class="required">*</span></label>
+                                    <select class="form-select" id="woPriority" required>
+                                        <option value="LOW">Low</option>
+                                        <option value="MEDIUM">Medium</option>
+                                        <option value="HIGH">High</option>
+                                        <option value="CRITICAL">Critical</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" id="woStatus">
+                                        <option value="OPEN">Open</option>
+                                        <option value="IN_PROGRESS">In Progress</option>
+                                        <option value="COMPLETED">Completed</option>
+                                        <option value="CANCELLED">Cancelled</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-section">
+                            <h6><i class="bi bi-info-circle"></i> Problem & Action</h6>
+                            <div class="mb-3">
+                                <label class="form-label">Problem</label>
+                                <textarea class="form-control" id="woProblem" rows="2"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Cause</label>
+                                <input type="text" class="form-control" id="woCause" placeholder="Root cause...">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Action Taken</label>
+                                <textarea class="form-control" id="woActionTaken" rows="2"></textarea>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Scheduled Date</label>
+                                    <input type="date" class="form-control" id="woScheduledDate">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Start Date</label>
+                                    <input type="date" class="form-control" id="woStartDate">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">End Date</label>
+                                    <input type="date" class="form-control" id="woEndDate">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Est. Cost</label>
+                                    <input type="number" class="form-control" id="woEstimatedCost" step="0.01">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Actual Cost</label>
+                                    <input type="number" class="form-control" id="woActualCost" step="0.01">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Assigned To</label>
+                                    <input type="text" class="form-control" id="woAssignedTo" placeholder="Technician name">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Remarks</label>
+                            <textarea class="form-control" id="woRemarks" rows="2"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" onclick="saveWO()"><i class="bi bi-check-circle"></i> Save</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== PM MODAL ==================== -->
+    <div class="modal fade" id="pmModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #27ae60, #2ecc71);">
+                    <h5 class="modal-title"><i class="bi bi-calendar-check me-2"></i>Preventive Maintenance</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="pmForm">
+                        <input type="hidden" id="pmId">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">PM Number</label>
+                                    <input type="text" class="form-control" id="pmNumber" placeholder="Auto-generated">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Date</label>
+                                    <input type="date" class="form-control" id="pmDate">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Site <span class="required">*</span></label>
+                                    <select class="form-select" id="pmSite" required>
+                                        <option value="">Select Site</option>
+                                        <option value="Sungai Dua">Sungai Dua</option>
+                                        <option value="Sebamban">Sebamban</option>
+                                        <option value="Mandala">Mandala</option>
+                                        <option value="Tanjung">Tanjung</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Unit No <span class="required">*</span></label>
+                                    <input type="text" class="form-control" id="pmUnitNo" required placeholder="e.g., SD-001">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Merk/Type</label>
+                                    <input type="text" class="form-control" id="pmMerkType" placeholder="e.g., Volvo, CAT">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">PM Type <span class="required">*</span></label>
+                                    <select class="form-select" id="pmType" required>
+                                        <option value="DAILY">Daily</option>
+                                        <option value="WEEKLY">Weekly</option>
+                                        <option value="MONTHLY">Monthly</option>
+                                        <option value="QUARTERLY">Quarterly</option>
+                                        <option value="YEARLY">Yearly</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Description</label>
+                                    <textarea class="form-control" id="pmDescription" rows="2" placeholder="Maintenance description..."></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" id="pmStatus">
+                                        <option value="SCHEDULED">Scheduled</option>
+                                        <option value="IN_PROGRESS">In Progress</option>
+                                        <option value="COMPLETED">Completed</option>
+                                        <option value="OVERDUE">Overdue</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Assigned To</label>
+                                    <input type="text" class="form-control" id="pmAssignedTo" placeholder="Technician name">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Scheduled Date</label>
+                                    <input type="date" class="form-control" id="pmScheduledDate">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Start Date</label>
+                                    <input type="date" class="form-control" id="pmStartDate">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">End Date</label>
+                                    <input type="date" class="form-control" id="pmEndDate">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">HM Value</label>
+                                    <input type="number" class="form-control" id="pmHMValue" step="0.01" placeholder="Hour meter value">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Next HM Value</label>
+                                    <input type="number" class="form-control" id="pmNextHMValue" step="0.01" placeholder="Next service HM">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Remarks</label>
+                                    <input type="text" class="form-control" id="pmRemarks" placeholder="Additional notes">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" onclick="savePM()"><i class="bi bi-check-circle"></i> Save</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== CORRECTIVE MODAL ==================== -->
+    <div class="modal fade" id="cmModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
+                    <h5 class="modal-title"><i class="bi bi-wrench me-2"></i>Corrective & Breakdown</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="cmForm">
+                        <input type="hidden" id="cmId">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">CM Number</label>
+                                    <input type="text" class="form-control" id="cmNumber" placeholder="Auto-generated">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Date</label>
+                                    <input type="date" class="form-control" id="cmDate">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Site <span class="required">*</span></label>
+                                    <select class="form-select" id="cmSite" required>
+                                        <option value="">Select Site</option>
+                                        <option value="Sungai Dua">Sungai Dua</option>
+                                        <option value="Sebamban">Sebamban</option>
+                                        <option value="Mandala">Mandala</option>
+                                        <option value="Tanjung">Tanjung</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Unit No <span class="required">*</span></label>
+                                    <input type="text" class="form-control" id="cmUnitNo" required placeholder="e.g., SD-001">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Merk/Type</label>
+                                    <input type="text" class="form-control" id="cmMerkType" placeholder="e.g., Volvo, CAT">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Category</label>
+                                    <select class="form-select" id="cmCategory">
+                                        <option value="">Select Category</option>
+                                        <option value="Dump Truck">Dump Truck</option>
+                                        <option value="Excavator">Excavator</option>
+                                        <option value="Bulldozer">Bulldozer</option>
+                                        <option value="Wheel Loader">Wheel Loader</option>
+                                        <option value="Grader">Grader</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Type <span class="required">*</span></label>
+                                    <select class="form-select" id="cmType" required>
+                                        <option value="CORRECTIVE">Corrective</option>
+                                        <option value="BREAKDOWN">Breakdown</option>
+                                        <option value="EMERGENCY">Emergency</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Priority <span class="required">*</span></label>
+                                    <select class="form-select" id="cmPriority" required>
+                                        <option value="LOW">Low</option>
+                                        <option value="MEDIUM">Medium</option>
+                                        <option value="HIGH">High</option>
+                                        <option value="CRITICAL">Critical</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" id="cmStatus">
+                                        <option value="REPORTED">Reported</option>
+                                        <option value="DIAGNOSING">Diagnosing</option>
+                                        <option value="WAITING_PARTS">Waiting Parts</option>
+                                        <option value="IN_REPAIR">In Repair</option>
+                                        <option value="COMPLETED">Completed</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-section">
+                            <h6><i class="bi bi-exclamation-circle"></i> Problem Details</h6>
+                            <div class="mb-3">
+                                <label class="form-label">Problem <span class="required">*</span></label>
+                                <textarea class="form-control" id="cmProblem" rows="2" required placeholder="Describe the problem..."></textarea>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Root Cause</label>
+                                        <input type="text" class="form-control" id="cmRootCause" placeholder="Root cause analysis...">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Solution</label>
+                                        <input type="text" class="form-control" id="cmSolution" placeholder="Solution applied...">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Breakdown Start</label>
+                                    <input type="datetime-local" class="form-control" id="cmBreakdownStart">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Breakdown End</label>
+                                    <input type="datetime-local" class="form-control" id="cmBreakdownEnd">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Downtime (Hours)</label>
+                                    <input type="number" class="form-control" id="cmDowntimeHours" step="0.01" placeholder="0.00">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Parts Cost</label>
+                                    <input type="number" class="form-control" id="cmPartsCost" step="0.01" placeholder="0.00">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Labor Cost</label>
+                                    <input type="number" class="form-control" id="cmLaborCost" step="0.01" placeholder="0.00">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Total Repair Cost</label>
+                                    <input type="number" class="form-control" id="cmRepairCost" step="0.01" placeholder="0.00">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Reported By</label>
+                                    <input type="text" class="form-control" id="cmReportedBy" placeholder="Reporter name">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Assigned To</label>
+                                    <input type="text" class="form-control" id="cmAssignedTo" placeholder="Technician name">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Remarks</label>
+                                    <input type="text" class="form-control" id="cmRemarks" placeholder="Additional notes">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" onclick="saveCM()"><i class="bi bi-check-circle"></i> Save</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Modal -->
+    <div class="modal fade" id="viewModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewModalTitle"><i class="bi bi-eye me-2"></i>Detail</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="viewModalBody"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="bi bi-trash me-2"></i>Confirm Delete</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="deleteMessage">Delete this record?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn"><i class="bi bi-trash"></i> Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentTab = 'wo';
+        let editingId = null;
+        let deleteCallback = null;
+
+        // ==================== TAB SWITCHING ====================
+        
+        const ACTIVE_STYLE   = 'background:#0f766e!important;color:#fff!important;border:1.5px solid #0f766e!important;border-bottom:none!important;';
+        const INACTIVE_STYLE = 'background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;';
+
+function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.nav-link').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
+            document.getElementById(tab + 'Content').classList.add('active');
+        }
+
+        // ==================== LOAD DATA ====================
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/rm/summary');
+                const data = await response.json();
+                document.getElementById('statTotalWO').textContent = data.totalWorkOrders || 0;
+                document.getElementById('statOpenWO').textContent = data.openWorkOrders || 0;
+                document.getElementById('statTotalPM').textContent = data.totalPM || 0;
+                document.getElementById('statOverduePM').textContent = data.overduePM || 0;
+                document.getElementById('statBreakdown').textContent = data.breakdownCount || 0;
+                document.getElementById('statDowntime').textContent = (data.totalDowntimeHours || 0) + 'h';
+            } catch (error) { console.error('Error loading stats:', error); }
+        }
+
+        async function loadWorkOrders() {
+            const site = document.getElementById('woFilterSite').value;
+            const status = document.getElementById('woFilterStatus').value;
+            const unitNo = document.getElementById('woFilterUnit').value;
+
+            try {
+                const response = await fetch(`/api/workorders?site=${site}&status=${status}&unitNo=${unitNo || ''}`);
+                const data = await response.json();
+                renderWOTable(data);
+            } catch (error) { console.error('Error:', error); }
+        }
+
+        function renderWOTable(data) {
+            const tbody = document.getElementById('woTableBody');
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4"><i class="bi bi-inbox fs-3 d-block mb-2"></i>No work orders found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.map((w, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td><strong>${w.wONumber}</strong></td>
+                    <td>${formatDate(w.woDate)}</td>
+                    <td>${w.site}</td>
+                    <td>${w.unitNo}</td>
+                    <td>${getWOBadge(w.woType)}</td>
+                    <td>${getPriorityBadge(w.priority)}</td>
+                    <td>${getWOStatusBadge(w.status)}</td>
+                    <td>${w.assignedTo || '-'}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-info btn-sm" onclick="viewWO(${w.id})"><i class="bi bi-eye"></i></button>
+                            <button class="btn btn-warning btn-sm" onclick="editWO(${w.id})"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-danger btn-sm" onclick="confirmDelete(${w.id}, '${w.wONumber}', 'wo')"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadPM() {
+            const site = document.getElementById('pmFilterSite').value;
+            const status = document.getElementById('pmFilterStatus').value;
+            const unitNo = document.getElementById('pmFilterUnit').value;
+
+            try {
+                const response = await fetch(`/api/pm?site=${site}&status=${status}&unitNo=${unitNo || ''}`);
+                const data = await response.json();
+                renderPMTable(data);
+            } catch (error) { console.error('Error:', error); }
+        }
+
+        function renderPMTable(data) {
+            const tbody = document.getElementById('pmTableBody');
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4"><i class="bi bi-inbox fs-3 d-block mb-2"></i>No PM records found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.map((p, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td><strong>${p.pmNumber}</strong></td>
+                    <td>${formatDate(p.pmDate)}</td>
+                    <td>${p.site}</td>
+                    <td>${p.unitNo}</td>
+                    <td><span class="badge bg-secondary">${p.pmType}</span></td>
+                    <td>${getPMStatusBadge(p.status)}</td>
+                    <td>${formatDate(p.scheduledDate)}</td>
+                    <td class="text-end">${formatNumber(p.hmValue)}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-info btn-sm" onclick="viewPM(${p.id})"><i class="bi bi-eye"></i></button>
+                            <button class="btn btn-warning btn-sm" onclick="editPM(${p.id})"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-danger btn-sm" onclick="confirmDelete(${p.id}, '${p.pmNumber}', 'pm')"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadCorrective() {
+            const site = document.getElementById('cmFilterSite').value;
+            const status = document.getElementById('cmFilterStatus').value;
+            const unitNo = document.getElementById('cmFilterUnit').value;
+
+            try {
+                const response = await fetch(`/api/corrective?site=${site}&status=${status}&unitNo=${unitNo || ''}`);
+                const data = await response.json();
+                renderCMTable(data);
+            } catch (error) { console.error('Error:', error); }
+        }
+
+        function renderCMTable(data) {
+            const tbody = document.getElementById('cmTableBody');
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" class="text-center text-muted py-4"><i class="bi bi-inbox fs-3 d-block mb-2"></i>No corrective records found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.map((c, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td><strong>${c.cmNumber}</strong></td>
+                    <td>${formatDate(c.cmDate)}</td>
+                    <td>${c.site}</td>
+                    <td>${c.unitNo}</td>
+                    <td>${getCMTypeBadge(c.cmType)}</td>
+                    <td>${getPriorityBadge(c.priority)}</td>
+                    <td>${getCMStatusBadge(c.status)}</td>
+                    <td>${formatNumber(c.downtimeHours)}h</td>
+                    <td class="text-end">${formatCurrency(getTotalCost(c))}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-info btn-sm" onclick="viewCM(${c.id})"><i class="bi bi-eye"></i></button>
+                            <button class="btn btn-warning btn-sm" onclick="editCM(${c.id})"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-danger btn-sm" onclick="confirmDelete(${c.id}, '${c.cmNumber}', 'cm')"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // ==================== WORK ORDER CRUD ====================
+        function openWOForm(id = null) {
+            editingId = id;
+            document.getElementById('woForm').reset();
+            document.getElementById('woId').value = '';
+            document.getElementById('woDate').value = new Date().toISOString().split('T')[0];
+            new bootstrap.Modal(document.getElementById('woModal')).show();
+        }
+
+        async function editWO(id) {
+            try {
+                const response = await fetch(`/api/workorders/${id}`);
+                const w = await response.json();
+                editingId = id;
+                document.getElementById('woId').value = w.id;
+                document.getElementById('woNumber').value = w.wONumber || '';
+                document.getElementById('woDate').value = w.woDate ? w.woDate.split('T')[0] : '';
+                document.getElementById('woSite').value = w.site;
+                document.getElementById('woUnitNo').value = w.unitNo;
+                document.getElementById('woMerkType').value = w.merkType || '';
+                document.getElementById('woCategory').value = w.category || '';
+                document.getElementById('woType').value = w.woType;
+                document.getElementById('woPriority').value = w.priority;
+                document.getElementById('woStatus').value = w.status;
+                document.getElementById('woProblem').value = w.problem || '';
+                document.getElementById('woCause').value = w.cause || '';
+                document.getElementById('woActionTaken').value = w.actionTaken || '';
+                document.getElementById('woScheduledDate').value = w.scheduledDate ? w.scheduledDate.split('T')[0] : '';
+                document.getElementById('woStartDate').value = w.startDate ? w.startDate.split('T')[0] : '';
+                document.getElementById('woEndDate').value = w.endDate ? w.endDate.split('T')[0] : '';
+                document.getElementById('woEstimatedCost').value = w.estimatedCost || '';
+                document.getElementById('woActualCost').value = w.actualCost || '';
+                document.getElementById('woAssignedTo').value = w.assignedTo || '';
+                document.getElementById('woRemarks').value = w.remarks || '';
+                new bootstrap.Modal(document.getElementById('woModal')).show();
+            } catch (error) { Swal.fire('Error', 'Failed to load work order', 'error'); }
+        }
+
+        async function saveWO() {
+            const data = {
+                wONumber: document.getElementById('woNumber').value || null,
+                wODate: document.getElementById('woDate').value || null,
+                site: document.getElementById('woSite').value,
+                unitNo: document.getElementById('woUnitNo').value,
+                merkType: document.getElementById('woMerkType').value || null,
+                category: document.getElementById('woCategory').value || null,
+                wOType: document.getElementById('woType').value,
+                priority: document.getElementById('woPriority').value,
+                status: document.getElementById('woStatus').value,
+                problem: document.getElementById('woProblem').value || null,
+                cause: document.getElementById('woCause').value || null,
+                actionTaken: document.getElementById('woActionTaken').value || null,
+                scheduledDate: document.getElementById('woScheduledDate').value || null,
+                startDate: document.getElementById('woStartDate').value || null,
+                endDate: document.getElementById('woEndDate').value || null,
+                estimatedCost: parseFloat(document.getElementById('woEstimatedCost').value) || null,
+                actualCost: parseFloat(document.getElementById('woActualCost').value) || null,
+                assignedTo: document.getElementById('woAssignedTo').value || null,
+                remarks: document.getElementById('woRemarks').value || null
+            };
+
+            try {
+                const url = editingId ? `/api/workorders/${editingId}` : '/api/workorders';
+                const method = editingId ? 'PUT' : 'POST';
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (!response.ok) throw new Error('Save failed');
+                Swal.fire('Success', `Work Order ${editingId ? 'updated' : 'created'} successfully`, 'success');
+                bootstrap.Modal.getInstance(document.getElementById('woModal')).hide();
+                loadWorkOrders();
+                loadStats();
+            } catch (error) { Swal.fire('Error', 'Failed to save work order', 'error'); }
+        }
+
+        async function viewWO(id) {
+            try {
+                const response = await fetch(`/api/workorders/${id}`);
+                const w = await response.json();
+                document.getElementById('viewModalTitle').innerHTML = '<i class="bi bi-clipboard me-2"></i>Work Order Detail';
+                document.getElementById('viewModalBody').innerHTML = generateWODetail(w);
+                new bootstrap.Modal(document.getElementById('viewModal')).show();
+            } catch (error) { Swal.fire('Error', 'Failed to load detail', 'error'); }
+        }
+
+        // ==================== PM CRUD ====================
+        function openPMForm() {
+            editingId = null;
+            document.getElementById('pmForm').reset();
+            document.getElementById('pmId').value = '';
+            document.getElementById('pmDate').value = new Date().toISOString().split('T')[0];
+            new bootstrap.Modal(document.getElementById('pmModal')).show();
+        }
+
+        async function editPM(id) {
+            try {
+                const response = await fetch(`/api/pm/${id}`);
+                const p = await response.json();
+                editingId = id;
+                document.getElementById('pmId').value = p.id;
+                document.getElementById('pmNumber').value = p.pmNumber || '';
+                document.getElementById('pmDate').value = p.pmDate ? p.pmDate.split('T')[0] : '';
+                document.getElementById('pmSite').value = p.site;
+                document.getElementById('pmUnitNo').value = p.unitNo;
+                document.getElementById('pmMerkType').value = p.merkType || '';
+                document.getElementById('pmType').value = p.pmType;
+                document.getElementById('pmStatus').value = p.status;
+                document.getElementById('pmDescription').value = p.description || '';
+                document.getElementById('pmScheduledDate').value = p.scheduledDate ? p.scheduledDate.split('T')[0] : '';
+                document.getElementById('pmStartDate').value = p.startDate ? p.startDate.split('T')[0] : '';
+                document.getElementById('pmEndDate').value = p.endDate ? p.endDate.split('T')[0] : '';
+                document.getElementById('pmHMValue').value = p.hmValue || '';
+                document.getElementById('pmNextHMValue').value = p.nextHmValue || '';
+                document.getElementById('pmAssignedTo').value = p.assignedTo || '';
+                document.getElementById('pmRemarks').value = p.remarks || '';
+                new bootstrap.Modal(document.getElementById('pmModal')).show();
+            } catch (error) { Swal.fire('Error', 'Failed to load PM', 'error'); }
+        }
+
+        async function savePM() {
+            const data = {
+                pmNumber: document.getElementById('pmNumber').value || null,
+                pmDate: document.getElementById('pmDate').value || null,
+                site: document.getElementById('pmSite').value,
+                unitNo: document.getElementById('pmUnitNo').value,
+                merkType: document.getElementById('pmMerkType').value || null,
+                pmType: document.getElementById('pmType').value,
+                status: document.getElementById('pmStatus').value,
+                description: document.getElementById('pmDescription').value || null,
+                scheduledDate: document.getElementById('pmScheduledDate').value || null,
+                startDate: document.getElementById('pmStartDate').value || null,
+                endDate: document.getElementById('pmEndDate').value || null,
+                hmValue: parseFloat(document.getElementById('pmHMValue').value) || null,
+                nextHmValue: parseFloat(document.getElementById('pmNextHMValue').value) || null,
+                assignedTo: document.getElementById('pmAssignedTo').value || null,
+                remarks: document.getElementById('pmRemarks').value || null
+            };
+
+            try {
+                const url = editingId ? `/api/pm/${editingId}` : '/api/pm';
+                const method = editingId ? 'PUT' : 'POST';
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (!response.ok) throw new Error('Save failed');
+                Swal.fire('Success', `PM ${editingId ? 'updated' : 'created'} successfully`, 'success');
+                bootstrap.Modal.getInstance(document.getElementById('pmModal')).hide();
+                loadPM();
+                loadStats();
+            } catch (error) { Swal.fire('Error', 'Failed to save PM', 'error'); }
+        }
+
+        async function viewPM(id) {
+            try {
+                const response = await fetch(`/api/pm/${id}`);
+                const p = await response.json();
+                document.getElementById('viewModalTitle').innerHTML = '<i class="bi bi-calendar-check me-2"></i>PM Detail';
+                document.getElementById('viewModalBody').innerHTML = generatePMDetail(p);
+                new bootstrap.Modal(document.getElementById('viewModal')).show();
+            } catch (error) { Swal.fire('Error', 'Failed to load detail', 'error'); }
+        }
+
+        // ==================== CORRECTIVE CRUD ====================
+        function openCMForm() {
+            editingId = null;
+            document.getElementById('cmForm').reset();
+            document.getElementById('cmId').value = '';
+            document.getElementById('cmDate').value = new Date().toISOString().split('T')[0];
+            new bootstrap.Modal(document.getElementById('cmModal')).show();
+        }
+
+        async function editCM(id) {
+            try {
+                const response = await fetch(`/api/corrective/${id}`);
+                const c = await response.json();
+                editingId = id;
+                document.getElementById('cmId').value = c.id;
+                document.getElementById('cmNumber').value = c.cmNumber || '';
+                document.getElementById('cmDate').value = c.cmDate ? c.cmDate.split('T')[0] : '';
+                document.getElementById('cmSite').value = c.site;
+                document.getElementById('cmUnitNo').value = c.unitNo;
+                document.getElementById('cmMerkType').value = c.merkType || '';
+                document.getElementById('cmCategory').value = c.category || '';
+                document.getElementById('cmType').value = c.cmType;
+                document.getElementById('cmPriority').value = c.priority;
+                document.getElementById('cmStatus').value = c.status;
+                document.getElementById('cmProblem').value = c.problem || '';
+                document.getElementById('cmRootCause').value = c.rootCause || '';
+                document.getElementById('cmSolution').value = c.solution || '';
+                document.getElementById('cmBreakdownStart').value = c.breakdownStart ? c.breakdownStart.replace('Z', '') : '';
+                document.getElementById('cmBreakdownEnd').value = c.breakdownEnd ? c.breakdownEnd.replace('Z', '') : '';
+                document.getElementById('cmDowntimeHours').value = c.downtimeHours || '';
+                document.getElementById('cmPartsCost').value = c.partsCost || '';
+                document.getElementById('cmLaborCost').value = c.laborCost || '';
+                document.getElementById('cmRepairCost').value = c.repairCost || '';
+                document.getElementById('cmReportedBy').value = c.reportedBy || '';
+                document.getElementById('cmAssignedTo').value = c.assignedTo || '';
+                document.getElementById('cmRemarks').value = c.remarks || '';
+                new bootstrap.Modal(document.getElementById('cmModal')).show();
+            } catch (error) { Swal.fire('Error', 'Failed to load corrective', 'error'); }
+        }
+
+        async function saveCM() {
+            const data = {
+                cmNumber: document.getElementById('cmNumber').value || null,
+                cmDate: document.getElementById('cmDate').value || null,
+                site: document.getElementById('cmSite').value,
+                unitNo: document.getElementById('cmUnitNo').value,
+                merkType: document.getElementById('cmMerkType').value || null,
+                category: document.getElementById('cmCategory').value || null,
+                cmType: document.getElementById('cmType').value,
+                priority: document.getElementById('cmPriority').value,
+                status: document.getElementById('cmStatus').value,
+                problem: document.getElementById('cmProblem').value,
+                rootCause: document.getElementById('cmRootCause').value || null,
+                solution: document.getElementById('cmSolution').value || null,
+                breakdownStart: document.getElementById('cmBreakdownStart').value ? document.getElementById('cmBreakdownStart').value + ':00' : null,
+                breakdownEnd: document.getElementById('cmBreakdownEnd').value ? document.getElementById('cmBreakdownEnd').value + ':00' : null,
+                downtimeHours: parseFloat(document.getElementById('cmDowntimeHours').value) || null,
+                partsCost: parseFloat(document.getElementById('cmPartsCost').value) || null,
+                laborCost: parseFloat(document.getElementById('cmLaborCost').value) || null,
+                repairCost: parseFloat(document.getElementById('cmRepairCost').value) || null,
+                reportedBy: document.getElementById('cmReportedBy').value || null,
+                assignedTo: document.getElementById('cmAssignedTo').value || null,
+                remarks: document.getElementById('cmRemarks').value || null
+            };
+
+            try {
+                const url = editingId ? `/api/corrective/${editingId}` : '/api/corrective';
+                const method = editingId ? 'PUT' : 'POST';
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (!response.ok) throw new Error('Save failed');
+                Swal.fire('Success', `Corrective ${editingId ? 'updated' : 'created'} successfully`, 'success');
+                bootstrap.Modal.getInstance(document.getElementById('cmModal')).hide();
+                loadCorrective();
+                loadStats();
+            } catch (error) { Swal.fire('Error', 'Failed to save corrective', 'error'); }
+        }
+
+        async function viewCM(id) {
+            try {
+                const response = await fetch(`/api/corrective/${id}`);
+                const c = await response.json();
+                document.getElementById('viewModalTitle').innerHTML = '<i class="bi bi-wrench me-2"></i>Corrective Detail';
+                document.getElementById('viewModalBody').innerHTML = generateCMDetail(c);
+                new bootstrap.Modal(document.getElementById('viewModal')).show();
+            } catch (error) { Swal.fire('Error', 'Failed to load detail', 'error'); }
+        }
+
+        // ==================== DELETE ====================
+        function confirmDelete(id, name, type) {
+            deleteCallback = async () => {
+                try {
+                    let url;
+                    if (type === 'wo') url = `/api/workorders/${id}`;
+                    else if (type === 'pm') url = `/api/pm/${id}`;
+                    else url = `/api/corrective/${id}`;
+
+                    await fetch(url, { method: 'DELETE' });
+                    Swal.fire('Deleted', 'Record deleted successfully', 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+                    if (type === 'wo') loadWorkOrders();
+                    else if (type === 'pm') loadPM();
+                    else loadCorrective();
+                    loadStats();
+                } catch (error) { Swal.fire('Error', 'Failed to delete', 'error'); }
+            };
+            document.getElementById('deleteMessage').textContent = `Delete ${name}?`;
+            document.getElementById('confirmDeleteBtn').onclick = deleteCallback;
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
+
+        // ==================== RESET FILTERS ====================
+        function resetWOFilter() {
+            document.getElementById('woFilterSite').value = 'all';
+            document.getElementById('woFilterStatus').value = 'all';
+            document.getElementById('woFilterUnit').value = '';
+            loadWorkOrders();
+        }
+
+        function resetPMFilter() {
+            document.getElementById('pmFilterSite').value = 'all';
+            document.getElementById('pmFilterStatus').value = 'all';
+            document.getElementById('pmFilterUnit').value = '';
+            loadPM();
+        }
+
+        function resetCMFilter() {
+            document.getElementById('cmFilterSite').value = 'all';
+            document.getElementById('cmFilterStatus').value = 'all';
+            document.getElementById('cmFilterUnit').value = '';
+            loadCorrective();
+        }
+
+        // ==================== HELPERS ====================
+        function formatDate(date) {
+            if (!date) return '-';
+            return new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        function formatNumber(num) {
+            return (num || 0).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        });
+        }
+
+        function formatCurrency(num) {
+            return 'Rp ' + (num || 0).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+
+        function getTotalCost(c) {
+            return (c.repairCost || 0) + (c.partsCost || 0) + (c.laborCost || 0);
+        }
+
+        function getWOBadge(type) {
+            const badges = { 'PREVENTIVE': 'bg-info', 'CORRECTIVE': 'bg-warning', 'BREAKDOWN': 'bg-danger' };
+            return `<span class="badge ${badges[type] || 'bg-secondary'}">${type}</span>`;
+        }
+
+        function getPriorityBadge(priority) {
+            const badges = { 'LOW': 'badge-low', 'MEDIUM': 'badge-medium', 'HIGH': 'badge-high', 'CRITICAL': 'badge-critical' };
+            return `<span class="badge ${badges[priority] || 'bg-secondary'}">${priority}</span>`;
+        }
+
+        function getWOStatusBadge(status) {
+            const badges = { 'OPEN': 'badge-open', 'IN_PROGRESS': 'badge-inprogress', 'COMPLETED': 'badge-completed', 'CANCELLED': 'badge-cancelled' };
+            return `<span class="badge ${badges[status] || 'bg-secondary'}">${status.replace('_', ' ')}</span>`;
+        }
+
+        function getPMStatusBadge(status) {
+            const badges = { 'SCHEDULED': 'badge-scheduled', 'IN_PROGRESS': 'badge-inprogress', 'COMPLETED': 'badge-completed', 'OVERDUE': 'badge-overdue' };
+            return `<span class="badge ${badges[status] || 'bg-secondary'}">${status}</span>`;
+        }
+
+        function getCMTypeBadge(type) {
+            const badges = { 'CORRECTIVE': 'badge-corrective', 'BREAKDOWN': 'badge-breakdown', 'EMERGENCY': 'badge-emergency' };
+            return `<span class="badge ${badges[type] || 'bg-secondary'}">${type}</span>`;
+        }
+
+        function getCMStatusBadge(status) {
+            const badges = { 'REPORTED': 'badge-reported', 'DIAGNOSING': 'badge-warning', 'WAITING_PARTS': 'badge-medium', 'IN_REPAIR': 'badge-inprogress', 'COMPLETED': 'badge-completed' };
+            return `<span class="badge ${badges[status] || 'bg-secondary'}">${status.replace('_', ' ')}</span>`;
+        }
+
+        function generateWODetail(w) {
+            return `
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-2"><strong>WO Number:</strong> ${w.wONumber}</div>
+                        <div class="mb-2"><strong>Date:</strong> ${formatDate(w.woDate)}</div>
+                        <div class="mb-2"><strong>Site:</strong> ${w.site}</div>
+                        <div class="mb-2"><strong>Unit No:</strong> ${w.unitNo}</div>
+                        <div class="mb-2"><strong>Merk/Type:</strong> ${w.merkType || '-'}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-2"><strong>Type:</strong> ${getWOBadge(w.woType)}</div>
+                        <div class="mb-2"><strong>Priority:</strong> ${getPriorityBadge(w.priority)}</div>
+                        <div class="mb-2"><strong>Status:</strong> ${getWOStatusBadge(w.status)}</div>
+                        <div class="mb-2"><strong>Assigned To:</strong> ${w.assignedTo || '-'}</div>
+                        <div class="mb-2"><strong>Est. Cost:</strong> ${formatCurrency(w.estimatedCost)}</div>
+                        <div class="mb-2"><strong>Actual Cost:</strong> ${formatCurrency(w.actualCost)}</div>
+                    </div>
+                </div>
+                <hr>
+                <div class="mb-2"><strong>Problem:</strong><br>${w.problem || '-'}</div>
+                <div class="mb-2"><strong>Cause:</strong><br>${w.cause || '-'}</div>
+                <div class="mb-2"><strong>Action Taken:</strong><br>${w.actionTaken || '-'}</div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-4"><strong>Scheduled:</strong> ${formatDate(w.scheduledDate)}</div>
+                    <div class="col-md-4"><strong>Start:</strong> ${formatDate(w.startDate)}</div>
+                    <div class="col-md-4"><strong>End:</strong> ${formatDate(w.endDate)}</div>
+                </div>
+                ${w.remarks ? `<hr><div><strong>Remarks:</strong><br>${w.remarks}</div>` : ''}
+            `;
+        }
+
+        function generatePMDetail(p) {
+            return `
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-2"><strong>PM Number:</strong> ${p.pmNumber}</div>
+                        <div class="mb-2"><strong>Date:</strong> ${formatDate(p.pmDate)}</div>
+                        <div class="mb-2"><strong>Site:</strong> ${p.site}</div>
+                        <div class="mb-2"><strong>Unit No:</strong> ${p.unitNo}</div>
+                        <div class="mb-2"><strong>Merk/Type:</strong> ${p.merkType || '-'}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-2"><strong>PM Type:</strong> <span class="badge bg-secondary">${p.pmType}</span></div>
+                        <div class="mb-2"><strong>Status:</strong> ${getPMStatusBadge(p.status)}</div>
+                        <div class="mb-2"><strong>Assigned To:</strong> ${p.assignedTo || '-'}</div>
+                        <div class="mb-2"><strong>HM Value:</strong> ${formatNumber(p.hmValue)}</div>
+                        <div class="mb-2"><strong>Next HM:</strong> ${formatNumber(p.nextHmValue)}</div>
+                    </div>
+                </div>
+                <hr>
+                <div class="mb-2"><strong>Description:</strong><br>${p.description || '-'}</div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-4"><strong>Scheduled:</strong> ${formatDate(p.scheduledDate)}</div>
+                    <div class="col-md-4"><strong>Start:</strong> ${formatDate(p.startDate)}</div>
+                    <div class="col-md-4"><strong>End:</strong> ${formatDate(p.endDate)}</div>
+                </div>
+                ${p.remarks ? `<hr><div><strong>Remarks:</strong><br>${p.remarks}</div>` : ''}
+            `;
+        }
+
+        function generateCMDetail(c) {
+            const totalCost = getTotalCost(c);
+            return `
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-2"><strong>CM Number:</strong> ${c.cmNumber}</div>
+                        <div class="mb-2"><strong>Date:</strong> ${formatDate(c.cmDate)}</div>
+                        <div class="mb-2"><strong>Site:</strong> ${c.site}</div>
+                        <div class="mb-2"><strong>Unit No:</strong> ${c.unitNo}</div>
+                        <div class="mb-2"><strong>Merk/Type:</strong> ${c.merkType || '-'}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-2"><strong>Type:</strong> ${getCMTypeBadge(c.cmType)}</div>
+                        <div class="mb-2"><strong>Priority:</strong> ${getPriorityBadge(c.priority)}</div>
+                        <div class="mb-2"><strong>Status:</strong> ${getCMStatusBadge(c.status)}</div>
+                        <div class="mb-2"><strong>Reported By:</strong> ${c.reportedBy || '-'}</div>
+                        <div class="mb-2"><strong>Assigned To:</strong> ${c.assignedTo || '-'}</div>
+                    </div>
+                </div>
+                <hr>
+                <div class="mb-2"><strong>Problem:</strong><br>${c.problem}</div>
+                <div class="row">
+                    <div class="col-md-6"><strong>Root Cause:</strong> ${c.rootCause || '-'}</div>
+                    <div class="col-md-6"><strong>Solution:</strong> ${c.solution || '-'}</div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-3"><strong>Breakdown Start:</strong><br>${formatDate(c.breakdownStart)}</div>
+                    <div class="col-md-3"><strong>Breakdown End:</strong><br>${formatDate(c.breakdownEnd)}</div>
+                    <div class="col-md-3"><strong>Downtime:</strong><br>${formatNumber(c.downtimeHours)} hours</div>
+                    <div class="col-md-3"><strong>Total Cost:</strong><br>${formatCurrency(totalCost)}</div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-4"><strong>Parts Cost:</strong> ${formatCurrency(c.partsCost)}</div>
+                    <div class="col-md-4"><strong>Labor Cost:</strong> ${formatCurrency(c.laborCost)}</div>
+                    <div class="col-md-4"><strong>Repair Cost:</strong> ${formatCurrency(c.repairCost)}</div>
+                </div>
+                ${c.remarks ? `<hr><div><strong>Remarks:</strong><br>${c.remarks}</div>` : ''}
+            `;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStats();
+            loadWorkOrders();
+        });
+    </script>
+</body>
+</html>

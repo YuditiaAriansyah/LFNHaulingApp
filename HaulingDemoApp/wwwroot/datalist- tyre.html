@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Tyre - LFN</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; box-sizing: border-box; }
+        :root {
+            --navy: #0f172a;
+            --navy-mid: #1e293b;
+            --accent: #f59e0b;
+            --accent-dim: rgba(245, 158, 11, 0.15);
+            --accent-light: rgba(245, 158, 11, 0.08);
+            --bg-page: #F8FAFC;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+        }
+        body { background: var(--bg-page); min-height: 100vh; padding-top: 76px; color: var(--text-primary); }
+
+        /* Navbar */
+        .navbar { background: rgba(15, 23, 42, 0.97); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); padding: 0.7rem 0; box-shadow: 0 1px 20px rgba(0,0,0,0.3); }
+        .navbar-brand { font-weight: 700; font-size: 1.4rem; color: #fff !important; display: flex; align-items: center; gap: 10px; }
+        .navbar-brand i { color: var(--accent); font-size: 1.8rem; }
+        .navbar-nav { display: flex; align-items: center; gap: 2px; }
+        .nav-link { color: rgba(255,255,255,0.6) !important; font-weight: 500; font-size: 0.82rem; padding: 0.45rem 0.7rem !important; border-radius: 8px; transition: all 0.2s; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+        .nav-link i { font-size: 0.95rem; opacity: 0.7; }
+        .nav-link:hover, .nav-link.active { color: #fff !important; background: var(--accent-dim); }
+        .nav-link.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 60%; background: var(--accent); border-radius: 0 2px 2px 0; }
+
+        /* Stats */
+        .stats-card { background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); border-top: 3px solid var(--accent); padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s; }
+        .stats-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+        .stats-card h6 { color: var(--text-secondary); font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .stats-card .number { font-size: 1.8rem; font-weight: 700; color: var(--text-primary); line-height: 1.1; }
+
+        /* Card */
+        .card { border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 1px 4px rgba(0,0,0,0.05); overflow: hidden; }
+        .card-header { background: #fff; border-bottom: 1px solid var(--border-color); font-weight: 600; padding: 16px 20px; }
+        .card-body { padding: 20px; }
+
+        /* Forms */
+        .form-label { font-weight: 500; color: var(--text-primary); font-size: 0.85rem; }
+        .form-select, .form-control { border-radius: 10px; border: 1.5px solid var(--border-color); padding: 10px 14px; font-size: 0.9rem; transition: border-color 0.2s, box-shadow 0.2s; background: #fff; color: var(--text-primary); }
+        .form-select:focus, .form-control:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); outline: none; }
+
+        /* Buttons */
+        .btn-primary { background: var(--accent); border: none; border-radius: 10px; padding: 10px 20px; font-weight: 600; font-size: 0.88rem; transition: all 0.2s; color: #fff; }
+        .btn-primary:hover { background: #d97706; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
+
+        /* Table */
+        .table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 0.875rem; }
+        .table thead th { background: #f8fafc; color: var(--text-secondary); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 14px; border-bottom: 2px solid var(--border-color); white-space: nowrap; }
+        .table tbody td { padding: 13px 14px; border-bottom: 1px solid var(--border-color); vertical-align: middle; color: var(--text-primary); }
+        .table tbody tr:hover { background: #f8fafc; }
+        .table-responsive { border-radius: 10px; overflow: hidden; border: 1px solid var(--border-color); }
+
+        /* Badges */
+        .badge { border-radius: 50px; font-weight: 600; font-size: 0.72rem; padding: 4px 10px; letter-spacing: 0.3px; }
+        .badge-po { background: rgba(20, 184, 166, 0.12); color: #0f766e; }
+        .badge-problem { background: rgba(239, 68, 68, 0.12); color: #b91c1c; }
+
+        /*</style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-truck"></i>
+                LFN
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto flex-wrap">
+                    <li class="nav-item">
+                        <a  class="nav-link" href="/" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-house"></i> Home</a>
+                    </li>
+                    <li class="nav-group">
+                        <span class="nav-group-label">Operasi</span>
+                        <a  class="nav-link" href="data-Upload-Fuel.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-fuel-pump"></i> Fuel</a>
+                        <a  class="nav-link" href="rm.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-tools"></i> R&M</a>
+                        <a  class="nav-link" href="fleet.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-car-front"></i> Fleet</a>
+                        <a  class="nav-link" href="data-Upload-Tyre.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-disc"></i> Tyre</a>
+                        <a  class="nav-link" href="inventory.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-boxes"></i> Inventory</a>
+                    </li>
+                    <li class="nav-group">
+                        <span class="nav-group-label">Procurement</span>
+                        <a  class="nav-link" href="purchase-request.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-file-text"></i> PR</a>
+                        <a  class="nav-link" href="purchase-order.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-file-earmark"></i> PO</a>
+                        <a  class="nav-link" href="good-receipt.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-box-seam"></i> GR</a>
+                        <a  class="nav-link" href="good-issue.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-box-arrow-right"></i> GI</a>
+                        <a  class="nav-link" href="vendor.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-building"></i> Vendor</a>
+                    </li>
+                    <li class="nav-group">
+                        <span class="nav-group-label">Keuangan</span>
+                        <a  class="nav-link" href="finance.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-wallet2"></i> Finance</a>
+                        <a  class="nav-link" href="hr.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-people"></i> HR</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <h4 class="mb-4"><i class="bi bi-disc me-2"></i>Data Tyre Management</h4>
+
+        <!-- Stats -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <h6>Total PO</h6>
+                    <div class="number" id="totalPO">0</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <h6>Total Problems</h6>
+                    <div class="number" id="totalProblem">0</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <h6>Total Cost</h6>
+                    <div class="number" id="totalCost">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Site</label>
+                        <select class="form-select" id="filterSite">
+                            <option value="all">All Sites</option>
+                            <option value="Sungai Dua">Sungai Dua</option>
+                            <option value="Sebamban">Sebamban</option>
+                            <option value="Mandala">Mandala</option>
+                            <option value="Tanjung">Tanjung</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">&nbsp;</label>
+                        <button class="btn btn-primary w-100" onclick="applyFilter()">
+                            <i class="bi bi-search me-1"></i>Filter
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="poTab" data-bs-toggle="tab" data-bs-target="#po" type="button" role="tab" style="background:#d97706!important;color:#fff!important;border:1.5px solid #d97706!important;border-bottom:none!important;">
+                    <i class="bi bi-cart me-2"></i>Upload PO Tyre
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="issueTab" data-bs-toggle="tab" data-bs-target="#issue" type="button" role="tab" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Tyre Issue
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="po">
+                <div class="d-flex justify-content-end mb-3">
+                    <button class="btn btn-primary" onclick="openPOModal()">
+                        <i class="bi bi-plus-circle"></i> Add New PO
+                    </button>
+                </div>
+                <div class="card">
+                    <div class="card-body table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Tanggal</th>
+                                    <th>Site</th>
+                                    <th>Vendor</th>
+                                    <th>No PO</th>
+                                    <th>Merk/Type</th>
+                                    <th>Size</th>
+                                    <th>Qty</th>
+                                    <th>Total Price</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="poTableBody">
+                                <tr><td colspan="11" class="text-center">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="problem">
+                <div class="d-flex justify-content-end mb-3">
+                    <button class="btn btn-primary" onclick="openProblemModal()">
+                        <i class="bi bi-plus-circle"></i> Add New Problem
+                    </button>
+                </div>
+                <div class="card">
+                    <div class="card-body table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Tanggal</th>
+                                    <th>Site</th>
+                                    <th>Unit No</th>
+                                    <th>Serial Number</th>
+                                    <th>Problem</th>
+                                    <th>Location</th>
+                                    <th>Total HM</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="problemTableBody">
+                                <tr><td colspan="9" class="text-center">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Add/Edit Tyre PO -->
+    <div class="modal fade" id="poModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #00d9ff, #00ff88); color: #1a1a2e;">
+                    <h5 class="modal-title"><i class="bi bi-cart-plus"></i> <span id="poModalTitle">Add Purchase Order</span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="poId">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Tanggal</label>
+                            <input type="date" class="form-control" id="poTanggal" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Site</label>
+                            <select class="form-select" id="poSite" required>
+                                <option value="">Select Site</option>
+                                <option value="Sungai Dua">Sungai Dua</option>
+                                <option value="Sebamban">Sebamban</option>
+                                <option value="Mandala">Mandala</option>
+                                <option value="Tanjung">Tanjung</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Vendor</label>
+                            <input type="text" class="form-control" id="poVendor" placeholder="Enter Vendor">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">No PO</label>
+                            <input type="text" class="form-control" id="poNoPO" placeholder="Enter No PO">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Merk/Type</label>
+                            <input type="text" class="form-control" id="poMerkType" placeholder="Enter Merk/Type">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Size</label>
+                            <input type="text" class="form-control" id="poSize" placeholder="e.g. 11R22.5">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Qty</label>
+                            <input type="number" step="0.01" class="form-control" id="poQty" placeholder="0" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Unit Price</label>
+                            <input type="number" step="0.01" class="form-control" id="poUnitPrice" placeholder="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Total Price</label>
+                            <input type="number" step="0.01" class="form-control" id="poTotalPrice" placeholder="0">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="poStatus">
+                                <option value="Pending">Pending</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="savePO()">
+                        <i class="bi bi-save"></i> Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Add/Edit Tyre Problem -->
+    <div class="modal fade" id="problemModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
+                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle"></i> <span id="problemModalTitle">Add Problem Tyre</span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="problemId">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Tanggal</label>
+                            <input type="date" class="form-control" id="problemTanggal" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Site</label>
+                            <select class="form-select" id="problemSite" required>
+                                <option value="">Select Site</option>
+                                <option value="Sungai Dua">Sungai Dua</option>
+                                <option value="Sebamban">Sebamban</option>
+                                <option value="Mandala">Mandala</option>
+                                <option value="Tanjung">Tanjung</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Unit No</label>
+                            <input type="text" class="form-control" id="problemUnitNo" placeholder="Enter Unit No" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Serial Number</label>
+                            <input type="text" class="form-control" id="problemSerialNumber" placeholder="Enter Serial Number">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Merk/Type</label>
+                            <input type="text" class="form-control" id="problemMerkType" placeholder="Enter Merk/Type">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Size</label>
+                            <input type="text" class="form-control" id="problemSize" placeholder="e.g. 11R22.5">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Problem</label>
+                            <input type="text" class="form-control" id="problemProblem" placeholder="Describe problem">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Kerusakan</label>
+                            <input type="text" class="form-control" id="problemKerusakan" placeholder="Type of damage">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Location</label>
+                            <input type="text" class="form-control" id="problemLocation" placeholder="Tyre position">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Start HM</label>
+                            <input type="number" step="0.01" class="form-control" id="problemStartHM" placeholder="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">End HM</label>
+                            <input type="number" step="0.01" class="form-control" id="problemEndHM" placeholder="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Total HM</label>
+                            <input type="number" step="0.01" class="form-control" id="problemTotalHM" placeholder="0">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveProblem()">
+                        <i class="bi bi-save"></i> Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_BASE = '';
+        let poData = [];
+        let problemData = [];
+
+        async function loadStats() {
+            try {
+                const [poRes, probRes] = await Promise.all([
+                    fetch(`${API_BASE}/api/tyres/po?site=all`),
+                    fetch(`${API_BASE}/api/tyres/problems?site=all`)
+                ]);
+                poData = await poRes.json();
+                problemData = await probRes.json();
+
+                document.getElementById('totalPO').textContent = poData.length;
+                document.getElementById('totalProblem').textContent = problemData.length;
+
+                const totalCost = problemData.reduce((sum, p) => sum + (parseFloat(p.cost) || 0), 0);
+                document.getElementById('totalCost').textContent = 'Rp ' + totalCost.toLocaleString('id-ID');
+            } catch (e) { console.error(e); }
+        }
+
+        function renderPOTable(data) {
+            const tbody = document.getElementById('poTableBody');
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" class="text-center">No data</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.map(p => `
+                <tr>
+                    <td>${p.no}</td>
+                    <td>${new Date(p.tanggal).toLocaleDateString('id-ID')}</td>
+                    <td><span class="badge bg-secondary">${p.site}</span></td>
+                    <td>${p.vendor || '-'}</td>
+                    <td>${p.noPO || '-'}</td>
+                    <td>${p.merkType || '-'}</td>
+                    <td>${p.size || '-'}</td>
+                    <td>${p.qty || 0}</td>
+                    <td>${parseFloat(p.totalPrice || 0).toLocaleString('id-ID')}</td>
+                    <td><span class="badge badge-po">${p.status || '-'}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="editPO(${p.id})" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deletePO(${p.id})" title="Delete">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderProblemTable(data) {
+            const tbody = document.getElementById('problemTableBody');
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center">No data</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.map(p => `
+                <tr>
+                    <td>${p.no}</td>
+                    <td>${new Date(p.tanggal).toLocaleDateString('id-ID')}</td>
+                    <td><span class="badge bg-secondary">${p.site}</span></td>
+                    <td>${p.unitNo || '-'}</td>
+                    <td>${p.serialNumber || '-'}</td>
+                    <td>${p.problem || '-'}</td>
+                    <td>${p.location || '-'}</td>
+                    <td>${parseFloat(p.totalHM || 0).toLocaleString('id-ID')}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="editProblem(${p.id})" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteProblem(${p.id})" title="Delete">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function applyFilter() {
+            const site = document.getElementById('filterSite').value;
+            try {
+                const [poRes, probRes] = await Promise.all([
+                    fetch(`${API_BASE}/api/tyres/po?site=${site}`),
+                    fetch(`${API_BASE}/api/tyres/problems?site=${site}`)
+                ]);
+                poData = await poRes.json();
+                problemData = await probRes.json();
+                renderPOTable(poData);
+                renderProblemTable(problemData);
+            } catch (e) { console.error(e); }
+        }
+
+        loadStats().then(() => { renderPOTable(poData); renderProblemTable(problemData); });
+
+        // =====================
+        // CRUD Functions for Tyre PO
+        // =====================
+        let poModal;
+        document.addEventListener('DOMContentLoaded', function() {
+            poModal = new bootstrap.Modal(document.getElementById('poModal'));
+        });
+
+        function openPOModal(id = null) {
+            document.getElementById('poModalTitle').textContent = id ? 'Edit Purchase Order' : 'Add Purchase Order';
+            document.getElementById('poId').value = id || '';
+
+            if (id) {
+                fetch(`${API_BASE}/api/tyres/po?site=all`)
+                    .then(r => r.json())
+                    .then(data => {
+                        const item = data.find(x => x.id === id);
+                        if (item) {
+                            document.getElementById('poTanggal').value = item.tanggal ? item.tanggal.split('T')[0] : '';
+                            document.getElementById('poSite').value = item.site || '';
+                            document.getElementById('poVendor').value = item.vendor || '';
+                            document.getElementById('poNoPO').value = item.noPO || '';
+                            document.getElementById('poMerkType').value = item.merkType || '';
+                            document.getElementById('poSize').value = item.size || '';
+                            document.getElementById('poQty').value = item.qty || 0;
+                            document.getElementById('poUnitPrice').value = item.unitPrice || 0;
+                            document.getElementById('poTotalPrice').value = item.totalPrice || 0;
+                            document.getElementById('poStatus').value = item.status || 'Pending';
+                        }
+                    });
+            } else {
+                document.getElementById('poTanggal').value = new Date().toISOString().split('T')[0];
+                document.getElementById('poSite').value = '';
+                document.getElementById('poVendor').value = '';
+                document.getElementById('poNoPO').value = '';
+                document.getElementById('poMerkType').value = '';
+                document.getElementById('poSize').value = '';
+                document.getElementById('poQty').value = '';
+                document.getElementById('poUnitPrice').value = '';
+                document.getElementById('poTotalPrice').value = '';
+                document.getElementById('poStatus').value = 'Pending';
+            }
+            poModal.show();
+        }
+
+        function editPO(id) { openPOModal(id); }
+
+        async function savePO() {
+            const id = document.getElementById('poId').value;
+            const qty = parseFloat(document.getElementById('poQty').value) || 0;
+            const unitPrice = parseFloat(document.getElementById('poUnitPrice').value) || 0;
+
+            const data = {
+                tanggal: document.getElementById('poTanggal').value,
+                site: document.getElementById('poSite').value,
+                vendor: document.getElementById('poVendor').value,
+                noPO: document.getElementById('poNoPO').value,
+                merkType: document.getElementById('poMerkType').value,
+                size: document.getElementById('poSize').value,
+                qty: qty,
+                unitPrice: unitPrice,
+                totalPrice: qty * unitPrice,
+                status: document.getElementById('poStatus').value
+            };
+
+            try {
+                let response;
+                if (id) {
+                    response = await fetch(`${API_BASE}/api/tyres/po/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    response = await fetch(`${API_BASE}/api/tyres/po`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                }
+
+                if (response.ok) {
+                    poModal.hide();
+                    Swal.fire('Success', id ? 'PO updated successfully' : 'PO added successfully', 'success');
+                    loadStats().then(() => { renderPOTable(poData); renderProblemTable(problemData); });
+                } else {
+                    Swal.fire('Error', 'Failed to save PO', 'error');
+                }
+            } catch (error) {
+                Swal.fire('Error', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        async function deletePO(id) {
+            if (!await Swal.fire({ title: 'Delete?', text: 'Are you sure?', icon: 'warning', showCancelButton: true }).then(r => r.isConfirmed)) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/tyres/po/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    Swal.fire('Success', 'PO deleted successfully', 'success');
+                    loadStats().then(() => { renderPOTable(poData); renderProblemTable(problemData); });
+                } else {
+                    Swal.fire('Error', 'Failed to delete PO', 'error');
+                }
+            } catch (error) {
+                Swal.fire('Error', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        // =====================
+        // CRUD Functions for Tyre Problem
+        // =====================
+        let problemModal;
+        document.addEventListener('DOMContentLoaded', function() {
+            problemModal = new bootstrap.Modal(document.getElementById('problemModal'));
+        });
+
+        function openProblemModal(id = null) {
+            document.getElementById('problemModalTitle').textContent = id ? 'Edit Problem Tyre' : 'Add Problem Tyre';
+            document.getElementById('problemId').value = id || '';
+
+            if (id) {
+                fetch(`${API_BASE}/api/tyres/problems?site=all`)
+                    .then(r => r.json())
+                    .then(data => {
+                        const item = data.find(x => x.id === id);
+                        if (item) {
+                            document.getElementById('problemTanggal').value = item.tanggal ? item.tanggal.split('T')[0] : '';
+                            document.getElementById('problemSite').value = item.site || '';
+                            document.getElementById('problemUnitNo').value = item.unitNo || '';
+                            document.getElementById('problemSerialNumber').value = item.serialNumber || '';
+                            document.getElementById('problemMerkType').value = item.merkType || '';
+                            document.getElementById('problemSize').value = item.size || '';
+                            document.getElementById('problemProblem').value = item.problem || '';
+                            document.getElementById('problemKerusakan').value = item.kerusakan || '';
+                            document.getElementById('problemLocation').value = item.location || '';
+                            document.getElementById('problemStartHM').value = item.startHM || 0;
+                            document.getElementById('problemEndHM').value = item.endHM || 0;
+                            document.getElementById('problemTotalHM').value = item.totalHM || 0;
+                        }
+                    });
+            } else {
+                document.getElementById('problemTanggal').value = new Date().toISOString().split('T')[0];
+                document.getElementById('problemSite').value = '';
+                document.getElementById('problemUnitNo').value = '';
+                document.getElementById('problemSerialNumber').value = '';
+                document.getElementById('problemMerkType').value = '';
+                document.getElementById('problemSize').value = '';
+                document.getElementById('problemProblem').value = '';
+                document.getElementById('problemKerusakan').value = '';
+                document.getElementById('problemLocation').value = '';
+                document.getElementById('problemStartHM').value = '';
+                document.getElementById('problemEndHM').value = '';
+                document.getElementById('problemTotalHM').value = '';
+            }
+            problemModal.show();
+        }
+
+        function editProblem(id) { openProblemModal(id); }
+
+        async function saveProblem() {
+            const id = document.getElementById('problemId').value;
+
+            const data = {
+                tanggal: document.getElementById('problemTanggal').value,
+                site: document.getElementById('problemSite').value,
+                unitNo: document.getElementById('problemUnitNo').value,
+                serialNumber: document.getElementById('problemSerialNumber').value,
+                merkType: document.getElementById('problemMerkType').value,
+                size: document.getElementById('problemSize').value,
+                problem: document.getElementById('problemProblem').value,
+                kerusakan: document.getElementById('problemKerusakan').value,
+                location: document.getElementById('problemLocation').value,
+                startHM: parseFloat(document.getElementById('problemStartHM').value) || 0,
+                endHM: parseFloat(document.getElementById('problemEndHM').value) || 0,
+                totalHM: parseFloat(document.getElementById('problemTotalHM').value) || 0
+            };
+
+            try {
+                let response;
+                if (id) {
+                    response = await fetch(`${API_BASE}/api/tyres/problems/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    response = await fetch(`${API_BASE}/api/tyres/problems`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                }
+
+                if (response.ok) {
+                    problemModal.hide();
+                    Swal.fire('Success', id ? 'Problem updated successfully' : 'Problem added successfully', 'success');
+                    loadStats().then(() => { renderPOTable(poData); renderProblemTable(problemData); });
+                } else {
+                    Swal.fire('Error', 'Failed to save problem', 'error');
+                }
+            } catch (error) {
+                Swal.fire('Error', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        async function deleteProblem(id) {
+            if (!await Swal.fire({ title: 'Delete?', text: 'Are you sure?', icon: 'warning', showCancelButton: true }).then(r => r.isConfirmed)) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/tyres/problems/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    Swal.fire('Success', 'Problem deleted successfully', 'success');
+                    loadStats().then(() => { renderPOTable(poData); renderProblemTable(problemData); });
+                } else {
+                    Swal.fire('Error', 'Failed to delete problem', 'error');
+                }
+            } catch (error) {
+                Swal.fire('Error', 'Error: ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

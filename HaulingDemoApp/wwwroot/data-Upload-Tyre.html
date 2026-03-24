@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Tyre Data - LFN</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; box-sizing: border-box; }
+        :root {
+            --navy: #0f172a;
+            --navy-mid: #1e293b;
+            --accent: #f59e0b;
+            --accent-dim: rgba(245, 158, 11, 0.15);
+            --accent-light: rgba(245, 158, 11, 0.08);
+            --bg-page: #F8FAFC;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+        }
+        body { background: var(--bg-page); min-height: 100vh; color: var(--text-primary); }
+
+        /* Navbar */
+        .navbar { background: rgba(15, 23, 42, 0.97); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); padding: 0.7rem 0; box-shadow: 0 1px 20px rgba(0,0,0,0.3); }
+        .navbar-brand { font-weight: 700; font-size: 1.4rem; color: #fff !important; display: flex; align-items: center; gap: 10px; }
+        .navbar-brand i { color: var(--accent); font-size: 1.8rem; }
+        .navbar-nav { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
+        .nav-group { display: flex; align-items: center; gap: 2px; }
+        .nav-group-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: rgba(255,255,255,0.25); padding: 0 10px 0 6px; margin-right: 2px; border-right: 1px solid rgba(255,255,255,0.12); white-space: nowrap; }
+        .nav-link { color: rgba(255,255,255,0.6) !important; font-weight: 500; font-size: 0.82rem; padding: 0.45rem 0.7rem !important; border-radius: 8px; transition: all 0.2s; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+        .nav-link i { font-size: 0.95rem; opacity: 0.7; }
+        .nav-link:hover, .nav-link.active { color: #fff !important; background: var(--accent-dim); }
+        .nav-link.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 60%; background: var(--accent); border-radius: 0 2px 2px 0; }
+
+        /* Card */
+        .card { border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 1px 4px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.04); overflow: hidden; }
+        .card-header { background: #fff; border-bottom: 1px solid var(--border-color); font-weight: 600; padding: 16px 24px; font-size: 0.95rem; }
+        .card-body { padding: 24px; }
+
+        /* Upload Zone */
+        .upload-zone { border: 2px dashed var(--border-color); border-radius: 12px; padding: 48px 32px; text-align: center; transition: all 0.3s; cursor: pointer; background: var(--bg-page); }
+        .upload-zone:hover { border-color: var(--accent); background: var(--accent-light); }
+        .upload-zone.dragover { border-color: var(--accent); background: var(--accent-dim); }
+        .upload-icon { font-size: 3rem; color: var(--text-secondary); margin-bottom: 12px; }
+        .upload-zone h5 { color: var(--text-primary); font-weight: 600; margin-bottom: 6px; }
+        .upload-zone p { color: var(--text-secondary); font-size: 0.875rem; margin: 0; }
+
+        /* Buttons */
+        .btn-primary { background: var(--accent); border: none; border-radius: 10px; padding: 10px 24px; font-weight: 600; font-size: 0.88rem; transition: all 0.2s; color: #fff; }
+        .btn-primary:hover { background: #d97706; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
+        .btn-outline-secondary { border-radius: 10px; border: 1.5px solid var(--border-color); color: var(--text-secondary); font-weight: 500; }
+        .btn-outline-secondary:hover { background: var(--bg-page); border-color: #cbd5e1; }
+
+        /* Forms */
+        .form-label { font-weight: 500; color: var(--text-primary); font-size: 0.85rem; }
+        .form-select, .form-control { border-radius: 10px; border: 1.5px solid var(--border-color); padding: 10px 14px; font-size: 0.9rem; transition: border-color 0.2s, box-shadow 0.2s; background: #fff; color: var(--text-primary); }
+        .form-select:focus, .form-control:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); outline: none; }
+
+        /* Table */
+        .table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 0.875rem; }
+        .table thead th { background: #f8fafc; color: var(--text-secondary); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 14px; border-bottom: 2px solid var(--border-color); white-space: nowrap; }
+        .table tbody td { padding: 13px 14px; border-bottom: 1px solid var(--border-color); vertical-align: middle; color: var(--text-primary); }
+        .table tbody tr:hover { background: #f8fafc; }
+        .table-responsive { border-radius: 10px; overflow: hidden; border: 1px solid var(--border-color); }
+
+        /* Badges */
+        .badge { border-radius: 50px; font-weight: 600; font-size: 0.72rem; padding: 4px 10px; letter-spacing: 0.3px; }
+        .badge-success { background: rgba(34, 197, 94, 0.12); color: #15803d; }
+        .badge-warning { background: rgba(245, 158, 11, 0.12); color: #b45309; }
+
+        /* Tabs / Pills - readable style */
+        .nav-tabs { border-bottom: 2px solid var(--border-color); gap: 4px; padding: 0; }
+        .nav-tabs .nav-item { margin-bottom: 0; }
+        .nav-tabs .nav-link {
+            color: var(--text-secondary) !important;
+            background: #f1f5f9;
+            border: 1.5px solid var(--border-color);
+            border-bottom: none;
+            padding: 10px 20px;
+            border-radius: 10px 10px 0 0;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            margin-right: 4px;
+        }
+        .nav-tabs .nav-link i { font-size: 0.9rem; margin-right: 4px; opacity: 0.7; }
+        .nav-tabs .nav-link:hover {
+            color: var(--accent) !important;
+            background: var(--accent-light);
+        }
+        .nav-tabs .nav-link.active {
+            color: #fff !important;
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        .nav-tabs .nav-link.active i { opacity: 1; }
+        .nav-pills .nav-link { border-radius: 10px; font-weight: 500; }
+        .nav-pills .nav-link.active { background: var(--accent); color: #fff !important; }
+
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-truck"></i>
+                LFN
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto flex-wrap">
+                    <li class="nav-item">
+                        <a  class="nav-link" href="/" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:noneimportant;"><i class="bi bi-house"></i> Home</a>
+                    </li>
+                    <li class="nav-group">
+                        <span class="nav-group-label">Operasi</span>
+                        <a  class="nav-link" href="data-Upload-Fuel.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:noneimportant;"><i class="bi bi-fuel-pump"></i> Fuel</a>
+                        <a  class="nav-link" href="rm.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:noneimportant;"><i class="bi bi-tools"></i> R&M</a>
+                        <a  class="nav-link" href="fleet.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:noneimportant;"><i class="bi bi-car-front"></i> Fleet</a>
+                        <a  class="nav-link" href="data-Upload-Tyre.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:noneimportant;"><i class="bi bi-disc"></i> Tyre</a>
+                        <a  class="nav-link" href="inventory.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:noneimportant;"><i class="bi bi-boxes"></i> Inventory</a>
+                    </li>
+                    <li class="nav-group">
+                        <span class="nav-group-label">Procurement</span>
+                        <a  class="nav-link" href="purchase-request.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:noneimportant;"><i class="bi bi-file-text"></i> PR</a>
+                        <a  class="nav-link" href="purchase-order.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:noneimportant;"><i class="bi bi-file-earmark"></i> PO</a>
+                        <a  class="nav-link" href="good-receipt.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:noneimportant;"><i class="bi bi-box-seam"></i> GR</a>
+                        <a  class="nav-link" href="good-issue.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:noneimportant;"><i class="bi bi-box-arrow-right"></i> GI</a>
+                        <a  class="nav-link" href="vendor.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:noneimportant;"><i class="bi bi-building"></i> Vendor</a>
+                    </li>
+                    <li class="nav-group">
+                        <span class="nav-group-label">Keuangan</span>
+                        <a  class="nav-link" href="finance.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:noneimportant;"><i class="bi bi-wallet2"></i> Finance</a>
+                        <a  class="nav-link" href="hr.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:noneimportant;"><i class="bi bi-people"></i> HR</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <!-- Tab Navigation -->
+        <ul class="nav nav-tabs mb-4" id="typreTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#po" type="button" role="tab" style="background:#d97706!important;color:#fff!important;border:1.5px solid #d97706!important;border-bottom:none!important;">
+                        <i class="bi bi-cart me-2"></i>Upload PO Tyre
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#problem" type="button" role="tab" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Upload Problem Tyre
+                    </button>
+                </li>
+            </ul>
+
+        <div class="tab-content" id="myTabContent">
+            <!-- Purchase Order Tab -->
+            <div class="tab-pane fade show active" id="po">
+                <div class="card">
+                    <div class="card-header py-3">
+                        <i class="bi bi-cart me-2"></i>Upload Purchase Order Tyre
+                    </div>
+                    <div class="card-body">
+                        <form id="poForm">
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Pilih Site</label>
+                                <select class="form-select" id="poSiteSelect" required>
+                                    <option value="">-- Pilih Site --</option>
+                                    <option value="Sungai Dua">Sungai Dua</option>
+                                    <option value="Sebamban">Sebamban</option>
+                                    <option value="Mandala">Mandala</option>
+                                    <option value="Tanjung">Tanjung</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Pilih File Excel/CSV</label>
+                                <div class="upload-zone" id="poDropZone">
+                                    <i class="bi bi-cloud-arrow-up upload-icon mb-3"></i>
+                                    <p class="mb-1">Drag & drop file di sini atau klik untuk memilih</p>
+                                    <small class="text-muted">Format: .xlsx, .xls, .csv</small>
+                                    <input type="file" id="poFileInput" accept=".xlsx,.xls,.csv" style="display:none">
+                                </div>
+                                <div class="file-info d-none" id="poFileInfo">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-file-earmark-excel text-success me-2" style="font-size: 1.5rem;"></i>
+                                        <div>
+                                            <strong id="poFileName">filename.xlsx</strong>
+                                            <br><small class="text-muted" id="poFileSize">0 KB</small>
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-outline-danger ms-auto" id="poRemoveFile">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-cloud-upload me-2"></i>Upload PO Tyre
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Problem Tab -->
+            <div class="tab-pane fade" id="problem">
+                <div class="card">
+                    <div class="card-header py-3">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Upload Problem Tyre
+                    </div>
+                    <div class="card-body">
+                        <form id="problemForm">
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Pilih Site</label>
+                                <select class="form-select" id="problemSiteSelect" required>
+                                    <option value="">-- Pilih Site --</option>
+                                    <option value="Sungai Dua">Sungai Dua</option>
+                                    <option value="Sebamban">Sebamban</option>
+                                    <option value="Mandala">Mandala</option>
+                                    <option value="Tanjung">Tanjung</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Pilih File Excel/CSV</label>
+                                <div class="upload-zone" id="problemDropZone">
+                                    <i class="bi bi-cloud-arrow-up upload-icon mb-3"></i>
+                                    <p class="mb-1">Drag & drop file di sini atau klik untuk memilih</p>
+                                    <small class="text-muted">Format: .xlsx, .xls, .csv</small>
+                                    <input type="file" id="problemFileInput" accept=".xlsx,.xls,.csv" style="display:none">
+                                </div>
+                                <div class="file-info d-none" id="problemFileInfo">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-file-earmark-excel text-success me-2" style="font-size: 1.5rem;"></i>
+                                        <div>
+                                            <strong id="problemFileName">filename.xlsx</strong>
+                                            <br><small class="text-muted" id="problemFileSize">0 KB</small>
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-outline-danger ms-auto" id="problemRemoveFile">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-cloud-upload me-2"></i>Upload Problem Tyre
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Download Template -->
+        <div class="card mt-4">
+            <div class="card-header py-3">
+                <i class="bi bi-download me-2"></i>Download Template
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Klik untuk download template:</p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a href="/download-template/tyres-po" class="btn btn-outline-primary">
+                        <i class="bi bi-file-earmark-arrow-down me-2"></i>Template Purchase Order Tyre
+                    </a>
+                    <a href="/download-template/tyres-problem" class="btn btn-outline-success">
+                        <i class="bi bi-file-earmark-arrow-down me-2"></i>Template Problem Tyre
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="card mt-4">
+            <div class="card-header py-3">
+                <i class="bi bi-info-circle me-2"></i>Petunjuk
+            </div>
+            <div class="card-body">
+                <h6>Format Purchase Order Tyre:</h6>
+                <code>No;Tanggal;Site;Vendor;NoPO;MerkType;Size;Qty;UnitPrice;TotalPrice;Status</code>
+                <hr>
+                <h6>Format Problem Tyre:</h6>
+                <code>No;Tanggal;Site;UnitNo;NoSeriTyre;ProblemDescription;ActionTaken;Cost</code>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- SweetAlert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        const API_BASE = '';
+
+        // PO Upload Handling
+        let poFile = null;
+        const poDropZone = document.getElementById('poDropZone');
+        const poFileInput = document.getElementById('poFileInput');
+        const poFileInfo = document.getElementById('poFileInfo');
+
+        poDropZone.addEventListener('click', () => poFileInput.click());
+        poDropZone.addEventListener('dragover', (e) => { e.preventDefault(); poDropZone.classList.add('dragover'); });
+        poDropZone.addEventListener('dragleave', () => poDropZone.classList.remove('dragover'));
+        poDropZone.addEventListener('drop', (e) => { e.preventDefault(); poDropZone.classList.remove('dragover'); if (e.dataTransfer.files.length) handlePoFile(e.dataTransfer.files[0]); });
+        poFileInput.addEventListener('change', () => { if (poFileInput.files.length) handlePoFile(poFileInput.files[0]); });
+
+        function handlePoFile(file) {
+            poFile = file;
+            document.getElementById('poFileName').textContent = file.name;
+            document.getElementById('poFileSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+            poDropZone.classList.add('d-none');
+            poFileInfo.classList.remove('d-none');
+        }
+
+        document.getElementById('poRemoveFile').addEventListener('click', () => { poFile = null; poFileInput.value = ''; poDropZone.classList.remove('d-none'); poFileInfo.classList.add('d-none'); });
+
+        document.getElementById('poForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const site = document.getElementById('poSiteSelect').value;
+            if (!site) { Swal.fire('Warning', 'Pilih site', 'warning'); return; }
+            if (!poFile) { Swal.fire('Warning', 'Pilih file', 'warning'); return; }
+
+            Swal.fire({ title: 'Mengupload...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            const formData = new FormData();
+            formData.append('file', poFile);
+            formData.append('site', site);
+
+            try {
+                const response = await fetch(`${API_BASE}/api/tyres/po-upload`, { method: 'POST', body: formData });
+                const result = await response.json();
+                if (response.ok) {
+                    Swal.fire({ icon: 'success', title: 'Berhasil!', text: result.message }).then(() => {
+                        window.location.href = 'datalist- tyre.html';
+                    });
+                } else {
+                    Swal.fire('Error', result.error || 'Upload gagal', 'error');
+                }
+            } catch (error) {
+                Swal.fire('Error', 'Terjadi kesalahan: ' + error.message, 'error');
+            }
+        });
+
+        // Problem Upload Handling
+        let problemFile = null;
+        const problemDropZone = document.getElementById('problemDropZone');
+        const problemFileInput = document.getElementById('problemFileInput');
+        const problemFileInfo = document.getElementById('problemFileInfo');
+
+        problemDropZone.addEventListener('click', () => problemFileInput.click());
+        problemDropZone.addEventListener('dragover', (e) => { e.preventDefault(); problemDropZone.classList.add('dragover'); });
+        problemDropZone.addEventListener('dragleave', () => problemDropZone.classList.remove('dragover'));
+        problemDropZone.addEventListener('drop', (e) => { e.preventDefault(); problemDropZone.classList.remove('dragover'); if (e.dataTransfer.files.length) handleProblemFile(e.dataTransfer.files[0]); });
+        problemFileInput.addEventListener('change', () => { if (problemFileInput.files.length) handleProblemFile(problemFileInput.files[0]); });
+
+        function handleProblemFile(file) {
+            problemFile = file;
+            document.getElementById('problemFileName').textContent = file.name;
+            document.getElementById('problemFileSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+            problemDropZone.classList.add('d-none');
+            problemFileInfo.classList.remove('d-none');
+        }
+
+        document.getElementById('problemRemoveFile').addEventListener('click', () => { problemFile = null; problemFileInput.value = ''; problemDropZone.classList.remove('d-none'); problemFileInfo.classList.add('d-none'); });
+
+        document.getElementById('problemForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const site = document.getElementById('problemSiteSelect').value;
+            if (!site) { Swal.fire('Warning', 'Pilih site', 'warning'); return; }
+            if (!problemFile) { Swal.fire('Warning', 'Pilih file', 'warning'); return; }
+
+            Swal.fire({ title: 'Mengupload...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            const formData = new FormData();
+            formData.append('file', problemFile);
+            formData.append('site', site);
+
+            try {
+                const response = await fetch(`${API_BASE}/api/tyres/problem-upload`, { method: 'POST', body: formData });
+                const result = await response.json();
+                if (response.ok) {
+                    Swal.fire({ icon: 'success', title: 'Berhasil!', text: result.message }).then(() => {
+                        window.location.href = 'datalist- tyre.html';
+                    });
+                } else {
+                    Swal.fire('Error', result.error || 'Upload gagal', 'error');
+                }
+            } catch (error) {
+                Swal.fire('Error', 'Terjadi kesalahan: ' + error.message, 'error');
+            }
+        });
+    </script>
+</body>
+</html>

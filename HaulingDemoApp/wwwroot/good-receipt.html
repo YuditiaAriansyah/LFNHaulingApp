@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LFN Good Receipt</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        <style>
+        :root {
+            --primary-color: #1e3a5f;
+            --secondary-color: #dc2626;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --bg-page: #F8FAFC;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --accent-color: #dc2626;
+            --accent-light: #fef2f2;
+            --navy: #1e3a5f;
+        }
+        .navbar { background: var(--navy); padding: 0.75rem 0; border-bottom: 1px solid rgba(255,255,255,0.08); box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+        .navbar-brand { font-weight: 700; font-size: 1.35rem; color: #fff !important; display: flex; align-items: center; gap: 8px; }
+        .navbar-brand i { color: #38bdf8; font-size: 1.6rem; }
+        .nav-group { display: flex; align-items: center; gap: 2px; }
+        .nav-group-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.35); padding: 0 8px; margin-right: 4px; border-right: 1px solid rgba(255,255,255,0.15); }
+        .nav-link { color: rgba(255,255,255,0.65) !important; font-weight: 500; font-size: 0.875rem; padding: 0.5rem 0.75rem !important; border-radius: 8px; transition: all 0.2s ease; display: flex; align-items: center; gap: 6px; position: relative; }
+        .nav-link i { font-size: 1rem; opacity: 0.8; }
+        .nav-link:hover, .nav-link.active { color: #fff !important; background: rgba(220,38,38,0.25); }
+        .nav-link.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 60%; background: #38bdf8; border-radius: 0 2px 2px 0; }
+        body { background-color: var(--bg-page); min-height: 100vh; padding-top: 76px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: var(--text-primary); line-height: 1.6; }
+        .main-container { background: var(--bg-card); border-radius: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04); border: 1px solid var(--border-color); padding: 28px 32px; margin-top: 20px; }
+        .page-header { background: linear-gradient(135deg, #1e3a5f 0%, #dc2626 100%); color: white; padding: 24px 28px; border-radius: 12px; margin-bottom: 28px; box-shadow: 0 4px 12px rgba(220,38,38,0.3); }
+        .page-header h1 { margin: 0 0 4px 0; font-size: 1.5rem; font-weight: 700; letter-spacing: -0.01em; }
+        .page-header p { margin: 0; opacity: 0.75; font-size: 0.875rem; }
+        .stats-card { background: var(--bg-card); border-radius: 12px; padding: 20px 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04); border: 1px solid var(--border-color); text-align: center; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .stats-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .stats-card h6 { color: var(--text-secondary); margin-bottom: 10px; font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stats-card .number { font-size: 1.625rem; font-weight: 700; line-height: 1.2; color: var(--secondary-color); }
+        .stats-card.received { border-top: 3px solid var(--secondary-color); }
+        .stats-card.inspected { border-top: 3px solid var(--warning-color); }
+        .stats-card.inspected .number { color: var(--warning-color); }
+        .stats-card.completed { border-top: 3px solid var(--success-color); }
+        .stats-card.completed .number { color: var(--success-color); }
+        .filter-section { background: var(--bg-page); padding: 20px 24px; border-radius: 12px; margin-bottom: 24px; border: 1px solid var(--border-color); border-left: 4px solid var(--accent-color); }
+        .form-label { font-weight: 600; color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; }
+        .form-select, .form-control { border-radius: 10px; border: 1.5px solid var(--border-color); padding: 10px 14px; font-size: 0.875rem; background: #fff; color: var(--text-primary); transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+        .form-select:focus, .form-control:focus { border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(220,38,38,0.1); outline: none; }
+        .btn { border-radius: 10px; padding: 9px 22px; font-weight: 600; font-size: 0.875rem; transition: all 0.2s ease; border: none; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-primary { background: var(--accent-color); color: white; }
+        .btn-primary:hover { background: #b91c1c; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(220,38,38,0.35); }
+        .btn-success { background: var(--success-color); color: white; }
+        .btn-success:hover { background: #059669; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16,185,129,0.35); }
+        .btn-danger { background: var(--danger-color); color: white; }
+        .btn-danger:hover { background: #dc2626; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(239,68,68,0.35); }
+        .btn-warning { background: var(--warning-color); color: white; }
+        .table-responsive { border-radius: 12px; overflow: hidden; }
+        .table { margin-bottom: 0; font-size: 0.875rem; }
+        .table thead th { background: var(--bg-page); color: var(--text-secondary); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--border-color) !important; padding: 12px 16px; white-space: nowrap; }
+        .table tbody tr { transition: background-color 0.15s ease; border-bottom: 1px solid var(--border-color); }
+        .table tbody tr:last-child { border-bottom: none; }
+        .table tbody tr:hover { background-color: #f8fafc; }
+        .table tbody td { padding: 13px 16px; vertical-align: middle; color: var(--text-primary); }
+        .badge { padding: 4px 12px; border-radius: 50px; font-weight: 600; font-size: 0.7rem; letter-spacing: 0.3px; text-transform: uppercase; }
+        .badge-received { background: #fee2e2; color: #991b1b; }
+        .badge-inspected { background: #fef3c7; color: #92400e; }
+        .badge-completed { background: #d1fae5; color: #065f46; }
+        .badge-draft { background: #f1f5f9; color: #475569; }
+        .badge-open { background: #dbeafe; color: #1e40af; }
+        .badge-posted { background: #d1fae5; color: #065f46; }
+        .nav-tabs { border-bottom: 2px solid var(--border-color); margin-bottom: 24px; gap: 4px; }
+        .nav-tabs .nav-link { border: none; color: var(--text-secondary); font-weight: 500; font-size: 0.875rem; padding: 10px 20px; border-radius: 8px 8px 0 0; background: transparent; margin-right: 0; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s ease; }
+        .nav-tabs .nav-link:hover { color: var(--accent-color); background: var(--accent-light); }
+        .nav-tabs .nav-link.active { color: var(--accent-color); background: transparent; border-bottom-color: var(--accent-color); font-weight: 600; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .action-buttons .btn { padding: 5px 10px; font-size: 0.75rem; border-radius: 8px; }
+        .modal-header { background: var(--accent-color); color: white; border-radius: 12px 12px 0 0; padding: 20px 24px; }
+        .modal-header .btn-close { filter: invert(1); }
+        .gr-items-table input, .gr-items-table select { border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; width: 100%; font-size: 0.875rem; background: #fff; }
+        .gr-items-table input:focus, .gr-items-table select:focus { border-color: var(--accent-color); outline: none; box-shadow: 0 0 0 3px rgba(220,38,38,0.1); }
+
+        /* Tabs - override Bootstrap default dark style */
+        .nav-tabs { border-bottom: 2px solid var(--border-color); gap: 4px; padding: 0; margin-bottom: 0; }
+        .nav-tabs .nav-item { margin-bottom: 0; }
+        .nav-tabs .nav-link {
+            color: var(--text-secondary) !important;
+            background: #f1f5f9;
+            border: 1.5px solid var(--border-color);
+            border-bottom: none;
+            padding: 10px 20px;
+            border-radius: 10px 10px 0 0;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            margin-right: 4px;
+        }
+        .nav-tabs .nav-link i { font-size: 0.9rem; margin-right: 4px; opacity: 0.7; }
+        .nav-tabs .nav-link:hover {
+            color: var(--accent) !important;
+            background: var(--accent-light);
+            border-color: var(--accent);
+        }
+        .nav-tabs .nav-link.active {
+            color: #fff !important;
+            background: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+        }
+        .nav-tabs .nav-link.active i { opacity: 1; }
+        .nav-pills .nav-link { border-radius: 10px; }
+        .nav-pills .nav-link.active { background: var(--accent); color: #fff !important; }
+
+    </style>
+
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="bi bi-box-seam me-2"></i>LFN Warehouse</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a  class="nav-link" href="/" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-house me-1"></i> Home</a></li>
+                    <li class="nav-item"><a  class="nav-link" href="inventory.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-boxes me-1"></i> Inventory</a></li>
+                    <li class="nav-item"><a  class="nav-link" href="purchase-request.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-file-text me-1"></i> PR</a></li>
+                    <li class="nav-item"><a  class="nav-link" href="purchase-order.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-file-earmark me-1"></i> PO</a></li>
+                    <li class="nav-item"><a  class="nav-link active" href="good-receipt.html" style="background:#dc2626!important;color:#fff!important;border:1.5px solid #dc2626!important;border-bottom:none!important;"<i class="bi bi-box-seam me-1"></i> GR</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="main-container">
+            <div class="page-header text-center">
+                <h1><i class="bi bi-box-seam"></i> Good Receipt</h1>
+                <p>Receive and inspect goods from vendors</p>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-3"><div class="stats-card"><h6><i class="bi bi-list me-1"></i> Total Receipts</h6><div class="number" id="statTotal">0</div></div></div>
+                <div class="col-md-3"><div class="stats-card received"><h6><i class="bi bi-truck me-1"></i> Received</h6><div class="number" id="statReceived">0</div></div></div>
+                <div class="col-md-3"><div class="stats-card inspected"><h6><i class="bi bi-search me-1"></i> Inspected</h6><div class="number" id="statInspected">0</div></div></div>
+                <div class="col-md-3"><div class="stats-card completed"><h6><i class="bi bi-check-all me-1"></i> Completed</h6><div class="number" id="statCompleted">0</div></div></div>
+            </div>
+
+            <ul class="nav nav-tabs">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="listTab" onclick="switchTab('list')" type="button" role="tab" style="background:#dc2626!important;color:#fff!important;border:1.5px solid #dc2626!important;border-bottom:none!important;">
+                        <i class="bi bi-list-ul me-2"></i>List GR
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="createTab" onclick="switchTab('create')" type="button" role="tab" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;">
+                        <i class="bi bi-plus-circle me-2"></i>Create GR
+                    </button>
+                </li>
+            </ul>
+
+            <!-- List Tab -->
+            <div class="tab-content active" id="listContent">
+                <div class="filter-section">
+                    <h5><i class="bi bi-funnel-fill"></i> Filter</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="form-label">Site</label>
+                            <select class="form-select" id="filterSite">
+                                <option value="all">All Sites</option>
+                                <option value="Sungai Dua">Sungai Dua</option>
+                                <option value="Sebamban">Sebamban</option>
+                                <option value="Mandala">Mandala</option>
+                                <option value="Tanjung">Tanjung</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="filterStatus">
+                                <option value="all">All Status</option>
+                                <option value="RECEIVED">Received</option>
+                                <option value="INSPECTED">Inspected</option>
+                                <option value="COMPLETED">Completed</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button class="btn btn-primary me-2" onclick="loadGRs()"><i class="bi bi-search"></i> Apply</button>
+                            <button class="btn btn-outline-secondary" onclick="resetFilter()"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mb-3">
+                    <button class="btn btn-primary" onclick="switchTab('create'); resetForm();"><i class="bi bi-plus-circle"></i> Create New GR</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table" id="grTable">
+                        <thead>
+                            <tr>
+                                <th>No</th><th>GR Number</th><th>GR Date</th><th>Site</th><th>Vendor</th><th>PO Ref</th>
+                                <th>Items</th><th>Status</th><th>Received By</th><th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="grTableBody">
+                            <tr><td colspan="10" class="text-center text-muted py-4"><i class="bi bi-hourglass-split fs-3 d-block mb-2"></i>Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Create/Edit Tab -->
+            <div class="tab-content" id="createContent">
+                <form id="grForm">
+                    <input type="hidden" id="grId">
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">GR Number</label>
+                                <input type="text" class="form-control" id="grNumber" readonly placeholder="Auto-generated">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">GR Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="grDate" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" id="grStatus">
+                                    <option value="RECEIVED">Received</option>
+                                    <option value="INSPECTED">Inspected</option>
+                                    <option value="COMPLETED">Completed</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Site <span class="text-danger">*</span></label>
+                                <select class="form-select" id="grSite" required>
+                                    <option value="">Select Site</option>
+                                    <option value="Sungai Dua">Sungai Dua</option>
+                                    <option value="Sebamban">Sebamban</option>
+                                    <option value="Mandala">Mandala</option>
+                                    <option value="Tanjung">Tanjung</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Vendor <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="grVendor" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">PO Reference</label>
+                                <input type="text" class="form-control" id="grPONumber">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Received By</label>
+                                <input type="text" class="form-control" id="grReceivedBy">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Approved By</label>
+                                <input type="text" class="form-control" id="grApprovedBy">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Remarks</label>
+                        <textarea class="form-control" id="grRemarks" rows="2"></textarea>
+                    </div>
+
+                    <!-- Items Section -->
+                    <div class="card mt-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>Received Items</h5>
+                            <button type="button" class="btn btn-sm btn-primary" onclick="addItemRow()"><i class="bi bi-plus"></i> Add Item</button>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table gr-items-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 15%;">Part Number</th>
+                                            <th style="width: 20%;">Description</th>
+                                            <th style="width: 8%;">Unit</th>
+                                            <th style="width: 10%;">Ordered</th>
+                                            <th style="width: 10%;">Received</th>
+                                            <th style="width: 10%;">Accepted</th>
+                                            <th style="width: 10%;">Rejected</th>
+                                            <th style="width: 10%;">Location</th>
+                                            <th style="width: 7%;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="itemsTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-success" id="btnSave"><i class="bi bi-check-circle"></i> Save GR</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="resetForm()"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+                        <button type="button" class="btn btn-outline-danger" onclick="switchTab('list')"><i class="bi bi-x-circle"></i> Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Modal -->
+    <div class="modal fade" id="viewModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-box-seam me-2"></i>GR Detail</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="viewModalBody"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="bi bi-trash me-2"></i>Confirm Delete</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Delete GR: <strong id="deleteGRNumber"></strong>?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="deleteGR()"><i class="bi bi-trash"></i> Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let grs = [];
+        let currentItems = [];
+        let editingId = null;
+        let deleteId = null;
+
+        
+        const ACTIVE_STYLE   = 'background:#dc2626!important;color:#fff!important;border:1.5px solid #dc2626!important;border-bottom:none!important;';
+        const INACTIVE_STYLE = 'background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;';
+
+function switchTab(tab) {
+            document.querySelectorAll('.nav-link').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
+            document.getElementById(tab + 'Content').classList.add('active');
+        }
+
+        async function loadGRs() {
+            const site = document.getElementById('filterSite').value;
+            const status = document.getElementById('filterStatus').value;
+
+            try {
+                const response = await fetch(`/api/good-receipts?site=${site}&status=${status}`);
+                grs = await response.json();
+                renderTable();
+                loadStats();
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire('Error', 'Failed to load data', 'error');
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('grTableBody');
+
+            if (!grs || grs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4"><i class="bi bi-inbox fs-3 d-block mb-2"></i>No data available</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = grs.map((gr, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td><strong>${gr.grNumber}</strong></td>
+                    <td>${formatDate(gr.grDate)}</td>
+                    <td>${gr.site}</td>
+                    <td>${gr.vendor}</td>
+                    <td>${gr.poNumber || '-'}</td>
+                    <td>${gr.items ? gr.items.length : 0}</td>
+                    <td>${getStatusBadge(gr.status)}</td>
+                    <td>${gr.receivedBy || '-'}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-info btn-sm" onclick="viewGR(${gr.id})"><i class="bi bi-eye"></i></button>
+                            <button class="btn btn-warning btn-sm" onclick="editGR(${gr.id})"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-danger btn-sm" onclick="confirmDelete(${gr.id}, '${gr.grNumber}')"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getStatusBadge(status) {
+            const badges = {
+                'RECEIVED': '<span class="badge badge-received">Received</span>',
+                'INSPECTED': '<span class="badge badge-inspected">Inspected</span>',
+                'COMPLETED': '<span class="badge badge-completed">Completed</span>'
+            };
+            return badges[status] || `<span class="badge badge-received">${status}</span>`;
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/good-receipts/stats');
+                const stats = await response.json();
+                document.getElementById('statTotal').textContent = stats.total || 0;
+                document.getElementById('statReceived').textContent = stats.received || 0;
+                document.getElementById('statInspected').textContent = stats.inspected || 0;
+                document.getElementById('statCompleted').textContent = stats.completed || 0;
+            } catch (error) { console.error('Error loading stats:', error); }
+        }
+
+        async function viewGR(id) {
+            try {
+                const response = await fetch(`/api/good-receipts/${id}`);
+                const gr = await response.json();
+
+                const itemsHtml = (gr.items || []).map(item => `
+                    <tr>
+                        <td>${item.partNumber}</td>
+                        <td>${item.description}</td>
+                        <td>${item.unit}</td>
+                        <td class="text-end">${formatNumber(item.orderedQty)}</td>
+                        <td class="text-end">${formatNumber(item.receivedQty)}</td>
+                        <td class="text-end">${formatNumber(item.acceptedQty)}</td>
+                        <td class="text-end text-danger">${formatNumber(item.rejectedQty)}</td>
+                        <td>${item.location || '-'}</td>
+                    </tr>
+                `).join('');
+
+                document.getElementById('viewModalBody').innerHTML = `
+                    <div class="row mb-3">
+                        <div class="col-md-4"><strong>GR Number:</strong> ${gr.grNumber}</div>
+                        <div class="col-md-4"><strong>Date:</strong> ${formatDate(gr.grDate)}</div>
+                        <div class="col-md-4"><strong>Status:</strong> ${getStatusBadge(gr.status)}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4"><strong>Site:</strong> ${gr.site}</div>
+                        <div class="col-md-4"><strong>Vendor:</strong> ${gr.vendor}</div>
+                        <div class="col-md-4"><strong>PO Ref:</strong> ${gr.poNumber || '-'}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4"><strong>Received By:</strong> ${gr.receivedBy || '-'}</div>
+                        <div class="col-md-4"><strong>Approved By:</strong> ${gr.approvedBy || '-'}</div>
+                        <div class="col-md-4"><strong>Remarks:</strong> ${gr.remarks || '-'}</div>
+                    </div>
+                    <table class="table table-sm mt-3">
+                        <thead><tr><th>Part Number</th><th>Description</th><th>Unit</th><th class="text-end">Ordered</th><th class="text-end">Received</th><th class="text-end">Accepted</th><th class="text-end">Rejected</th><th>Location</th></tr></thead>
+                        <tbody>${itemsHtml || '<tr><td colspan="8" class="text-center">No items</td></tr>'}</tbody>
+                    </table>
+                `;
+                new bootstrap.Modal(document.getElementById('viewModal')).show();
+            } catch (error) { Swal.fire('Error', 'Failed to load GR', 'error'); }
+        }
+
+        async function editGR(id) {
+            try {
+                const response = await fetch(`/api/good-receipts/${id}`);
+                const gr = await response.json();
+
+                editingId = id;
+                document.getElementById('grId').value = id;
+                document.getElementById('grNumber').value = gr.grNumber;
+                document.getElementById('grDate').value = gr.grDate ? gr.grDate.split('T')[0] : '';
+                document.getElementById('grSite').value = gr.site;
+                document.getElementById('grVendor').value = gr.vendor;
+                document.getElementById('grPONumber').value = gr.poNumber || '';
+                document.getElementById('grStatus').value = gr.status;
+                document.getElementById('grReceivedBy').value = gr.receivedBy || '';
+                document.getElementById('grApprovedBy').value = gr.approvedBy || '';
+                document.getElementById('grRemarks').value = gr.remarks || '';
+
+                currentItems = (gr.items || []).map(i => ({
+                    tempId: Date.now() + Math.random(),
+                    partNumber: i.partNumber,
+                    description: i.description,
+                    unit: i.unit,
+                    orderedQty: i.orderedQty,
+                    receivedQty: i.receivedQty,
+                    acceptedQty: i.acceptedQty,
+                    rejectedQty: i.rejectedQty,
+                    location: i.location || ''
+                }));
+                renderItemsTable();
+                switchTab('create');
+            } catch (error) { Swal.fire('Error', 'Failed to load GR', 'error'); }
+        }
+
+        function confirmDelete(id, grNumber) {
+            deleteId = id;
+            document.getElementById('deleteGRNumber').textContent = grNumber;
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
+
+        async function deleteGR() {
+            try {
+                await fetch(`/api/good-receipts/${deleteId}`, { method: 'DELETE' });
+                Swal.fire('Deleted', 'GR deleted successfully', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+                loadGRs();
+            } catch (error) { Swal.fire('Error', 'Failed to delete', 'error'); }
+        }
+
+        function resetFilter() {
+            document.getElementById('filterSite').value = 'all';
+            document.getElementById('filterStatus').value = 'all';
+            loadGRs();
+        }
+
+        function resetForm() {
+            document.getElementById('grForm').reset();
+            document.getElementById('grId').value = '';
+            document.getElementById('grDate').value = new Date().toISOString().split('T')[0];
+            editingId = null;
+            currentItems = [];
+            renderItemsTable();
+        }
+
+        function addItemRow(item = null) {
+            currentItems.push({
+                tempId: Date.now(),
+                partNumber: item?.partNumber || '',
+                description: item?.description || '',
+                unit: item?.unit || 'PCS',
+                orderedQty: item?.orderedQty || 0,
+                receivedQty: item?.receivedQty || 0,
+                acceptedQty: item?.acceptedQty || 0,
+                rejectedQty: item?.rejectedQty || 0,
+                location: item?.location || ''
+            });
+            renderItemsTable();
+        }
+
+        function renderItemsTable() {
+            const tbody = document.getElementById('itemsTableBody');
+
+            if (currentItems.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-3">No items. Click "Add Item" to add.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = currentItems.map((item, index) => `
+                <tr>
+                    <td><input type="text" value="${item.partNumber}" onchange="updateItem(${index}, 'partNumber', this.value)"></td>
+                    <td><input type="text" value="${item.description}" onchange="updateItem(${index}, 'description', this.value)"></td>
+                    <td>
+                        <select onchange="updateItem(${index}, 'unit', this.value)" style="width: 100%;">
+                            <option value="PCS" ${item.unit === 'PCS' ? 'selected' : ''}>PCS</option>
+                            <option value="UNIT" ${item.unit === 'UNIT' ? 'selected' : ''}>UNIT</option>
+                            <option value="KG" ${item.unit === 'KG' ? 'selected' : ''}>KG</option>
+                            <option value="LTR" ${item.unit === 'LTR' ? 'selected' : ''}>LTR</option>
+                            <option value="BOX" ${item.unit === 'BOX' ? 'selected' : ''}>BOX</option>
+                        </select>
+                    </td>
+                    <td><input type="number" value="${item.orderedQty}" min="0" onchange="updateItem(${index}, 'orderedQty', this.value)"></td>
+                    <td><input type="number" value="${item.receivedQty}" min="0" onchange="updateItem(${index}, 'receivedQty', this.value)"></td>
+                    <td><input type="number" value="${item.acceptedQty}" min="0" onchange="updateItem(${index}, 'acceptedQty', this.value)"></td>
+                    <td><input type="number" value="${item.rejectedQty}" min="0" onchange="updateItem(${index}, 'rejectedQty', this.value)"></td>
+                    <td><input type="text" value="${item.location}" onchange="updateItem(${index}, 'location', this.value)"></td>
+                    <td><button class="btn btn-danger btn-sm" onclick="removeItem(${index})"><i class="bi bi-trash"></i></button></td>
+                </tr>
+            `).join('');
+        }
+
+        function updateItem(index, field, value) {
+            const numericFields = ['orderedQty', 'receivedQty', 'acceptedQty', 'rejectedQty'];
+            currentItems[index][field] = numericFields.includes(field) ? parseFloat(value) || 0 : value;
+            renderItemsTable();
+        }
+
+        function removeItem(index) {
+            currentItems.splice(index, 1);
+            renderItemsTable();
+        }
+
+        document.getElementById('grForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const data = {
+                grDate: document.getElementById('grDate').value,
+                site: document.getElementById('grSite').value,
+                vendor: document.getElementById('grVendor').value,
+                poNumber: document.getElementById('grPONumber').value,
+                status: document.getElementById('grStatus').value,
+                receivedBy: document.getElementById('grReceivedBy').value,
+                approvedBy: document.getElementById('grApprovedBy').value,
+                remarks: document.getElementById('grRemarks').value,
+                items: currentItems.filter(i => i.partNumber && i.description).map(i => ({
+                    partNumber: i.partNumber,
+                    description: i.description,
+                    unit: i.unit,
+                    orderedQty: parseFloat(i.orderedQty) || 0,
+                    receivedQty: parseFloat(i.receivedQty) || 0,
+                    acceptedQty: parseFloat(i.acceptedQty) || 0,
+                    rejectedQty: parseFloat(i.rejectedQty) || 0,
+                    location: i.location,
+                    remarks: ''
+                }))
+            };
+
+            try {
+                let response;
+                const url = editingId ? `/api/good-receipts/${editingId}` : '/api/good-receipts';
+                const method = editingId ? 'PUT' : 'POST';
+
+                response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) throw new Error('Save failed');
+
+                Swal.fire('Success', `GR ${editingId ? 'updated' : 'created'} successfully`, 'success');
+                resetForm();
+                switchTab('list');
+                loadGRs();
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire('Error', 'Failed to save GR', 'error');
+            }
+        });
+
+        function formatDate(date) {
+            if (!date) return '-';
+            return new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        function formatNumber(num) {
+            return (num || 0).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadGRs();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,2224 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LFN Data List</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- SheetJS for Excel Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- SweetAlert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; box-sizing: border-box; }
+        :root {
+            --navy: #0f172a;
+            --navy-mid: #1e293b;
+            --accent: #ef4444;
+            --accent-dim: rgba(239, 68, 68, 0.15);
+            --accent-light: rgba(239, 68, 68, 0.08);
+            --bg-page: #F8FAFC;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+        }
+        body { background: var(--bg-page); min-height: 100vh; color: var(--text-primary); }
+
+        /* Navbar */
+        .navbar { background: rgba(15, 23, 42, 0.97); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); padding: 0.7rem 0; box-shadow: 0 1px 20px rgba(0,0,0,0.3); }
+        .navbar-brand { font-weight: 700; font-size: 1.4rem; color: #fff !important; display: flex; align-items: center; gap: 10px; }
+        .navbar-brand i { color: var(--accent); font-size: 1.8rem; }
+        .navbar-nav { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
+        .nav-group { display: flex; align-items: center; gap: 2px; }
+        .nav-group-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: rgba(255,255,255,0.25); padding: 0 10px 0 6px; margin-right: 2px; border-right: 1px solid rgba(255,255,255,0.12); white-space: nowrap; }
+        .nav-link { color: rgba(255,255,255,0.6) !important; font-weight: 500; font-size: 0.82rem; padding: 0.45rem 0.7rem !important; border-radius: 8px; transition: all 0.2s ease; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+        .nav-link i { font-size: 0.95rem; opacity: 0.7; }
+        .nav-link:hover, .nav-link.active { color: #fff !important; background: var(--accent-dim); }
+        .nav-link.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 60%; background: var(--accent); border-radius: 0 2px 2px 0; }
+
+        /* Cards */
+        .main-container { background: var(--bg-card); border-radius: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04); padding: 28px; margin-top: 24px; border: 1px solid var(--border-color); }
+
+        /* Page header */
+        .page-header { background: linear-gradient(135deg, var(--navy), var(--navy-mid)); color: white; padding: 24px 28px; border-radius: 12px; margin-bottom: 28px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+        .page-header h1 { margin: 0; font-size: 1.5rem; font-weight: 700; letter-spacing: -0.01em; }
+        .page-header p { margin: 6px 0 0; opacity: 0.7; font-size: 0.875rem; }
+
+        /* Stats */
+        .stat-card { background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); border-top: 3px solid var(--accent); padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+        .stat-card h6 { color: var(--text-secondary); font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .stat-card .number { font-size: 1.8rem; font-weight: 700; color: var(--text-primary); line-height: 1.1; }
+
+        /* Filter */
+        .filter-section { background: var(--bg-page); padding: 20px; border-radius: 10px; margin-bottom: 24px; border: 1px solid var(--border-color); border-left: 3px solid var(--accent); }
+        .filter-section h5 { color: var(--text-primary); margin-bottom: 14px; font-weight: 600; font-size: 0.95rem; }
+
+        /* Forms */
+        .form-label { font-weight: 500; color: var(--text-primary); font-size: 0.85rem; }
+        .form-select, .form-control { border-radius: 10px; border: 1.5px solid var(--border-color); padding: 10px 14px; font-size: 0.9rem; transition: border-color 0.2s, box-shadow 0.2s; background: #fff; color: var(--text-primary); }
+        .form-select:focus, .form-control:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); outline: none; }
+
+        /* Buttons */
+        .btn-primary { background: var(--accent); border: none; border-radius: 10px; padding: 10px 20px; font-weight: 600; font-size: 0.88rem; transition: all 0.2s; color: #fff; }
+        .btn-primary:hover { background: #dc2626; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(239,68,68,0.3); }
+        .btn-outline-secondary { border-radius: 10px; border: 1.5px solid var(--border-color); color: var(--text-secondary); font-weight: 500; }
+        .btn-outline-secondary:hover { background: var(--bg-page); border-color: #cbd5e1; }
+        .btn-success { background: #22c55e; border: none; border-radius: 10px; font-weight: 600; }
+        .btn-success:hover { background: #16a34a; }
+        .btn-sm { border-radius: 8px; font-size: 0.8rem; padding: 6px 12px; }
+
+        /* Table */
+        .table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 0.875rem; }
+        .table thead th { background: #f8fafc; color: var(--text-secondary); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 14px; border-bottom: 2px solid var(--border-color); white-space: nowrap; }
+        .table tbody td { padding: 13px 14px; border-bottom: 1px solid var(--border-color); vertical-align: middle; color: var(--text-primary); }
+        .table tbody tr:hover { background: #f8fafc; }
+        .table-responsive { border-radius: 10px; overflow: hidden; border: 1px solid var(--border-color); }
+
+        /* Badges */
+        .badge { border-radius: 50px; font-weight: 600; font-size: 0.72rem; padding: 4px 10px; letter-spacing: 0.3px; }
+        .badge-success { background: rgba(34, 197, 94, 0.12); color: #15803d; }
+        .badge-warning { background: rgba(245, 158, 11, 0.12); color: #b45309; }
+        .badge-danger { background: rgba(239, 68, 68, 0.12); color: #b91c1c; }
+        .badge-info { background: rgba(59, 130, 246, 0.12); color: #1d4ed8; }
+        .badge-secondary { background: rgba(100, 116, 139, 0.12); color: #475569; }
+
+        /* Card component */
+        .card { border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 1px 4px rgba(0,0,0,0.05); overflow: hidden; }
+        .card-header { background: #fff; border-bottom: 1px solid var(--border-color); font-weight: 600; padding: 16px 20px; }
+        .card-body { padding: 20px; }
+
+        /*</style>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    </head>
+<body>
+    <!-- Navigation -->
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-truck"></i>
+                LFN
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto flex-wrap">
+                    <li class="nav-item">
+                        <a  class="nav-link" href="/" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-house"></i> Home</a>
+                    </li>
+                    <li class="nav-group">
+                        <span class="nav-group-label">Operasi</span>
+                        <a  class="nav-link" href="data-Upload-Fuel.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-fuel-pump"></i> Fuel</a>
+                        <a  class="nav-link" href="rm.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-tools"></i> R&M</a>
+                        <a  class="nav-link" href="fleet.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-car-front"></i> Fleet</a>
+                        <a  class="nav-link" href="data-Upload-Tyre.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-disc"></i> Tyre</a>
+                        <a  class="nav-link" href="inventory.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-boxes"></i> Inventory</a>
+                    </li>
+                    <li class="nav-group">
+                        <span class="nav-group-label">Procurement</span>
+                        <a  class="nav-link" href="purchase-request.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-file-text"></i> PR</a>
+                        <a  class="nav-link" href="purchase-order.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-file-earmark"></i> PO</a>
+                        <a  class="nav-link" href="good-receipt.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-box-seam"></i> GR</a>
+                        <a  class="nav-link" href="good-issue.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-box-arrow-right"></i> GI</a>
+                        <a  class="nav-link" href="vendor.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-building"></i> Vendor</a>
+                    </li>
+                    <li class="nav-group">
+                        <span class="nav-group-label">Keuangan</span>
+                        <a  class="nav-link" href="finance.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-wallet2"></i> Finance</a>
+                        <a  class="nav-link" href="hr.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-people"></i> HR</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="main-container">
+            <!-- Header -->
+            <div class="page-header text-center">
+                <img src="Logo.jpeg" class="header-logo mb-3" />
+                <h1><i class="bi bi-database-fill-gear"></i> LFN  Data List</h1>
+                <p>Fuel receipts & fuel usage</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <h6>Total Records</h6>
+                        <div class="number" id="totalRecords">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <h6>Total Penerimaan (L)</h6>
+                        <div class="number" id="totalReceipts">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <h6>Total Pengeluaran (L)</h6>
+                        <div class="number" id="totalUsage">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <h6>Avg Liter/Record</h6>
+                        <div class="number" id="avgLiter">0 L</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <ul class="nav nav-tabs" id="viewTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="filesTab" onclick="switchTab('files')" style="background:#dc2626!important;color:#fff!important;border:1.5px solid #dc2626!important;border-bottom:none!important;">
+                        <i class="bi bi-files"></i> File List
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="dataTableTab" onclick="switchTab('dataTable')" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;">
+                        <i class="bi bi-table"></i> Data Penerimaan
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pengeluaranTab" onclick="switchTab('pengeluaran')" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;">
+                        <i class="bi bi-table"></i> Data Pengeluaran
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Filter Section -->
+            <div class="filter-section">
+                <h5><i class="bi bi-funnel-fill"></i> Filter Data</h5>
+
+                <!-- Data Source Info (Cloud Storage Only - Temporarily Disabled Database) -->
+                <div class="alert alert-info d-flex align-items-center" role="alert">
+                    <i class="bi bi-cloud-storage fs-4 me-3"></i>
+                    <div>
+                        <strong>Cloud Storage Mode</strong>
+                        <div class="small">Loading data from Google Cloud Storage bucket: lfn-hauling-raw-data</div>
+                    </div>
+                </div>
+
+                <!-- HIDDEN: Data source toggle - temporarily disabled
+                <div class="data-source-toggle" role="group">
+                    <button type="button" class="btn btn-outline-secondary active" id="btnDataSourceDB" onclick="setDataSource('database')">
+                        <i class="bi bi-server"></i> Database
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" id="btnDataSourceGCS" onclick="setDataSource('gcs')">
+                        <i class="bi bi-cloud-storage"></i> Cloud Storage
+                    </button>
+                </div>
+                -->
+
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Site</label>
+                        <select class="form-select" id="filterSite">
+                            <option value="">All Sites</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3" id="filterDataTypeContainer">
+                        <label class="form-label">Data Type</label>
+                        <select class="form-select" id="filterDataType">
+                            <option value="">All Types</option>
+                            <option value="receipt">Fuel Receipts</option>
+                            <option value="usage">Fuel Usage</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Start Date</label>
+                        <input type="date" class="form-control" id="filterStartDate">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">End Date</label>
+                        <input type="date" class="form-control" id="filterEndDate">
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button class="btn btn-primary" onclick="applyFilter()">
+                                <i class="bi bi-search"></i> Apply Filter
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="resetFilter()">
+                                <i class="bi bi-arrow-counterclockwise"></i> Reset
+                            </button>
+                            <button class="btn btn-success" onclick="exportToExcel()">
+                                <i class="bi bi-file-earmark-excel"></i> Export to Excel
+                            </button>
+                            <button class="btn btn-success" onclick="exportToCSV()">
+                                <i class="bi bi-filetype-csv"></i> Export to CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div class="loading-spinner" id="loadingSpinner">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Loading data...</p>
+            </div>
+
+            <!-- Tab 1: File List -->
+            <div class="tab-content active" id="filesTabContent">
+                <div class="data-table" id="dataSection">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="dataTable">
+                        <thead>
+                            <tr id="tableHeader">
+                                <th>No</th>
+                                <th>Date</th>
+                                <th>Site</th>
+                                <th>Data Type</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td colspan="5" class="no-data">
+                                    <i class="bi bi-inbox"></i>
+                                    <p>No data available. Please select filters and click "Apply Filter"</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            </div>
+            <!-- End Tab 1: File List -->
+
+            <!-- Tab 2: Data Table (Parsed CSV Data) -->
+            <div class="tab-content" id="dataTableTabContent">
+                <!-- Summary Cards -->
+                <div class="summary-cards" id="summaryCards" style="display: none;">
+                    <div class="summary-card records">
+                        <h6><i class="bi bi-file-earmark-text"></i> Total Rows</h6>
+                        <div class="summary-value" id="summaryTotalRows">0</div>
+                    </div>
+                    <div class="summary-card liter">
+                        <h6><i class="bi bi-droplet-fill"></i> Total Liter</h6>
+                        <div class="summary-value" id="summaryTotalLiter">0</div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-end mb-3">
+                    <button class="btn btn-primary" onclick="openReceiptModal()">
+                        <i class="bi bi-plus-circle"></i> Add New
+                    </button>
+                </div>
+
+                <!-- Parsed Data Table -->
+                <div class="data-table" id="parsedDataTableSection">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="parsedDataTable">
+                            <thead>
+                                <tr id="parsedTableHeader">
+                                    <th style="width:5%">No</th>
+                                    <th style="width:12%">Tanggal</th>
+                                    <th style="width:12%">Site</th>
+                                    <th>Vendor</th>
+                                    <th style="width:8%; text-align:right">Liter</th>
+                                    <th style="width:10%">No Tiket</th>
+                                    <th style="width:8%; text-align:right">Total Harga</th>
+                                    <th style="width:12%">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="parsedTableBody">
+                                <tr>
+                                    <td colspan="8" class="no-data">
+                                        <i class="bi bi-inbox"></i>
+                                        <p>No data available. Please select filters and click "Apply Filter" to view CSV data</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- End Tab 2: Data Penerimaan -->
+
+            <!-- Tab 3: Data Pengeluaran (Fuel Usage) -->
+            <div class="tab-content" id="pengeluaranTabContent">
+                <!-- Summary Cards -->
+                <div class="summary-cards" id="summaryCardsPengeluaran" style="display: none;">
+                    <div class="summary-card records">
+                        <h6><i class="bi bi-file-earmark-text"></i> Total Rows</h6>
+                        <div class="summary-value" id="summaryTotalRowsPengeluaran">0</div>
+                    </div>
+                    <div class="summary-card liter">
+                        <h6><i class="bi bi-droplet-fill"></i> Total Pemakaian</h6>
+                        <div class="summary-value" id="summaryTotalLiterPengeluaran">0</div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-end mb-3">
+                    <button class="btn btn-primary" onclick="openUsageModal()">
+                        <i class="bi bi-plus-circle"></i> Add New
+                    </button>
+                </div>
+
+                <!-- Parsed Data Table -->
+                <div class="data-table" id="parsedPengeluaranTableSection">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="parsedPengeluaranTable">
+                            <thead>
+                                <tr id="parsedPengeluaranTableHeader">
+                                    <th style="width:5%">No</th>
+                                    <th style="width:10%">Tanggal</th>
+                                    <th style="width:10%">Site</th>
+                                    <th style="width:10%">Unit No</th>
+                                    <th style="width:10%">Operator</th>
+                                    <th style="width:8%; text-align:right">HM</th>
+                                    <th style="width:8%; text-align:right">KM</th>
+                                    <th style="width:8%; text-align:right">Pemakaian</th>
+                                    <th style="width:7%; text-align:right">Jam Kerja</th>
+                                    <th style="width:7%; text-align:right">Efisiensi</th>
+                                    <th style="width:12%">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="parsedPengeluaranTableBody">
+                                <tr>
+                                    <td colspan="11" class="no-data">
+                                        <i class="bi bi-inbox"></i>
+                                        <p>No data available. Please select filters and click "Apply Filter" to view CSV data</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- End Tab 3: Data Pengeluaran -->
+        </div>
+    </div>
+
+    <!-- Modal for Add/Edit Fuel Receipt (Penerimaan) -->
+    <div class="modal fade" id="receiptModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #00d9ff, #00ff88); color: #1a1a2e;">
+                    <h5 class="modal-title"><i class="bi bi-fuel-pump"></i> <span id="receiptModalTitle">Add Fuel Receipt</span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="receiptId">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Tanggal</label>
+                            <input type="date" class="form-control" id="receiptTanggal" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Site</label>
+                            <select class="form-select" id="receiptSite" required>
+                                <option value="">Select Site</option>
+                                <option value="Sungai Dua">Sungai Dua</option>
+                                <option value="Sebamban">Sebamban</option>
+                                <option value="Mandala">Mandala</option>
+                                <option value="Tanjung">Tanjung</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Vendor</label>
+                            <input type="text" class="form-control" id="receiptVendor" placeholder="Enter Vendor">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">No Tiket</label>
+                            <input type="text" class="form-control" id="receiptNoTiket" placeholder="Enter No Tiket">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Liter</label>
+                            <input type="number" step="0.01" class="form-control" id="receiptLiter" placeholder="0" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Jenis BBM</label>
+                            <input type="text" class="form-control" id="receiptJenisBBM" placeholder="e.g. Solar">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Harga Per Liter</label>
+                            <input type="number" step="0.01" class="form-control" id="receiptHargaPerLiter" placeholder="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Start Time</label>
+                            <input type="time" class="form-control" id="receiptStartTime">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">End Time</label>
+                            <input type="time" class="form-control" id="receiptEndTime">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Keterangan</label>
+                            <textarea class="form-control" id="receiptKeterangan" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveReceipt()">
+                        <i class="bi bi-save"></i> Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Add/Edit Fuel Usage (Pengeluaran) -->
+    <div class="modal fade" id="usageModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
+                    <h5 class="modal-title"><i class="bi bi-speedometer"></i> <span id="usageModalTitle">Add Fuel Usage</span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="usageId">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Tanggal</label>
+                            <input type="date" class="form-control" id="usageTanggal" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Site</label>
+                            <select class="form-select" id="usageSite" required>
+                                <option value="">Select Site</option>
+                                <option value="Sungai Dua">Sungai Dua</option>
+                                <option value="Sebamban">Sebamban</option>
+                                <option value="Mandala">Mandala</option>
+                                <option value="Tanjung">Tanjung</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Unit No</label>
+                            <input type="text" class="form-control" id="usageUnitNo" placeholder="Enter Unit No" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Operator</label>
+                            <input type="text" class="form-control" id="usageOperator" placeholder="Enter Operator">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">HM (Hours Meter)</label>
+                            <input type="number" step="0.01" class="form-control" id="usageHM" placeholder="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">KM (Kilo Meter)</label>
+                            <input type="number" step="0.01" class="form-control" id="usageKM" placeholder="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Pemakaian (L)</label>
+                            <input type="number" step="0.01" class="form-control" id="usagePemakaian" placeholder="0" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Jam Kerja</label>
+                            <input type="number" step="0.01" class="form-control" id="usageJamKerja" placeholder="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Efisiensi (%)</label>
+                            <input type="number" step="0.01" class="form-control" id="usageEfisiensi" placeholder="0">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Keterangan</label>
+                            <textarea class="form-control" id="usageKeterangan" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveUsage()">
+                        <i class="bi bi-save"></i> Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="bi bi-check-circle-fill text-success me-2" id="toastIcon"></i>
+                <strong class="me-auto" id="toastTitle">Success</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="toastMessage">
+                Operation completed successfully
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        let currentDataSource = 'gcs'; // Force Cloud Storage only - database temporarily disabled
+        let currentData = [];
+        let allData = [];
+
+        const API_BASE = window.location.origin;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSites();
+            setupDefaultDates();
+            loadInitialData();
+            loadOverallStats();
+        });
+
+        /* HIDDEN: Data source toggle - temporarily disabled
+        function setDataSource(source) {
+            currentDataSource = source;
+
+            // Update button states
+            document.getElementById('btnDataSourceDB').classList.toggle('active', source === 'database');
+            document.getElementById('btnDataSourceGCS').classList.toggle('active', source === 'gcs');
+
+            // Show notification
+            showToast('Info', `Data source changed to ${source === 'database' ? 'Database' : 'Cloud Storage'}`, 'info');
+
+            // Reload data dengan new source
+            loadInitialData();
+        }
+        */
+
+        function setupDefaultDates() {
+            // Default: no date filter (show all data)
+            document.getElementById('filterEndDate').value = '';
+            document.getElementById('filterStartDate').value = '';
+        }
+
+        // Tab Switching Function
+        let currentTab = 'files';
+
+        // Inline styles for tab buttons (must match the inline styles in HTML)
+        const ACTIVE_STYLE   = 'background:#dc2626!important;color:#fff!important;border:1.5px solid #dc2626!important;border-bottom:none!important;';
+        const INACTIVE_STYLE = 'background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;';
+
+        function switchTab(tabName) {
+            currentTab = tabName;
+
+            const filesTabBtn    = document.getElementById('filesTab');
+            const dataTableTabBtn   = document.getElementById('dataTableTab');
+            const pengeluaranTabBtn  = document.getElementById('pengeluaranTab');
+            const filesTabContent   = document.getElementById('filesTabContent');
+            const dataTableTabContent  = document.getElementById('dataTableTabContent');
+            const pengeluaranTabContent = document.getElementById('pengeluaranTabContent');
+
+            // Set ALL tabs to inactive style first
+            filesTabBtn.style.cssText   = INACTIVE_STYLE;
+            dataTableTabBtn.style.cssText  = INACTIVE_STYLE;
+            pengeluaranTabBtn.style.cssText = INACTIVE_STYLE;
+
+            // Hide all content
+            [filesTabContent, dataTableTabContent, pengeluaranTabContent].forEach(c => {
+                c.style.display = 'none';
+                c.classList.remove('active', 'show');
+            });
+
+            // Activate the selected tab
+            if (tabName === 'files') {
+                filesTabBtn.style.cssText = ACTIVE_STYLE;
+                filesTabContent.style.display = 'block';
+                filesTabContent.classList.add('active', 'show');
+
+            } else if (tabName === 'dataTable') {
+                dataTableTabBtn.style.cssText = ACTIVE_STYLE;
+                dataTableTabContent.style.cssText = '';
+                dataTableTabContent.style.display = 'block';
+                dataTableTabContent.style.visibility = 'visible';
+                dataTableTabContent.style.opacity = '1';
+                dataTableTabContent.style.position = 'relative';
+                dataTableTabContent.style.zIndex = '1000';
+                dataTableTabContent.classList.add('active', 'show');
+                dataTableTabContent.querySelectorAll('*').forEach(child => {
+                    child.style.display = '';
+                    child.style.visibility = '';
+                    child.style.opacity = '';
+                });
+                document.getElementById('filterDataType').value = 'receipt';
+                dataTableTabContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                loadDataFromDatabase('receipt');
+
+            } else if (tabName === 'pengeluaran') {
+                pengeluaranTabBtn.style.cssText = ACTIVE_STYLE;
+                pengeluaranTabContent.style.cssText = '';
+                pengeluaranTabContent.style.display = 'block';
+                pengeluaranTabContent.style.visibility = 'visible';
+                pengeluaranTabContent.style.opacity = '1';
+                pengeluaranTabContent.style.position = 'relative';
+                pengeluaranTabContent.style.zIndex = '1000';
+                pengeluaranTabContent.classList.add('active', 'show');
+                pengeluaranTabContent.querySelectorAll('*').forEach(child => {
+                    child.style.display = '';
+                    child.style.visibility = '';
+                    child.style.opacity = '';
+                });
+                document.getElementById('filterDataType').value = 'usage';
+                pengeluaranTabContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                loadDataFromDatabase('usage');
+            }
+        }
+
+        async function loadSites() {
+            // SKIP API call to avoid database error - use default sites only
+            /* HIDDEN: API call to /api/sites - temporarily disabled to avoid database connection error
+            try {
+                // Try to load sites from API
+                const response = await fetch(`${API_BASE}/api/sites`);
+                if (response.ok) {
+                    const data = await response.json();
+                    const sites = data.sites || [];
+                    const select = document.getElementById('filterSite');
+
+                    // Add "All Sites" option first
+                    const allOption = document.createElement('option');
+                    allOption.value = '';
+                    allOption.textContent = 'All Sites';
+                    select.innerHTML = '';
+                    select.appendChild(allOption);
+
+                    sites.forEach(site => {
+                        const option = document.createElement('option');
+                        option.value = site;
+                        option.textContent = site;
+                        select.appendChild(option);
+                    });
+
+                    return;
+                }
+            } catch (error) {
+                console.log('Could not load sites from API, using defaults');
+            }
+            */
+
+            // Use default sites only - no database connection needed
+            const sites = ['Sungai Dua', 'Sebamban', 'Mandala', 'Tanjung'];
+            const select = document.getElementById('filterSite');
+            select.innerHTML = '<option value="">All Sites</option>';
+
+            sites.forEach(site => {
+                const option = document.createElement('option');
+                option.value = site;
+                option.textContent = site;
+                select.appendChild(option);
+            });
+        }
+
+        async function loadInitialData() {
+            showLoading(true);
+
+            try {
+                // Load from database
+                await loadFromDatabase();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showToast('Error', 'Failed to load data: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function loadFromDatabase() {
+            const site = document.getElementById('filterSite').value;
+            const dataType = document.getElementById('filterDataType').value;
+
+            if (!dataType) {
+                updateStats(0, 0, 0, 0);
+                return;
+            }
+
+            const endpoint = dataType === 'receipt' ? '/api/fuel-receipts' : '/api/fuel-usages';
+            const url = `${API_BASE}${endpoint}?site=${encodeURIComponent(site || '')}`;
+
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            allData = data;
+            currentData = data;
+
+            displayData(data);
+
+            // Calculate stats from data
+            const isReceipt = dataType === 'receipt';
+            const totalLiter = isReceipt ? data.reduce((sum, r) => sum + (parseFloat(r.liter) || 0), 0) : 0;
+            const totalPemakaian = !isReceipt ? data.reduce((sum, u) => sum + (parseFloat(u.pemakaian) || 0), 0) : 0;
+            const sites = new Set(data.map(d => d.site));
+
+            updateStats(
+                data.length,
+                totalLiter.toLocaleString('id-ID') + ' L',
+                totalPemakaian.toLocaleString('id-ID') + ' L',
+                sites.size
+            );
+        }
+
+        async function loadFromGCS() {
+            const site = document.getElementById('filterSite').value;
+            const dataType = document.getElementById('filterDataType').value;
+
+            if (!dataType) {
+                return;
+            }
+
+            let prefix = dataType;
+            if (site) {
+                prefix += `/${site}`;
+            }
+
+            const url = `${API_BASE}/api/gcs-files?prefix=${encodeURIComponent(prefix)}`;
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            const files = result.files || [];
+
+            // Convert GCS files to data format
+            currentData = files.map(file => {
+                const parts = file.split('/');
+                const fileName = parts[parts.length - 1];
+                return {
+                    fileName: fileName,
+                    objectName: file,
+                    site: site || 'Unknown',
+                    dataType: dataType,
+                    date: parts[parts.length - 2] || new Date().toISOString().split('T')[0],
+                    size: 0
+                };
+            });
+
+            allData = currentData;
+            displayGCSData(currentData);
+        }
+
+        function displayData(data) {
+            const tbody = document.getElementById('tableBody');
+            const thead = document.getElementById('tableHeader');
+
+            // Update headers based on data type
+            if (data.length > 0) {
+                const isReceipt = data[0].hasOwnProperty('NoTiket');
+
+                if (isReceipt) {
+                    thead.innerHTML = `
+                        <th>No</th>
+                        <th>Tanggal</th>
+                        <th>Site</th>
+                        <th>Vendor</th>
+                        <th>Liter</th>
+                        <th>Jenis BBM</th>
+                        <th>No Tiket</th>
+                        <th>Data Type</th>
+                    `;
+
+                    tbody.innerHTML = data.map(item => `
+                        <tr>
+                            <td>${item.no || '-'}</td>
+                            <td>${formatDate(item.tanggal)}</td>
+                            <td><span class="badge bg-secondary">${item.site || '-'}</span></td>
+                            <td>${item.vendor || '-'}</td>
+                            <td>${formatNumber(item.liter)}</td>
+                            <td>${item.jenisBBM || '-'}</td>
+                            <td><small>${item.noTiket || '-'}</small></td>
+                            <td><span class="badge badge-receipt">Receipt</span></td>
+                        </tr>
+                    `).join('');
+                } else {
+                    thead.innerHTML = `
+                        <th>No</th>
+                        <th>Tanggal</th>
+                        <th>Site</th>
+                        <th>Unit No</th>
+                        <th>Operator</th>
+                        <th>Pemakaian</th>
+                        <th>Jam Kerja</th>
+                        <th>Efisiensi</th>
+                        <th>Data Type</th>
+                    `;
+
+                    tbody.innerHTML = data.map(item => `
+                        <tr>
+                            <td>${item.no || '-'}</td>
+                            <td>${formatDate(item.tanggal)}</td>
+                            <td><span class="badge bg-secondary">${item.site || '-'}</span></td>
+                            <td>${item.unitNo || '-'}</td>
+                            <td>${item.operator || '-'}</td>
+                            <td>${formatNumber(item.pemakaian)}</td>
+                            <td>${formatNumber(item.jamKerja)}</td>
+                            <td>${formatNumber(item.eFisiensi)}</td>
+                            <td><span class="badge badge-usage">Usage</span></td>
+                        </tr>
+                    `).join('');
+                }
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="no-data">
+                            <i class="bi bi-inbox"></i>
+                            <p>No data found. Please adjust your filters.</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function displayGCSData(data) {
+            const tbody = document.getElementById('tableBody');
+            const thead = document.getElementById('tableHeader');
+
+            thead.innerHTML = `
+                <th>File Name</th>
+                <th>Site</th>
+                <th>Data Type</th>
+                <th>Date</th>
+                <th>Actions</th>
+            `;
+
+            if (data.length > 0) {
+                tbody.innerHTML = data.map(item => `
+                    <tr>
+                        <td><small>${item.fileName}</small></td>
+                        <td><span class="badge bg-secondary">${item.site}</span></td>
+                        <td><span class="badge ${item.dataType === 'receipt' ? 'badge-receipt' : 'badge-usage'}">${item.dataType}</span></td>
+                        <td>${item.date}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="downloadFromGCS('${item.objectName}')">
+                                <i class="bi bi-download"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="no-data">
+                            <i class="bi bi-inbox"></i>
+                            <p>No files found in Cloud Storage.</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        async function downloadFromGCS(objectName) {
+            try {
+                const url = `${API_BASE}/api/download-from-gcs?objectName=${encodeURIComponent(objectName)}`;
+                window.open(url, '_blank');
+                showToast('Success', 'Download started', 'success');
+            } catch (error) {
+                showToast('Error', 'Download failed: ' + error.message, 'error');
+            }
+        }
+
+        // Load and Parse CSV Data for Data Table Tab
+        let parsedCSVData = [];
+        let parsedPengeluaranData = [];
+
+        // Load overall totals for stats cards (all data, no filter)
+        async function loadOverallStats() {
+            try {
+                document.getElementById('totalRecords').textContent = '...';
+                document.getElementById('totalReceipts').textContent = '...';
+                document.getElementById('totalUsage').textContent = '...';
+                document.getElementById('avgLiter').textContent = '...';
+
+                // Get stats from database API
+                const [statsResult, sitesResult] = await Promise.all([
+                    fetch(`${API_BASE}/api/statistics`).then(r => r.json()),
+                    fetch(`${API_BASE}/api/sites`).then(r => r.json())
+                ]);
+
+                const totalRecords = statsResult.totalRecords || 0;
+                const totalLiter   = statsResult.totalLiter || 0;
+                const totalUsage   = statsResult.totalUsage || 0;
+                const avgLiter     = totalRecords > 0 ? (totalLiter / totalRecords).toLocaleString('id-ID') + ' L' : '0 L';
+                updateStats(
+                    totalRecords,
+                    totalLiter.toLocaleString('id-ID') + ' L',
+                    totalUsage.toLocaleString('id-ID') + ' L',
+                    avgLiter
+                );
+
+            } catch (error) {
+                console.error('Error loading overall stats:', error);
+                updateStats(0, '0 L', '0 L', '0 L');
+            }
+        }
+
+        async function loadParsedCSVData() {
+            console.log('=== loadParsedCSVData() START ===');
+            showLoading(true);
+
+            try {
+                const site = document.getElementById('filterSite').value;
+                const dataType = document.getElementById('filterDataType').value;
+
+                console.log('Filter values - Site:', site, 'DataType:', dataType);
+
+                if (!dataType) {
+                    console.warn('❌ No data type selected!');
+                    showToast('Warning', 'Please select Data Type first', 'warning');
+                    showLoading(false);
+                    return;
+                }
+
+                // Build prefix for GCS
+                let prefix = dataType;
+                if (site) {
+                    prefix += `/${site}`;
+                }
+                console.log('📂 GCS Prefix:', prefix);
+
+                // Get files from GCS
+                const url = `${API_BASE}/api/gcs-files?prefix=${encodeURIComponent(prefix)}`;
+                console.log('🌐 Fetching URL:', url);
+
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ GCS API Error:', response.status, errorText);
+                    throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+                }
+
+                const result = await response.json();
+                const files = result.files || [];
+                console.log('✅ Files found:', files.length);
+                console.log('📄 File list:', files);
+
+                if (files.length === 0) {
+                    console.warn('⚠️ No files found');
+                    document.getElementById('parsedTableBody').innerHTML = `
+                        <tr>
+                            <td colspan="6" class="no-data">
+                                <i class="bi bi-inbox"></i>
+                                <p>No files found in Cloud Storage for the selected filters</p>
+                                <small>Prefix: ${prefix}</small>
+                            </td>
+                        </tr>
+                    `;
+                    document.getElementById('summaryCards').style.display = 'none';
+                    showLoading(false);
+                    return;
+                }
+
+                // Download and parse all CSV files
+                parsedCSVData = [];
+                let totalLiter = 0;
+                let successCount = 0;
+                let errorCount = 0;
+
+                console.log('🔄 Starting to download and parse', files.length, 'files...');
+
+                for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
+                    const file = files[fileIndex];
+                    console.log(`📥 [${fileIndex + 1}/${files.length}] Downloading: ${file}`);
+
+                    try {
+                        // Download file from GCS
+                        const downloadUrl = `${API_BASE}/api/download-from-gcs?objectName=${encodeURIComponent(file)}`;
+                        console.log('   Download URL:', downloadUrl);
+
+                        const fileResponse = await fetch(downloadUrl);
+
+                        if (!fileResponse.ok) {
+                            const errorText = await fileResponse.text();
+                            console.error(`   ❌ Failed to download file: ${file}`, fileResponse.status, errorText);
+                            errorCount++;
+                            continue;
+                        }
+
+                        // Get CSV content
+                        const csvText = await fileResponse.text();
+                        console.log(`   ✅ Downloaded. Size: ${csvText.length} bytes`);
+
+                        // Parse CSV
+                        const lines = csvText.split('\n').filter(line => line.trim());
+                        console.log(`   📊 CSV lines: ${lines.length}`);
+
+                        if (lines.length < 2) {
+                            console.warn(`   ⚠️ Skipping empty file`);
+                            continue;
+                        }
+
+                        const headers = lines[0].split(';').map(h => h.trim());
+                        console.log(`   🔷 Headers:`, headers);
+
+                        // Parse data rows
+                        let rowsParsed = 0;
+                        for (let i = 1; i < lines.length; i++) {
+                            const values = lines[i].split(';').map(v => v.trim());
+                            if (values.length < headers.length) {
+                                console.warn(`   ⚠️ Skipping malformed line ${i}: values=${values.length}, headers=${headers.length}`);
+                                continue;
+                            }
+
+                            const row = {};
+                            headers.forEach((header, index) => {
+                                row[header] = values[index] || '';
+                            });
+
+                            // Add to parsed data
+                            parsedCSVData.push(row);
+                            rowsParsed++;
+
+                            // Calculate total liter
+                            const literValue = parseFloat(row['Liter']?.replace(/,/g, '') || '0');
+                            if (!isNaN(literValue)) {
+                                totalLiter += literValue;
+                            }
+                        }
+                        console.log(`   ✅ Parsed ${rowsParsed} rows from this file`);
+                        successCount++;
+
+                    } catch (error) {
+                        console.error(`   ❌ Error parsing file ${file}:`, error);
+                        console.error(`   Error stack:`, error.stack);
+                        errorCount++;
+                    }
+                }
+
+                console.log('🎉 Parsing complete!');
+                console.log('   ✅ Success:', successCount, 'files');
+                console.log('   ❌ Errors:', errorCount, 'files');
+                console.log('   📊 Total rows:', parsedCSVData.length);
+                console.log('   💧 Total liter:', totalLiter);
+
+                // TEMPORARY DISABLED: Deduplication with SweetAlert
+                // TODO: Re-enable after listview works
+                /*
+                // Check for duplicates based on NoTiket
+                const noTiketMap = new Map();
+                const duplicates = [];
+                // ... (deduplication code commented out)
+                */
+
+                let finalData = parsedCSVData;
+
+                // Apply date filter
+                const startDate = document.getElementById('filterStartDate').value;
+                const endDate = document.getElementById('filterEndDate').value;
+
+                if (startDate || endDate) {
+                    const startD = startDate ? new Date(startDate) : null;
+                    const endD = endDate ? new Date(endDate + 'T23:59:59') : null;
+
+                    finalData = finalData.filter(row => {
+                        const tanggalStr = row['Tanggal'] || row['tanggal'] || '';
+                        if (!tanggalStr) return true;
+                        let rowDate;
+                        if (tanggalStr.includes('/')) {
+                            const parts = tanggalStr.split('/');
+                            if (parts.length === 3) {
+                                rowDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+                            }
+                        } else {
+                            rowDate = new Date(tanggalStr);
+                        }
+                        if (!rowDate || isNaN(rowDate.getTime())) return true;
+                        if (startD && rowDate < startD) return false;
+                        if (endD && rowDate > endD) return false;
+                        return true;
+                    });
+
+                    // Recalculate totalLiter after date filtering
+                    totalLiter = finalData.reduce((sum, row) => {
+                        const val = parseFloat((row['Liter'] || row['liter'] || '0').toString().replace(/,/g, '')) || 0;
+                        return sum + (isNaN(val) ? 0 : val);
+                    }, 0);
+                }
+
+                if (finalData.length === 0) {
+                    console.warn('⚠️ No data rows after filtering!');
+                    document.getElementById('parsedTableBody').innerHTML = `
+                        <tr>
+                            <td colspan="6" class="no-data">
+                                <i class="bi bi-exclamation-triangle text-warning"></i>
+                                <p>No data rows found matching the selected filters</p>
+                                <small>Downloaded ${successCount} files successfully</small>
+                            </td>
+                        </tr>
+                    `;
+                    document.getElementById('summaryCards').style.display = 'none';
+                    showLoading(false);
+                    return;
+                }
+
+                console.log('🖼️ Calling displayParsedData() with', finalData.length, 'rows');
+                console.log('   First row:', finalData[0]);
+
+                // Display parsed data
+                displayParsedData(finalData);
+
+                // Update summary
+                document.getElementById('summaryTotalRows').textContent = finalData.length;
+                document.getElementById('summaryTotalLiter').textContent = totalLiter.toLocaleString('id-ID');
+                document.getElementById('summaryCards').style.display = 'grid';
+
+                let message = `Loaded ${parsedCSVData.length} rows from ${successCount} files`;
+                if (errorCount > 0) {
+                    message += ` (${errorCount} files failed)`;
+                }
+                showToast('Success', message, 'success');
+
+            } catch (error) {
+                console.error('❌❌❌ CRITICAL ERROR in loadParsedCSVData():', error);
+                console.error('   Error name:', error.name);
+                console.error('   Error message:', error.message);
+                console.error('   Error stack:', error.stack);
+
+                // Show detailed error to user
+                let errorMsg = `Failed to load data: ${error.message}`;
+                if (error.stack) {
+                    errorMsg += `\n\nStack: ${error.stack.substring(0, 200)}...`;
+                }
+
+                showToast('Error', errorMsg, 'error');
+
+                // Show error in table
+                document.getElementById('parsedTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="6" class="no-data text-danger">
+                            <i class="bi bi-exclamation-octagon-fill text-danger"></i>
+                            <p class="mb-1"><strong>Error Loading Data</strong></p>
+                            <p class="small mb-0">${error.message}</p>
+                        </td>
+                    </tr>
+                `;
+                document.getElementById('summaryCards').style.display = 'none';
+
+            } finally {
+                console.log('=== loadParsedCSVData() END ===');
+                showLoading(false);
+            }
+        }
+
+        // Load and Parse CSV Data for Data Pengeluaran Tab (Fuel Usage)
+        async function loadParsedPengeluaranData() {
+            console.log('=== loadParsedPengeluaranData() START ===');
+            showLoading(true);
+
+            try {
+                const site = document.getElementById('filterSite').value;
+                const dataType = 'usage'; // Always usage for pengeluaran tab
+
+                let prefix = dataType;
+                if (site) {
+                    prefix += `/${site}`;
+                }
+
+                const url = `${API_BASE}/api/gcs-files?prefix=${encodeURIComponent(prefix)}`;
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+                }
+
+                const result = await response.json();
+                const files = result.files || [];
+
+                if (files.length === 0) {
+                    document.getElementById('parsedPengeluaranTableBody').innerHTML = `
+                        <tr>
+                            <td colspan="6" class="no-data">
+                                <i class="bi bi-inbox"></i>
+                                <p>No files found in Cloud Storage for the selected filters</p>
+                                <small>Prefix: ${prefix}</small>
+                            </td>
+                        </tr>
+                    `;
+                    document.getElementById('summaryCardsPengeluaran').style.display = 'none';
+                    showLoading(false);
+                    return;
+                }
+
+                parsedPengeluaranData = [];
+                let totalPemakaian = 0;
+                let successCount = 0;
+                let errorCount = 0;
+
+                for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
+                    const file = files[fileIndex];
+                    try {
+                        const downloadUrl = `${API_BASE}/api/download-from-gcs?objectName=${encodeURIComponent(file)}`;
+                        const fileResponse = await fetch(downloadUrl);
+                        if (!fileResponse.ok) { errorCount++; continue; }
+
+                        const csvText = await fileResponse.text();
+                        const lines = csvText.split('\n').filter(line => line.trim());
+                        if (lines.length < 2) continue;
+
+                        const headers = lines[0].split(';').map(h => h.trim());
+                        for (let i = 1; i < lines.length; i++) {
+                            const values = lines[i].split(';').map(v => v.trim());
+                            if (values.length < headers.length) continue;
+                            const row = {};
+                            headers.forEach((header, index) => { row[header] = values[index] || ''; });
+                            parsedPengeluaranData.push(row);
+                            const pemakaianVal = parseFloat((row['Pemakaian'] || row['pemakaian'] || '0').replace(/,/g, '')) || 0;
+                            if (!isNaN(pemakaianVal)) totalPemakaian += pemakaianVal;
+                        }
+                        successCount++;
+                    } catch (error) {
+                        console.error(`Error parsing file ${file}:`, error);
+                        errorCount++;
+                    }
+                }
+
+                let finalData = parsedPengeluaranData;
+
+                // Apply date filter
+                const startDate = document.getElementById('filterStartDate').value;
+                const endDate = document.getElementById('filterEndDate').value;
+                if (startDate || endDate) {
+                    const startD = startDate ? new Date(startDate) : null;
+                    const endD = endDate ? new Date(endDate + 'T23:59:59') : null;
+                    finalData = finalData.filter(row => {
+                        const tanggalStr = row['Tanggal'] || row['tanggal'] || '';
+                        if (!tanggalStr) return true;
+                        let rowDate;
+                        if (tanggalStr.includes('/')) {
+                            const parts = tanggalStr.split('/');
+                            if (parts.length === 3) rowDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+                        } else {
+                            rowDate = new Date(tanggalStr);
+                        }
+                        if (!rowDate || isNaN(rowDate.getTime())) return true;
+                        if (startD && rowDate < startD) return false;
+                        if (endD && rowDate > endD) return false;
+                        return true;
+                    });
+                    totalPemakaian = finalData.reduce((sum, row) => {
+                        const val = parseFloat((row['Pemakaian'] || row['pemakaian'] || '0').toString().replace(/,/g, '')) || 0;
+                        return sum + (isNaN(val) ? 0 : val);
+                    }, 0);
+                }
+
+                if (finalData.length === 0) {
+                    document.getElementById('parsedPengeluaranTableBody').innerHTML = `
+                        <tr>
+                            <td colspan="6" class="no-data">
+                                <i class="bi bi-exclamation-triangle text-warning"></i>
+                                <p>No data rows found matching the selected filters</p>
+                                <small>Downloaded ${successCount} files successfully</small>
+                            </td>
+                        </tr>
+                    `;
+                    document.getElementById('summaryCardsPengeluaran').style.display = 'none';
+                    showLoading(false);
+                    return;
+                }
+
+                displayPengeluaranData(finalData);
+
+                document.getElementById('summaryTotalRowsPengeluaran').textContent = finalData.length;
+                document.getElementById('summaryTotalLiterPengeluaran').textContent = totalPemakaian.toLocaleString('id-ID');
+                document.getElementById('summaryCardsPengeluaran').style.display = 'grid';
+
+                let message = `Loaded ${parsedPengeluaranData.length} rows from ${successCount} files`;
+                if (errorCount > 0) message += ` (${errorCount} files failed)`;
+                showToast('Success', message, 'success');
+
+            } catch (error) {
+                console.error('Error in loadParsedPengeluaranData():', error);
+                showToast('Error', 'Failed to load data: ' + error.message, 'error');
+                document.getElementById('parsedPengeluaranTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="6" class="no-data text-danger">
+                            <i class="bi bi-exclamation-octagon-fill text-danger"></i>
+                            <p class="mb-1"><strong>Error Loading Data</strong></p>
+                            <p class="small mb-0">${error.message}</p>
+                        </td>
+                    </tr>
+                `;
+                document.getElementById('summaryCardsPengeluaran').style.display = 'none';
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function displayPengeluaranData(data) {
+            const tbody = document.getElementById('parsedPengeluaranTableBody');
+            const thead = document.getElementById('parsedPengeluaranTableHeader');
+            if (!tbody || !thead) return;
+
+            while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+
+            if (data.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td colspan="6" class="no-data"><i class="bi bi-inbox"></i><p>No data available</p></td>`;
+                tbody.appendChild(tr);
+                return;
+            }
+
+            data.forEach((row, index) => {
+                const no = index + 1;
+                const tanggal = row['Tanggal'] || row['tanggal'] || '-';
+                const site = row['Site'] || row['site'] || '-';
+                const unitNo = row['UnitNo'] || row['unitno'] || row['Unit No'] || '-';
+                const pemakaianRaw = row['Pemakaian'] || row['pemakaian'] || '0';
+                const pemakaian = parseFloat(pemakaianRaw.toString().replace(/,/g, '')) || 0;
+                const operator = row['Operator'] || row['operator'] || '-';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="text-align:center">${no}</td>
+                    <td>${tanggal}</td>
+                    <td><span class="badge bg-secondary">${site}</span></td>
+                    <td>${unitNo}</td>
+                    <td style="text-align:right">${pemakaian.toLocaleString('id-ID')}</td>
+                    <td>${operator}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function displayParsedData(data) {
+            console.log('=== displayParsedData() START ===');
+            console.log('Data length:', data.length);
+
+            const tbody = document.getElementById('parsedTableBody');
+            const thead = document.getElementById('parsedTableHeader');
+
+            console.log('tbody element:', tbody);
+            console.log('thead element:', thead);
+
+            if (!tbody || !thead) {
+                console.error('❌ Elements not found!');
+                alert('ERROR: tbody or thead not found!');
+                return;
+            }
+
+            // Clear existing content
+            while (tbody.firstChild) {
+                tbody.removeChild(tbody.firstChild);
+            }
+
+            if (data.length === 0) {
+                console.warn('No data to display');
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td colspan="6" class="no-data">
+                        <i class="bi bi-inbox"></i>
+                        <p>No data available</p>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+                console.log('✅ No data message added');
+                return;
+            }
+
+            console.log('First row:', data[0]);
+
+            // Determine data type
+            const isReceipt = data[0].hasOwnProperty('NoTiket') ||
+                             data[0].hasOwnProperty('notiket') ||
+                             Object.keys(data[0]).some(k => k.toLowerCase().includes('notiket'));
+
+            console.log('Is Receipt:', isReceipt);
+
+            // Set headers dynamically based on data type (set innerHTML directly on <tr>)
+            if (isReceipt) {
+                thead.innerHTML = `
+                    <th style="width:5%">No</th>
+                    <th style="width:13%">Tanggal</th>
+                    <th style="width:15%">Site</th>
+                    <th>Vendor</th>
+                    <th style="width:10%; text-align:right">Liter</th>
+                    <th style="width:15%">No Tiket</th>
+                `;
+            } else {
+                thead.innerHTML = `
+                    <th style="width:5%">No</th>
+                    <th style="width:13%">Tanggal</th>
+                    <th style="width:15%">Site</th>
+                    <th style="width:18%">Unit No</th>
+                    <th style="width:12%; text-align:right">Pemakaian</th>
+                    <th>Operator</th>
+                `;
+            }
+
+            // Add rows using DOM manipulation
+            let addedCount = 0;
+            data.forEach((row, index) => {
+                if (isReceipt) {
+                    const no = index + 1;
+                    const tanggal = row['Tanggal'] || row['tanggal'] || '-';
+                    const site = row['Site'] || row['site'] || '-';
+                    const vendor = row['Vendor'] || row['vendor'] || row['Supplier'] || row['supplier'] || '-';
+                    const literRaw = row['Liter'] || row['liter'] || '0';
+                    const liter = parseFloat(literRaw.toString().replace(/,/g, '').replace(/\./g, '.')) || 0;
+                    const noTiket = row['NoTiket'] || row['notiket'] || row['No Tiket'] || '-';
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="text-align:center">${no}</td>
+                        <td>${tanggal}</td>
+                        <td><span class="badge bg-secondary">${site}</span></td>
+                        <td>${vendor}</td>
+                        <td style="text-align:right">${liter.toLocaleString('id-ID')}</td>
+                        <td><small>${noTiket}</small></td>
+                    `;
+                    tbody.appendChild(tr);
+                    addedCount++;
+                } else {
+                    const no = index + 1;
+                    const tanggal = row['Tanggal'] || row['tanggal'] || '-';
+                    const site = row['Site'] || row['site'] || '-';
+                    const unitNo = row['UnitNo'] || row['unitno'] || row['Unit No'] || '-';
+                    const pemakaianRaw = row['Pemakaian'] || row['pemakaian'] || '0';
+                    const pemakaian = parseFloat(pemakaianRaw.toString().replace(/,/g, '')) || 0;
+                    const operator = row['Operator'] || row['operator'] || '-';
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="text-align:center">${no}</td>
+                        <td>${tanggal}</td>
+                        <td><span class="badge bg-secondary">${site}</span></td>
+                        <td>${unitNo}</td>
+                        <td style="text-align:right">${pemakaian.toLocaleString('id-ID')}</td>
+                        <td>${operator}</td>
+                    `;
+                    tbody.appendChild(tr);
+                    addedCount++;
+                }
+            });
+
+            console.log('✅ Added', addedCount, 'rows to tbody');
+            console.log('tbody.children.length:', tbody.children.length);
+
+            // Verify table visibility
+            const table = document.getElementById('parsedDataTable');
+            const tabContent = document.getElementById('dataTableTabContent');
+
+            console.log('Table offsetParent (null = hidden):', table.offsetParent);
+            console.log('Tab content display:', tabContent.style.display);
+
+            console.log('=== displayParsedData() END ===');
+        }
+
+        function applyFilter() {
+            if (currentTab === 'files') {
+                // File List - load from GCS
+                loadFromGCS();
+            } else if (currentTab === 'dataTable') {
+                // Penerimaan (Receipt) - load from database
+                loadDataFromDatabase('receipt');
+            } else if (currentTab === 'pengeluaran') {
+                // Pengeluaran (Usage) - load from database
+                loadDataFromDatabase('usage');
+            }
+        }
+
+        // Load data from database for Penerimaan/Pengeluaran tabs
+        async function loadDataFromDatabase(dataType) {
+            const site = document.getElementById('filterSite').value;
+            const startDate = document.getElementById('filterStartDate').value;
+            const endDate = document.getElementById('filterEndDate').value;
+
+            if (!dataType) {
+                updateStats(0, 0, 0, 0);
+                return;
+            }
+
+            // Build URL with filters
+            let url = `${API_BASE}/api/fuel-${dataType === 'receipt' ? 'receipts' : 'usages'}?site=${encodeURIComponent(site || 'all')}`;
+
+            // Convert date format from dd/mm/yyyy to yyyy-mm-dd
+            const convertDateFormat = (dateStr) => {
+                if (!dateStr) return '';
+                // Handle dd/mm/yyyy format
+                const parts = dateStr.split('/');
+                if (parts.length === 3) {
+                    return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                }
+                return dateStr;
+            };
+
+            const startDateFormatted = convertDateFormat(startDate);
+            const endDateFormatted = convertDateFormat(endDate);
+
+            if (startDateFormatted) {
+                url += `&startDate=${encodeURIComponent(startDateFormatted)}`;
+            }
+            if (endDateFormatted) {
+                url += `&endDate=${encodeURIComponent(endDateFormatted)}`;
+            }
+
+            console.log('URL:', url); // Debug
+
+            try {
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // Display data based on type
+                if (dataType === 'receipt') {
+                    displayReceiptData(data);
+                } else {
+                    displayUsageData(data);
+                }
+
+                // Calculate stats from data
+                const isReceipt = dataType === 'receipt';
+                const totalLiter = isReceipt ? data.reduce((sum, r) => sum + (parseFloat(r.liter) || 0), 0) : 0;
+                const totalPemakaian = !isReceipt ? data.reduce((sum, u) => sum + (parseFloat(u.pemakaian) || 0), 0) : 0;
+                const sites = new Set(data.map(d => d.site));
+
+                updateStats(
+                    data.length,
+                    totalLiter.toLocaleString('id-ID') + ' L',
+                    totalPemakaian.toLocaleString('id-ID') + ' L',
+                    sites.size
+                );
+
+                // Update summary cards for receipt/usage tabs
+                if (dataType === 'receipt') {
+                    document.getElementById('summaryTotalRows').textContent = data.length;
+                    document.getElementById('summaryTotalLiter').textContent = totalLiter.toLocaleString('id-ID');
+                    document.getElementById('summaryCards').style.display = 'grid';
+                } else {
+                    document.getElementById('summaryTotalRowsPengeluaran').textContent = data.length;
+                    document.getElementById('summaryTotalLiterPengeluaran').textContent = totalPemakaian.toLocaleString('id-ID');
+                    document.getElementById('summaryCardsPengeluaran').style.display = 'grid';
+                }
+                showToast('Success', `Loaded ${data.length} records`, 'success');
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showToast('Error', 'Failed to load data: ' + error.message, 'error');
+            }
+        }
+
+        // Display Receipt data (Penerimaan)
+        function displayReceiptData(data) {
+            // Use the parsed table in dataTable tab content
+            const tbody = document.getElementById('parsedTableBody');
+            const thead = document.getElementById('parsedTableHeader');
+
+            thead.innerHTML = `
+                <th style="width:5%">No</th>
+                <th style="width:12%">Tanggal</th>
+                <th style="width:12%">Site</th>
+                <th>Vendor</th>
+                <th style="width:8%; text-align:right">Liter</th>
+                <th style="width:10%">No Tiket</th>
+                <th style="width:8%; text-align:right">Total Harga</th>
+                <th style="width:12%">Actions</th>
+            `;
+
+            if (data.length > 0) {
+                tbody.innerHTML = data.map(item => `
+                    <tr>
+                        <td>${item.no || '-'}</td>
+                        <td>${formatDate(item.tanggal)}</td>
+                        <td><span class="badge bg-secondary">${item.site || '-'}</span></td>
+                        <td>${item.vendor || '-'}</td>
+                        <td style="text-align:right">${formatNumber(item.liter)}</td>
+                        <td><small>${item.noTiket || '-'}</small></td>
+                        <td style="text-align:right">${formatNumber(item.totalHarga)}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="editReceipt(${item.id})" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteReceipt(${item.id})" title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="no-data">
+                            <i class="bi bi-inbox"></i>
+                            <p>No data found</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Display Usage data (Pengeluaran)
+        function displayUsageData(data) {
+            // Use the parsed pengeluaran table in pengeluaran tab content
+            const tbody = document.getElementById('parsedPengeluaranTableBody');
+            const thead = document.getElementById('parsedPengeluaranTableHeader');
+
+            thead.innerHTML = `
+                <th style="width:5%">No</th>
+                <th style="width:10%">Tanggal</th>
+                <th style="width:10%">Site</th>
+                <th style="width:10%">Unit No</th>
+                <th style="width:10%">Operator</th>
+                <th style="width:8%; text-align:right">HM</th>
+                <th style="width:8%; text-align:right">KM</th>
+                <th style="width:8%; text-align:right">Pemakaian</th>
+                <th style="width:7%; text-align:right">Jam Kerja</th>
+                <th style="width:7%; text-align:right">Efisiensi</th>
+                <th style="width:12%">Actions</th>
+            `;
+
+            if (data.length > 0) {
+                tbody.innerHTML = data.map(item => `
+                    <tr>
+                        <td>${item.no || '-'}</td>
+                        <td>${formatDate(item.tanggal)}</td>
+                        <td><span class="badge bg-secondary">${item.site || '-'}</span></td>
+                        <td>${item.unitNo || '-'}</td>
+                        <td>${item.operator || '-'}</td>
+                        <td style="text-align:right">${formatNumber(item.hm)}</td>
+                        <td style="text-align:right">${formatNumber(item.km)}</td>
+                        <td style="text-align:right">${formatNumber(item.pemakaian)}</td>
+                        <td style="text-align:right">${formatNumber(item.jamKerja)}</td>
+                        <td style="text-align:right">${formatNumber(item.eFisiensi)}%</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="editUsage(${item.id})" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteUsage(${item.id})" title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="11" class="no-data">
+                            <i class="bi bi-inbox"></i>
+                            <p>No data found</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function resetFilter() {
+            document.getElementById('filterSite').value = '';
+            document.getElementById('filterDataType').value = '';
+            document.getElementById('filterStartDate').value = '';
+            document.getElementById('filterEndDate').value = '';
+            setupDefaultDates();
+
+            // Reset File List table
+            document.getElementById('tableBody').innerHTML = `
+                <tr>
+                    <td colspan="9" class="no-data">
+                        <i class="bi bi-inbox"></i>
+                        <p>Filters reset. Please select filters and click "Apply Filter"</p>
+                    </td>
+                </tr>
+            `;
+
+            // Reset Parsed Data table
+            document.getElementById('parsedTableBody').innerHTML = `
+                <tr>
+                    <td colspan="6" class="no-data">
+                        <i class="bi bi-inbox"></i>
+                        <p>Filters reset. Please select filters and click "Apply Filter"</p>
+                    </td>
+                </tr>
+            `;
+
+            // Reset Pengeluaran table
+            document.getElementById('parsedPengeluaranTableBody').innerHTML = `
+                <tr>
+                    <td colspan="6" class="no-data">
+                        <i class="bi bi-inbox"></i>
+                        <p>Filters reset. Please select filters and click "Apply Filter"</p>
+                    </td>
+                </tr>
+            `;
+
+            // Hide summary cards
+            document.getElementById('summaryCards').style.display = 'none';
+            document.getElementById('summaryCardsPengeluaran').style.display = 'none';
+
+            // Clear parsed data
+            parsedCSVData = [];
+            parsedPengeluaranData = [];
+        }
+
+        function exportToExcel() {
+            console.log('📤 Export to Excel called. Current tab:', currentTab);
+
+            // Export pengeluaran tab data
+            if (currentTab === 'pengeluaran') {
+                if (parsedPengeluaranData.length === 0) {
+                    showToast('Warning', 'No data to export. Please apply filter first.', 'warning');
+                    return;
+                }
+                try {
+                    const exportData = parsedPengeluaranData.map(row => ({
+                        'No': row['No'] || row['no'] || '',
+                        'Tanggal': row['Tanggal'] || row['tanggal'] || '',
+                        'Site': row['Site'] || row['site'] || '',
+                        'UnitNo': row['UnitNo'] || row['unitno'] || '',
+                        'Operator': row['Operator'] || row['operator'] || '',
+                        'HM': parseFloat((row['HM'] || row['hm'] || '0').toString().replace(/,/g, '')),
+                        'KM': parseFloat((row['KM'] || row['km'] || '0').toString().replace(/,/g, '')),
+                        'Pemakaian': parseFloat((row['Pemakaian'] || row['pemakaian'] || '0').toString().replace(/,/g, '')),
+                        'JamKerja': parseFloat((row['JamKerja'] || row['jamkerja'] || '0').toString().replace(/,/g, '')),
+                        'EFisiensi': parseFloat((row['EFisiensi'] || row['efisiensi'] || '0').toString().replace(/,/g, '')),
+                        'Keterangan': row['Keterangan'] || row['keterangan'] || ''
+                    }));
+                    const ws = XLSX.utils.json_to_sheet(exportData);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'Data Pengeluaran');
+                    const site = document.getElementById('filterSite').value || 'All';
+                    const date = new Date().toISOString().split('T')[0];
+                    XLSX.writeFile(wb, `lfn_pengeluaran_${site}_${date}.xlsx`);
+                    showToast('Success', `Exported ${exportData.length} rows to Excel`, 'success');
+                } catch (error) {
+                    console.error('Export error:', error);
+                    showToast('Error', 'Export failed: ' + error.message, 'error');
+                }
+                return;
+            }
+
+            // Check which tab is active
+            if (currentTab === 'dataTable') {
+                // Export parsed CSV data
+                console.log('📊 Exporting parsed CSV data, rows:', parsedCSVData.length);
+
+                if (parsedCSVData.length === 0) {
+                    showToast('Warning', 'No data to export. Please apply filter first.', 'warning');
+                    return;
+                }
+
+                try {
+                    // Prepare data for export
+                    const exportData = parsedCSVData.map(row => {
+                        const isReceipt = row.hasOwnProperty('NoTiket') || row.hasOwnProperty('notiket');
+
+                        if (isReceipt) {
+                            return {
+                                'No': row['No'] || row['no'] || '',
+                                'Tanggal': row['Tanggal'] || row['tanggal'] || '',
+                                'Site': row['Site'] || row['site'] || '',
+                                'Vendor': row['Vendor'] || row['vendor'] || row['Supplier'] || '',
+                                'Liter': parseFloat((row['Liter'] || row['liter'] || '0').toString().replace(/,/g, '')),
+                                'JenisBBM': row['JenisBBM'] || row['jenisbbm'] || '',
+                                'HargaPerLiter': parseFloat((row['HargaPerLiter'] || row['hargaperliter'] || '0').toString().replace(/,/g, '')),
+                                'NoTiket': row['NoTiket'] || row['notiket'] || '',
+                                'Start Time': row['Start Time'] || row['start time'] || '',
+                                'End Time': row['End Time'] || row['end time'] || '',
+                                'Keterangan': row['Keterangan'] || row['keterangan'] || ''
+                            };
+                        } else {
+                            return {
+                                'No': row['No'] || row['no'] || '',
+                                'Tanggal': row['Tanggal'] || row['tanggal'] || '',
+                                'Site': row['Site'] || row['site'] || '',
+                                'UnitNo': row['UnitNo'] || row['unitno'] || '',
+                                'Operator': row['Operator'] || row['operator'] || '',
+                                'LiterAwal': parseFloat((row['LiterAwal'] || row['literawal'] || '0').toString().replace(/,/g, '')),
+                                'LiterAkhir': parseFloat((row['LiterAkhir'] || row['literakhir'] || '0').toString().replace(/,/g, '')),
+                                'Pemakaian': parseFloat((row['Pemakaian'] || row['pemakaian'] || '0').toString().replace(/,/g, '')),
+                                'JamKerja': parseFloat((row['JamKerja'] || row['jamkerja'] || '0').toString().replace(/,/g, '')),
+                                'EFisiensi': parseFloat((row['EFisiensi'] || row['efisiensi'] || '0').toString().replace(/,/g, '')),
+                                'Keterangan': row['Keterangan'] || row['keterangan'] || ''
+                            };
+                        }
+                    });
+
+                    console.log('✅ Prepared export data:', exportData.length, 'rows');
+
+                    const ws = XLSX.utils.json_to_sheet(exportData);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'Data');
+
+                    const site = document.getElementById('filterSite').value || 'All';
+                    const dataType = document.getElementById('filterDataType').value || 'All';
+                    const date = new Date().toISOString().split('T')[0];
+
+                    XLSX.writeFile(wb, `lfn_data_${site}_${dataType}_${date}.xlsx`);
+                    showToast('Success', `Exported ${exportData.length} rows to Excel`, 'success');
+
+                } catch (error) {
+                    console.error('❌ Export error:', error);
+                    showToast('Error', 'Export failed: ' + error.message, 'error');
+                }
+
+            } else {
+                // Export file list (original behavior)
+                console.log('📁 Exporting file list, files:', currentData.length);
+
+                if (currentData.length === 0) {
+                    showToast('Warning', 'No data to export', 'warning');
+                    return;
+                }
+
+                try {
+                    const exportData = currentData.map(item => {
+                        const { totalHarga, ...rest } = item;
+                        if (rest.supplier) {
+                            const { supplier, ...restWithoutSupplier } = rest;
+                            return { ...restWithoutSupplier, vendor: supplier };
+                        }
+                        return rest;
+                    });
+
+                    const ws = XLSX.utils.json_to_sheet(exportData);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'Files');
+
+                    const site = document.getElementById('filterSite').value || 'All';
+                    const dataType = document.getElementById('filterDataType').value || 'All';
+                    const date = new Date().toISOString().split('T')[0];
+
+                    XLSX.writeFile(wb, `lfn_files_${site}_${dataType}_${date}.xlsx`);
+                    showToast('Success', 'File list exported to Excel', 'success');
+                } catch (error) {
+                    console.error('❌ Export error:', error);
+                    showToast('Error', 'Export failed: ' + error.message, 'error');
+                }
+            }
+        }
+
+        async function exportToCSV() {
+            const site = document.getElementById('filterSite').value;
+            const dataType = document.getElementById('filterDataType').value;
+
+            if (!site || !dataType) {
+                showToast('Warning', 'Please select Site and Data Type first', 'warning');
+                return;
+            }
+
+            try {
+                const url = `${API_BASE}/api/download-data?site=${encodeURIComponent(site)}&datatype=${encodeURIComponent(dataType)}`;
+                window.open(url, '_blank');
+                showToast('Success', 'CSV download started', 'success');
+            } catch (error) {
+                showToast('Error', 'Export failed: ' + error.message, 'error');
+            }
+        }
+
+        function updateStats(totalRecords, totalLiter, totalPemakaian, avgLiter) {
+            document.getElementById('totalRecords').textContent = totalRecords;
+            document.getElementById('totalReceipts').textContent = totalLiter;
+            document.getElementById('totalUsage').textContent = totalPemakaian;
+            document.getElementById('avgLiter').textContent = avgLiter;
+        }
+
+        function showLoading(show) {
+            const spinner = document.getElementById('loadingSpinner');
+            const table = document.getElementById('dataSection');
+
+            if (show) {
+                spinner.classList.add('show');
+                table.style.display = 'none';
+            } else {
+                spinner.classList.remove('show');
+                table.style.display = 'block';
+            }
+        }
+
+        function showToast(title, message, type = 'success') {
+            const toast = document.getElementById('notificationToast');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastTitle.textContent = title;
+            toastMessage.textContent = message;
+
+            toastIcon.className = 'bi me-2';
+            if (type === 'success') {
+                toastIcon.classList.add('bi-check-circle-fill', 'text-success');
+            } else if (type === 'error') {
+                toastIcon.classList.add('bi-x-circle-fill', 'text-danger');
+            } else if (type === 'warning') {
+                toastIcon.classList.add('bi-exclamation-triangle-fill', 'text-warning');
+            } else {
+                toastIcon.classList.add('bi-info-circle-fill', 'text-info');
+            }
+
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('id-ID', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+
+        function formatNumber(num) {
+            if (num === null || num === undefined) return '-';
+            return new Intl.NumberFormat('id-ID').format(num);
+        }
+
+        function formatCurrency(num) {
+            if (num === null || num === undefined) return '-';
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR'
+            }).format(num);
+        }
+
+        // =====================
+        // CRUD Functions for Fuel Receipt (Penerimaan)
+        // =====================
+        let receiptModal;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            receiptModal = new bootstrap.Modal(document.getElementById('receiptModal'));
+        });
+
+        function openReceiptModal(id = null) {
+            document.getElementById('receiptModalTitle').textContent = id ? 'Edit Fuel Receipt' : 'Add Fuel Receipt';
+            document.getElementById('receiptId').value = id || '';
+
+            if (id) {
+                // Load existing data
+                fetch(`${API_BASE}/api/fuel-receipts?site=all`)
+                    .then(r => r.json())
+                    .then(data => {
+                        const item = data.find(x => x.id === id);
+                        if (item) {
+                            document.getElementById('receiptTanggal').value = item.tanggal ? item.tanggal.split('T')[0] : '';
+                            document.getElementById('receiptSite').value = item.site || '';
+                            document.getElementById('receiptVendor').value = item.vendor || '';
+                            document.getElementById('receiptNoTiket').value = item.noTiket || '';
+                            document.getElementById('receiptLiter').value = item.liter || 0;
+                            document.getElementById('receiptJenisBBM').value = item.jenisBBM || '';
+                            document.getElementById('receiptHargaPerLiter').value = item.hargaPerLiter || 0;
+                            document.getElementById('receiptStartTime').value = item.startTime || '';
+                            document.getElementById('receiptEndTime').value = item.endTime || '';
+                            document.getElementById('receiptKeterangan').value = item.keterangan || '';
+                        }
+                    });
+            } else {
+                // Clear form for new entry
+                document.getElementById('receiptTanggal').value = new Date().toISOString().split('T')[0];
+                document.getElementById('receiptSite').value = '';
+                document.getElementById('receiptVendor').value = '';
+                document.getElementById('receiptNoTiket').value = '';
+                document.getElementById('receiptLiter').value = '';
+                document.getElementById('receiptJenisBBM').value = '';
+                document.getElementById('receiptHargaPerLiter').value = '';
+                document.getElementById('receiptStartTime').value = '';
+                document.getElementById('receiptEndTime').value = '';
+                document.getElementById('receiptKeterangan').value = '';
+            }
+            receiptModal.show();
+        }
+
+        function editReceipt(id) {
+            openReceiptModal(id);
+        }
+
+        async function saveReceipt() {
+            const id = document.getElementById('receiptId').value;
+            const liter = parseFloat(document.getElementById('receiptLiter').value) || 0;
+            const hargaPerLiter = parseFloat(document.getElementById('receiptHargaPerLiter').value) || 0;
+
+            const data = {
+                tanggal: document.getElementById('receiptTanggal').value,
+                site: document.getElementById('receiptSite').value,
+                vendor: document.getElementById('receiptVendor').value,
+                noTiket: document.getElementById('receiptNoTiket').value,
+                liter: liter,
+                jenisBBM: document.getElementById('receiptJenisBBM').value,
+                hargaPerLiter: hargaPerLiter,
+                totalHarga: liter * hargaPerLiter,
+                startTime: document.getElementById('receiptStartTime').value,
+                endTime: document.getElementById('receiptEndTime').value,
+                keterangan: document.getElementById('receiptKeterangan').value
+            };
+
+            try {
+                let response;
+                if (id) {
+                    response = await fetch(`${API_BASE}/api/fuel-receipts/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    response = await fetch(`${API_BASE}/api/fuel-receipts`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                }
+
+                if (response.ok) {
+                    receiptModal.hide();
+                    showToast('Success', id ? 'Receipt updated successfully' : 'Receipt added successfully', 'success');
+                    applyFilter();
+                } else {
+                    showToast('Error', 'Failed to save receipt', 'error');
+                }
+            } catch (error) {
+                showToast('Error', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        async function deleteReceipt(id) {
+            if (!confirm('Are you sure you want to delete this receipt?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/fuel-receipts/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showToast('Success', 'Receipt deleted successfully', 'success');
+                    applyFilter();
+                } else {
+                    showToast('Error', 'Failed to delete receipt', 'error');
+                }
+            } catch (error) {
+                showToast('Error', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        // =====================
+        // CRUD Functions for Fuel Usage (Pengeluaran)
+        // =====================
+        let usageModal;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            usageModal = new bootstrap.Modal(document.getElementById('usageModal'));
+        });
+
+        function openUsageModal(id = null) {
+            document.getElementById('usageModalTitle').textContent = id ? 'Edit Fuel Usage' : 'Add Fuel Usage';
+            document.getElementById('usageId').value = id || '';
+
+            if (id) {
+                // Load existing data
+                fetch(`${API_BASE}/api/fuel-usages?site=all`)
+                    .then(r => r.json())
+                    .then(data => {
+                        const item = data.find(x => x.id === id);
+                        if (item) {
+                            document.getElementById('usageTanggal').value = item.tanggal ? item.tanggal.split('T')[0] : '';
+                            document.getElementById('usageSite').value = item.site || '';
+                            document.getElementById('usageUnitNo').value = item.unitNo || '';
+                            document.getElementById('usageOperator').value = item.operator || '';
+                            document.getElementById('usageHM').value = item.hm || 0;
+                            document.getElementById('usageKM').value = item.km || 0;
+                            document.getElementById('usagePemakaian').value = item.pemakaian || 0;
+                            document.getElementById('usageJamKerja').value = item.jamKerja || 0;
+                            document.getElementById('usageEfisiensi').value = item.eFisiensi || 0;
+                            document.getElementById('usageKeterangan').value = item.keterangan || '';
+                        }
+                    });
+            } else {
+                // Clear form for new entry
+                document.getElementById('usageTanggal').value = new Date().toISOString().split('T')[0];
+                document.getElementById('usageSite').value = '';
+                document.getElementById('usageUnitNo').value = '';
+                document.getElementById('usageOperator').value = '';
+                document.getElementById('usageHM').value = '';
+                document.getElementById('usageKM').value = '';
+                document.getElementById('usagePemakaian').value = '';
+                document.getElementById('usageJamKerja').value = '';
+                document.getElementById('usageEfisiensi').value = '';
+                document.getElementById('usageKeterangan').value = '';
+            }
+            usageModal.show();
+        }
+
+        function editUsage(id) {
+            openUsageModal(id);
+        }
+
+        async function saveUsage() {
+            const id = document.getElementById('usageId').value;
+
+            const data = {
+                tanggal: document.getElementById('usageTanggal').value,
+                site: document.getElementById('usageSite').value,
+                unitNo: document.getElementById('usageUnitNo').value,
+                operator: document.getElementById('usageOperator').value,
+                hm: parseFloat(document.getElementById('usageHM').value) || 0,
+                km: parseFloat(document.getElementById('usageKM').value) || 0,
+                pemakaian: parseFloat(document.getElementById('usagePemakaian').value) || 0,
+                jamKerja: parseFloat(document.getElementById('usageJamKerja').value) || 0,
+                eFisiensi: parseFloat(document.getElementById('usageEfisiensi').value) || 0,
+                keterangan: document.getElementById('usageKeterangan').value
+            };
+
+            try {
+                let response;
+                if (id) {
+                    response = await fetch(`${API_BASE}/api/fuel-usages/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    response = await fetch(`${API_BASE}/api/fuel-usages`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                }
+
+                if (response.ok) {
+                    usageModal.hide();
+                    showToast('Success', id ? 'Usage updated successfully' : 'Usage added successfully', 'success');
+                    applyFilter();
+                } else {
+                    showToast('Error', 'Failed to save usage', 'error');
+                }
+            } catch (error) {
+                showToast('Error', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        async function deleteUsage(id) {
+            if (!confirm('Are you sure you want to delete this usage record?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/fuel-usages/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showToast('Success', 'Usage deleted successfully', 'success');
+                    applyFilter();
+                } else {
+                    showToast('Error', 'Failed to delete usage', 'error');
+                }
+            } catch (error) {
+                showToast('Error', 'Error: ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

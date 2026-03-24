@@ -1,0 +1,44 @@
+# GCP Credentials - NEVER COMMIT THESE!
+**/*key.json
+**/gcp-*-key.json
+**/service-account-*.json
+**/*.pem
+**/Credentials/
+
+# Build outputs
+bin/
+obj/
+publish/
+**/bin/
+**/obj/
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.idea/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp files
+*.tmp
+temp_*.py
+temp_*.cs
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Local config overrides
+appsettings.Local.json
+appsettings.*.Local.json

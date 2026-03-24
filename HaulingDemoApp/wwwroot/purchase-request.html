@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LFN Purchase Request</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- SweetAlert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        <style>
+        :root {
+            --primary-color: #1e3a5f;
+            --secondary-color: #ec4899;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --bg-page: #F8FAFC;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --accent-color: #ec4899;
+            --accent-light: #fdf2f8;
+            --navy: #1e3a5f;
+        }
+        .navbar { background: var(--navy); padding: 0.75rem 0; border-bottom: 1px solid rgba(255,255,255,0.08); box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+        .navbar-brand { font-weight: 700; font-size: 1.35rem; color: #fff !important; display: flex; align-items: center; gap: 8px; }
+        .navbar-brand i { color: #38bdf8; font-size: 1.6rem; }
+        .nav-group { display: flex; align-items: center; gap: 2px; }
+        .nav-group-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.35); padding: 0 8px; margin-right: 4px; border-right: 1px solid rgba(255,255,255,0.15); }
+        .nav-link { color: rgba(255,255,255,0.65) !important; font-weight: 500; font-size: 0.875rem; padding: 0.5rem 0.75rem !important; border-radius: 8px; transition: all 0.2s ease; display: flex; align-items: center; gap: 6px; position: relative; }
+        .nav-link i { font-size: 1rem; opacity: 0.8; }
+        .nav-link:hover, .nav-link.active { color: #fff !important; background: rgba(236,72,153,0.25); }
+        .nav-link.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 60%; background: #38bdf8; border-radius: 0 2px 2px 0; }
+        body { background-color: var(--bg-page); min-height: 100vh; padding-top: 76px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: var(--text-primary); line-height: 1.6; }
+        .main-container { background: var(--bg-card); border-radius: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04); border: 1px solid var(--border-color); padding: 28px 32px; margin-top: 20px; }
+        .page-header { background: linear-gradient(135deg, #1e3a5f 0%, #ec4899 100%); color: white; padding: 24px 28px; border-radius: 12px; margin-bottom: 28px; box-shadow: 0 4px 12px rgba(236,72,153,0.3); }
+        .page-header h1 { margin: 0 0 4px 0; font-size: 1.5rem; font-weight: 700; letter-spacing: -0.01em; }
+        .page-header p { margin: 0; opacity: 0.75; font-size: 0.875rem; }
+        .stats-card { background: var(--bg-card); border-radius: 12px; padding: 20px 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04); border: 1px solid var(--border-color); text-align: center; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .stats-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .stats-card h6 { color: var(--text-secondary); margin-bottom: 10px; font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stats-card .number { font-size: 1.625rem; font-weight: 700; line-height: 1.2; color: var(--secondary-color); }
+        .stats-card.draft { border-top: 3px solid #94a3b8; }
+        .stats-card.draft .number { color: #94a3b8; }
+        .stats-card.pending { border-top: 3px solid var(--warning-color); }
+        .stats-card.pending .number { color: var(--warning-color); }
+        .stats-card.approved { border-top: 3px solid var(--success-color); }
+        .stats-card.approved .number { color: var(--success-color); }
+        .stats-card.rejected { border-top: 3px solid var(--danger-color); }
+        .stats-card.rejected .number { color: var(--danger-color); }
+        .filter-section { background: var(--bg-page); padding: 20px 24px; border-radius: 12px; margin-bottom: 24px; border: 1px solid var(--border-color); border-left: 4px solid var(--accent-color); }
+        .form-label { font-weight: 600; color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; }
+        .form-select, .form-control { border-radius: 10px; border: 1.5px solid var(--border-color); padding: 10px 14px; font-size: 0.875rem; background: #fff; color: var(--text-primary); transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+        .form-select:focus, .form-control:focus { border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(236,72,153,0.1); outline: none; }
+        .btn { border-radius: 10px; padding: 9px 22px; font-weight: 600; font-size: 0.875rem; transition: all 0.2s ease; border: none; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-primary { background: var(--accent-color); color: white; }
+        .btn-primary:hover { background: #db2777; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(236,72,153,0.35); }
+        .btn-success { background: var(--success-color); color: white; }
+        .btn-success:hover { background: #059669; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16,185,129,0.35); }
+        .btn-danger { background: var(--danger-color); color: white; }
+        .btn-danger:hover { background: #dc2626; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(239,68,68,0.35); }
+        .btn-warning { background: var(--warning-color); color: white; }
+        .table-responsive { border-radius: 12px; overflow: hidden; }
+        .table { margin-bottom: 0; font-size: 0.875rem; }
+        .table thead th { background: var(--bg-page); color: var(--text-secondary); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--border-color) !important; padding: 12px 16px; white-space: nowrap; }
+        .table tbody tr { transition: background-color 0.15s ease; border-bottom: 1px solid var(--border-color); }
+        .table tbody tr:last-child { border-bottom: none; }
+        .table tbody tr:hover { background-color: #f8fafc; }
+        .table tbody td { padding: 13px 16px; vertical-align: middle; color: var(--text-primary); }
+        .badge { padding: 4px 12px; border-radius: 50px; font-weight: 600; font-size: 0.7rem; letter-spacing: 0.3px; text-transform: uppercase; }
+        .badge-draft { background: #f1f5f9; color: #475569; }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-approved { background: #d1fae5; color: #065f46; }
+        .badge-rejected { background: #fee2e2; color: #991b1b; }
+        .badge-high { background: #fee2e2; color: #991b1b; }
+        .badge-normal { background: #f1f5f9; color: #475569; }
+        .badge-low { background: #dbeafe; color: #1e40af; }
+        .nav-tabs { border-bottom: 2px solid var(--border-color); margin-bottom: 24px; gap: 4px; }
+        .nav-tabs .nav-link { border: none; color: var(--text-secondary); font-weight: 500; font-size: 0.875rem; padding: 10px 20px; border-radius: 8px 8px 0 0; background: transparent; margin-right: 0; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s ease; }
+        .nav-tabs .nav-link:hover { color: var(--accent-color); background: var(--accent-light); }
+        .nav-tabs .nav-link.active { color: var(--accent-color); background: transparent; border-bottom-color: var(--accent-color); font-weight: 600; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .action-buttons .btn { padding: 5px 10px; font-size: 0.75rem; border-radius: 8px; }
+        .modal-header { background: var(--accent-color); color: white; border-radius: 12px 12px 0 0; padding: 20px 24px; }
+        .modal-header .btn-close { filter: invert(1); }
+        .pr-items-table input { border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; width: 100%; font-size: 0.875rem; background: #fff; }
+        .pr-items-table input:focus { border-color: var(--accent-color); outline: none; box-shadow: 0 0 0 3px rgba(236,72,153,0.1); }
+        .total-amount { background: linear-gradient(135deg, #1e3a5f 0%, var(--accent-color) 100%); color: white; padding: 16px 20px; border-radius: 12px; text-align: right; }
+        .total-amount h4 { margin: 0; font-weight: 700; }
+        .upload-zone { border: 2px dashed var(--border-color); border-radius: 12px; padding: 40px; text-align: center; background: var(--bg-page); transition: all 0.2s ease; }
+        .upload-zone:hover { border-color: var(--accent-color); background: var(--accent-light); }
+        .upload-zone i { font-size: 48px; color: var(--text-secondary); margin-bottom: 16px; }
+        .detail-card { background: var(--bg-page); border-radius: 12px; padding: 20px; margin-bottom: 16px; border: 1px solid var(--border-color); }
+        .detail-card h6 { color: var(--text-primary); margin-bottom: 12px; font-weight: 600; }
+        .detail-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color); font-size: 0.875rem; }
+        .detail-item:last-child { border-bottom: none; }
+
+        /* Tabs - override Bootstrap default dark style */
+        .nav-tabs { border-bottom: 2px solid var(--border-color); gap: 4px; padding: 0; margin-bottom: 0; }
+        .nav-tabs .nav-item { margin-bottom: 0; }
+        .nav-tabs .nav-link {
+            color: var(--text-secondary) !important;
+            background: #f1f5f9;
+            border: 1.5px solid var(--border-color);
+            border-bottom: none;
+            padding: 10px 20px;
+            border-radius: 10px 10px 0 0;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            margin-right: 4px;
+        }
+        .nav-tabs .nav-link i { font-size: 0.9rem; margin-right: 4px; opacity: 0.7; }
+        .nav-tabs .nav-link:hover {
+            color: var(--accent) !important;
+            background: var(--accent-light);
+            border-color: var(--accent);
+        }
+        .nav-tabs .nav-link.active {
+            color: #fff !important;
+            background: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+        }
+        .nav-tabs .nav-link.active i { opacity: 1; }
+        .nav-pills .nav-link { border-radius: 10px; }
+        .nav-pills .nav-link.active { background: var(--accent); color: #fff !important; }
+
+    </style>
+
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-file-text me-2"></i>LFN Warehouse
+            </a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a  class="nav-link" href="/" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-house me-1"></i> Home</a></li>
+                    <li class="nav-item"><a  class="nav-link" href="inventory.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-boxes me-1"></i> Inventory</a></li>
+                    <li class="nav-item"><a  class="nav-link active" href="purchase-request.html" style="background:#ec4899!important;color:#fff!important;border:1.5px solid #ec4899!important;border-bottom:none!important;"<i class="bi bi-file-text me-1"></i> Purchase Request</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="main-container">
+            <!-- Header -->
+            <div class="page-header text-center">
+                <h1><i class="bi bi-file-earmark-text"></i> Purchase Request</h1>
+                <p>Create and manage purchase requests</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-md-2">
+                    <div class="stats-card">
+                        <h6><i class="bi bi-list me-1"></i> Total</h6>
+                        <div class="number" id="statTotal">0</div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="stats-card draft">
+                        <h6><i class="bi bi-pencil me-1"></i> Draft</h6>
+                        <div class="number" id="statDraft">0</div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="stats-card pending">
+                        <h6><i class="bi bi-clock me-1"></i> Pending</h6>
+                        <div class="number" id="statPending">0</div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="stats-card approved">
+                        <h6><i class="bi bi-check-circle me-1"></i> Approved</h6>
+                        <div class="number" id="statApproved">0</div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="stats-card rejected">
+                        <h6><i class="bi bi-x-circle me-1"></i> Rejected</h6>
+                        <div class="number" id="statRejected">0</div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="stats-card" style="border-left-color: #667eea;">
+                        <h6><i class="bi bi-currency-dollar me-1"></i> Total Value</h6>
+                        <div class="number" style="font-size: 20px;" id="statValue">$0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <ul class="nav nav-tabs" id="viewTabs">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="listTab" onclick="switchTab('list')" type="button" role="tab" style="background:#ec4899!important;color:#fff!important;border:1.5px solid #ec4899!important;border-bottom:none!important;">
+                        <i class="bi bi-list-ul me-2"></i>List PR
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="createTab" onclick="switchTab('create')" type="button" role="tab" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;">
+                        <i class="bi bi-plus-circle me-2"></i>Create PR
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="uploadTab" onclick="switchTab('upload')" type="button" role="tab" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;">
+                        <i class="bi bi-cloud-arrow-up me-2"></i>Upload Data
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab: PR List -->
+            <div class="tab-content active" id="listContent">
+                <!-- Filter -->
+                <div class="filter-section">
+                    <h5><i class="bi bi-funnel-fill"></i> Filter</h5>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label">Site</label>
+                            <select class="form-select" id="filterSite">
+                                <option value="all">All Sites</option>
+                                <option value="Sungai Dua">Sungai Dua</option>
+                                <option value="Sebamban">Sebamban</option>
+                                <option value="Mandala">Mandala</option>
+                                <option value="Tanjung">Tanjung</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="filterStatus">
+                                <option value="all">All Status</option>
+                                <option value="DRAFT">Draft</option>
+                                <option value="PENDING">Pending</option>
+                                <option value="APPROVED">Approved</option>
+                                <option value="REJECTED">Rejected</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button class="btn btn-primary me-2" onclick="loadPRs()">
+                                <i class="bi bi-search"></i> Apply
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="resetFilter()">
+                                <i class="bi bi-arrow-counterclockwise"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-between mb-3">
+                    <button class="btn btn-primary" onclick="switchTab('create'); resetForm();">
+                        <i class="bi bi-plus-circle"></i> Create New PR
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="downloadTemplate()">
+                        <i class="bi bi-file-earmark-arrow-down"></i> Download Template
+                    </button>
+                </div>
+
+                <!-- Data Table -->
+                <div class="table-responsive">
+                    <table class="table" id="prTable">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>PR Number</th>
+                                <th>PR Date</th>
+                                <th>Site</th>
+                                <th>Department</th>
+                                <th>Items</th>
+                                <th>Total Amount</th>
+                                <th>Status</th>
+                                <th>Requested By</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="prTableBody">
+                            <tr>
+                                <td colspan="10" class="text-center text-muted py-4">
+                                    <i class="bi bi-hourglass-split fs-3 d-block mb-2"></i>
+                                    Loading...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab: Create/Edit PR -->
+            <div class="tab-content" id="createContent">
+                <form id="prForm">
+                    <input type="hidden" id="prId">
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">PR Number</label>
+                                <input type="text" class="form-control" id="prNumber" readonly placeholder="Auto-generated">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">PR Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="prDate" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" id="prStatus">
+                                    <option value="DRAFT">Draft</option>
+                                    <option value="PENDING">Pending Approval</option>
+                                    <option value="APPROVED">Approved</option>
+                                    <option value="REJECTED">Rejected</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Site <span class="text-danger">*</span></label>
+                                <select class="form-select" id="prSite" required>
+                                    <option value="">Select Site</option>
+                                    <option value="Sungai Dua">Sungai Dua</option>
+                                    <option value="Sebamban">Sebamban</option>
+                                    <option value="Mandala">Mandala</option>
+                                    <option value="Tanjung">Tanjung</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Department <span class="text-danger">*</span></label>
+                                <select class="form-select" id="prDepartment" required>
+                                    <option value="">Select Department</option>
+                                    <option value="Maintenance">Maintenance</option>
+                                    <option value="Operation">Operation</option>
+                                    <option value="Warehouse">Warehouse</option>
+                                    <option value="Admin">Admin</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Requested By</label>
+                                <input type="text" class="form-control" id="prRequestedBy">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Approved By</label>
+                        <input type="text" class="form-control" id="prApprovedBy">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Remarks</label>
+                        <textarea class="form-control" id="prRemarks" rows="2"></textarea>
+                    </div>
+
+                    <!-- Items Section -->
+                    <div class="card mt-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>PR Items</h5>
+                            <button type="button" class="btn btn-sm btn-primary" onclick="addItemRow()">
+                                <i class="bi bi-plus"></i> Add Item
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table pr-items-table" id="itemsTable">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 15%;">Part Number</th>
+                                            <th style="width: 25%;">Description</th>
+                                            <th style="width: 8%;">Unit</th>
+                                            <th style="width: 10%;">Qty</th>
+                                            <th style="width: 12%;">Est. Price</th>
+                                            <th style="width: 12%;">Total</th>
+                                            <th style="width: 10%;">Priority</th>
+                                            <th style="width: 8%;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="itemsTableBody">
+                                        <!-- Items will be added here -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Total -->
+                            <div class="row mt-3">
+                                <div class="col-md-8"></div>
+                                <div class="col-md-4">
+                                    <div class="total-amount">
+                                        <h4>Total: <span id="totalAmount">$0.00</span></h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-success" id="btnSave">
+                            <i class="bi bi-check-circle"></i> Save PR
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">
+                            <i class="bi bi-arrow-counterclockwise"></i> Reset
+                        </button>
+                        <button type="button" class="btn btn-outline-danger" onclick="switchTab('list')">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tab: Upload -->
+            <div class="tab-content" id="uploadContent">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="upload-zone" id="uploadZone">
+                            <i class="bi bi-cloud-arrow-up"></i>
+                            <h5>Drag & Drop CSV File</h5>
+                            <p class="text-muted">or click to browse</p>
+                            <input type="file" id="fileInput" accept=".csv" style="display: none;">
+                            <button class="btn btn-primary mt-3" onclick="document.getElementById('fileInput').click()">
+                                <i class="bi bi-folder-open"></i> Browse
+                            </button>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Site</label>
+                                <select class="form-select" id="uploadSite">
+                                    <option value="Sungai Dua">Sungai Dua</option>
+                                    <option value="Sebamban">Sebamban</option>
+                                    <option value="Mandala">Mandala</option>
+                                    <option value="Tanjung">Tanjung</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Department</label>
+                                <select class="form-select" id="uploadDepartment">
+                                    <option value="Warehouse">Warehouse</option>
+                                    <option value="Maintenance">Maintenance</option>
+                                    <option value="Operation">Operation</option>
+                                    <option value="Admin">Admin</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-3" id="uploadPreview" style="display: none;">
+                            <div class="alert alert-info">
+                                <i class="bi bi-file-text me-2"></i>
+                                <span id="fileName"></span>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <button class="btn btn-success" id="btnUpload" onclick="uploadFile()" disabled>
+                                <i class="bi bi-cloud-upload"></i> Upload
+                            </button>
+                        </div>
+
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>CSV Format</h6>
+                            </div>
+                            <div class="card-body">
+                                <code class="d-block bg-light p-2 rounded mb-2">PartNumber;Description;Unit;Quantity;EstimatedPrice;Purpose;Priority</code>
+                                <p class="text-muted small mb-0">Use semicolon (;) as delimiter.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Detail Modal -->
+    <div class="modal fade" id="viewModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-file-text me-2"></i>PR Detail</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="viewModalBody">
+                    <!-- Content will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="bi bi-trash me-2"></i>Confirm Delete</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Delete PR: <strong id="deletePRNumber"></strong>?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="deletePR()">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        let prs = [];
+        let currentItems = [];
+        let editingId = null;
+        let deleteId = null;
+        let uploadedFile = null;
+
+        // Tab switching
+        
+        const ACTIVE_STYLE   = 'background:#ec4899!important;color:#fff!important;border:1.5px solid #ec4899!important;border-bottom:none!important;';
+        const INACTIVE_STYLE = 'background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;';
+
+function switchTab(tabName) {
+            document.querySelectorAll('.nav-link').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(tabName + 'Content').classList.add('active');
+        }
+
+        // Load PRs
+        async function loadPRs() {
+            const site = document.getElementById('filterSite').value;
+            const status = document.getElementById('filterStatus').value;
+
+            try {
+                const response = await fetch(`/api/purchase-requests?site=${site}&status=${status}`);
+                prs = await response.json();
+                renderTable();
+                loadStats();
+            } catch (error) {
+                console.error('Error loading PRs:', error);
+                Swal.fire('Error', 'Failed to load data', 'error');
+            }
+        }
+
+        // Render table
+        function renderTable() {
+            const tbody = document.getElementById('prTableBody');
+
+            if (!prs || prs.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="10" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                            No data available
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = prs.map((pr, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td><strong>${pr.prNumber}</strong></td>
+                    <td>${formatDate(pr.prDate)}</td>
+                    <td>${pr.site}</td>
+                    <td>${pr.department}</td>
+                    <td>${pr.items ? pr.items.length : 0} items</td>
+                    <td class="text-end"><strong>${formatCurrency(pr.totalAmount)}</strong></td>
+                    <td>${getStatusBadge(pr.status)}</td>
+                    <td>${pr.requestedBy || '-'}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-info btn-sm" onclick="viewPR(${pr.id})">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-warning btn-sm" onclick="editPR(${pr.id})">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="confirmDelete(${pr.id}, '${pr.prNumber}')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Get status badge
+        function getStatusBadge(status) {
+            const badges = {
+                'DRAFT': '<span class="badge badge-draft">Draft</span>',
+                'PENDING': '<span class="badge badge-pending">Pending</span>',
+                'APPROVED': '<span class="badge badge-approved">Approved</span>',
+                'REJECTED': '<span class="badge badge-rejected">Rejected</span>'
+            };
+            return badges[status] || `<span class="badge badge-draft">${status}</span>`;
+        }
+
+        // Load stats
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/purchase-requests/stats');
+                const stats = await response.json();
+
+                document.getElementById('statTotal').textContent = stats.total || 0;
+                document.getElementById('statDraft').textContent = stats.draft || 0;
+                document.getElementById('statPending').textContent = stats.pending || 0;
+                document.getElementById('statApproved').textContent = stats.approved || 0;
+                document.getElementById('statRejected').textContent = stats.rejected || 0;
+                document.getElementById('statValue').textContent = formatCurrency(stats.totalAmount || 0);
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // View PR
+        async function viewPR(id) {
+            try {
+                const response = await fetch(`/api/purchase-requests/${id}`);
+                const pr = await response.json();
+
+                const itemsHtml = (pr.items || []).map(item => `
+                    <tr>
+                        <td>${item.partNumber}</td>
+                        <td>${item.description}</td>
+                        <td>${item.unit}</td>
+                        <td class="text-end">${formatNumber(item.quantity)}</td>
+                        <td class="text-end">${formatCurrency(item.estimatedPrice)}</td>
+                        <td class="text-end">${formatCurrency(item.totalPrice)}</td>
+                        <td><span class="badge badge-${item.priority.toLowerCase()}">${item.priority}</span></td>
+                    </tr>
+                `).join('');
+
+                document.getElementById('viewModalBody').innerHTML = `
+                    <div class="detail-card">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="detail-item"><strong>PR Number:</strong> <span>${pr.prNumber}</span></div>
+                                <div class="detail-item"><strong>Date:</strong> <span>${formatDate(pr.prDate)}</span></div>
+                                <div class="detail-item"><strong>Status:</strong> ${getStatusBadge(pr.status)}</div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="detail-item"><strong>Site:</strong> <span>${pr.site}</span></div>
+                                <div class="detail-item"><strong>Department:</strong> <span>${pr.department}</span></div>
+                                <div class="detail-item"><strong>Requested By:</strong> <span>${pr.requestedBy || '-'}</span></div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="detail-item"><strong>Approved By:</strong> <span>${pr.approvedBy || '-'}</span></div>
+                                <div class="detail-item"><strong>Remarks:</strong> <span>${pr.remarks || '-'}</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="mt-3">Items (${pr.items ? pr.items.length : 0})</h6>
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Part Number</th>
+                                <th>Description</th>
+                                <th>Unit</th>
+                                <th class="text-end">Qty</th>
+                                <th class="text-end">Est. Price</th>
+                                <th class="text-end">Total</th>
+                                <th>Priority</th>
+                            </tr>
+                        </thead>
+                        <tbody>${itemsHtml || '<tr><td colspan="7" class="text-center">No items</td></tr>'}</tbody>
+                        <tfoot>
+                            <tr class="table-light">
+                                <td colspan="5" class="text-end"><strong>Total:</strong></td>
+                                <td class="text-end"><strong>${formatCurrency(pr.totalAmount || 0)}</strong></td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                `;
+
+                new bootstrap.Modal(document.getElementById('viewModal')).show();
+            } catch (error) {
+                console.error('Error viewing PR:', error);
+                Swal.fire('Error', 'Failed to load PR details', 'error');
+            }
+        }
+
+        // Edit PR
+        async function editPR(id) {
+            try {
+                const response = await fetch(`/api/purchase-requests/${id}`);
+                const pr = await response.json();
+
+                editingId = id;
+                document.getElementById('prId').value = id;
+                document.getElementById('prNumber').value = pr.prNumber;
+                document.getElementById('prDate').value = pr.prDate ? pr.prDate.split('T')[0] : '';
+                document.getElementById('prSite').value = pr.site;
+                document.getElementById('prDepartment').value = pr.department;
+                document.getElementById('prRequestedBy').value = pr.requestedBy || '';
+                document.getElementById('prApprovedBy').value = pr.approvedBy || '';
+                document.getElementById('prStatus').value = pr.status;
+                document.getElementById('prRemarks').value = pr.remarks || '';
+
+                // Load items
+                currentItems = pr.items || [];
+                renderItemsTable();
+
+                switchTab('create');
+            } catch (error) {
+                console.error('Error editing PR:', error);
+                Swal.fire('Error', 'Failed to load PR data', 'error');
+            }
+        }
+
+        // Confirm delete
+        function confirmDelete(id, prNumber) {
+            deleteId = id;
+            document.getElementById('deletePRNumber').textContent = prNumber;
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
+
+        // Delete PR
+        async function deletePR() {
+            try {
+                const response = await fetch(`/api/purchase-requests/${deleteId}`, { method: 'DELETE' });
+                if (!response.ok) throw new Error('Delete failed');
+
+                Swal.fire('Deleted', 'PR deleted successfully', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+                loadPRs();
+            } catch (error) {
+                console.error('Error deleting:', error);
+                Swal.fire('Error', 'Failed to delete PR', 'error');
+            }
+        }
+
+        // Reset filter
+        function resetFilter() {
+            document.getElementById('filterSite').value = 'all';
+            document.getElementById('filterStatus').value = 'all';
+            loadPRs();
+        }
+
+        // Reset form
+        function resetForm() {
+            document.getElementById('prForm').reset();
+            document.getElementById('prId').value = '';
+            document.getElementById('prDate').value = new Date().toISOString().split('T')[0];
+            editingId = null;
+            currentItems = [];
+            renderItemsTable();
+        }
+
+        // Add item row
+        function addItemRow(item = null) {
+            const row = {
+                tempId: Date.now(),
+                partNumber: item?.partNumber || '',
+                description: item?.description || '',
+                unit: item?.unit || 'PCS',
+                quantity: item?.quantity || 1,
+                estimatedPrice: item?.estimatedPrice || 0,
+                priority: item?.priority || 'NORMAL'
+            };
+
+            if (item?.id) row.id = item.id;
+            currentItems.push(row);
+            renderItemsTable();
+        }
+
+        // Render items table
+        function renderItemsTable() {
+            const tbody = document.getElementById('itemsTableBody');
+
+            if (currentItems.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-3">
+                            No items. Click "Add Item" to add items.
+                        </td>
+                    </tr>
+                `;
+                document.getElementById('totalAmount').textContent = '$0.00';
+                return;
+            }
+
+            tbody.innerHTML = currentItems.map((item, index) => `
+                <tr>
+                    <td><input type="text" value="${item.partNumber}" onchange="updateItem(${index}, 'partNumber', this.value)"></td>
+                    <td><input type="text" value="${item.description}" onchange="updateItem(${index}, 'description', this.value)"></td>
+                    <td>
+                        <select onchange="updateItem(${index}, 'unit', this.value)" style="width: 100%;">
+                            <option value="PCS" ${item.unit === 'PCS' ? 'selected' : ''}>PCS</option>
+                            <option value="UNIT" ${item.unit === 'UNIT' ? 'selected' : ''}>UNIT</option>
+                            <option value="KG" ${item.unit === 'KG' ? 'selected' : ''}>KG</option>
+                            <option value="LTR" ${item.unit === 'LTR' ? 'selected' : ''}>LTR</option>
+                            <option value="BOX" ${item.unit === 'BOX' ? 'selected' : ''}>BOX</option>
+                            <option value="SET" ${item.unit === 'SET' ? 'selected' : ''}>SET</option>
+                        </select>
+                    </td>
+                    <td><input type="number" value="${item.quantity}" min="1" onchange="updateItem(${index}, 'quantity', this.value)"></td>
+                    <td><input type="number" value="${item.estimatedPrice}" step="0.01" onchange="updateItem(${index}, 'estimatedPrice', this.value)"></td>
+                    <td class="text-end">${formatCurrency(item.quantity * item.estimatedPrice)}</td>
+                    <td>
+                        <select onchange="updateItem(${index}, 'priority', this.value)" style="width: 100%;">
+                            <option value="LOW" ${item.priority === 'LOW' ? 'selected' : ''}>Low</option>
+                            <option value="NORMAL" ${item.priority === 'NORMAL' ? 'selected' : ''}>Normal</option>
+                            <option value="HIGH" ${item.priority === 'HIGH' ? 'selected' : ''}>High</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="removeItem(${index})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            calculateTotal();
+        }
+
+        // Update item
+        function updateItem(index, field, value) {
+            currentItems[index][field] = value;
+            if (field === 'quantity' || field === 'estimatedPrice') {
+                currentItems[index][field] = parseFloat(value) || 0;
+            }
+            renderItemsTable();
+        }
+
+        // Remove item
+        function removeItem(index) {
+            currentItems.splice(index, 1);
+            renderItemsTable();
+        }
+
+        // Calculate total
+        function calculateTotal() {
+            const total = currentItems.reduce((sum, item) => sum + (item.quantity * item.estimatedPrice), 0);
+            document.getElementById('totalAmount').textContent = formatCurrency(total);
+        }
+
+        // Form submit
+        document.getElementById('prForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const data = {
+                prDate: document.getElementById('prDate').value,
+                site: document.getElementById('prSite').value,
+                department: document.getElementById('prDepartment').value,
+                requestedBy: document.getElementById('prRequestedBy').value,
+                approvedBy: document.getElementById('prApprovedBy').value,
+                status: document.getElementById('prStatus').value,
+                remarks: document.getElementById('prRemarks').value,
+                items: currentItems.filter(item => item.partNumber && item.description).map(item => ({
+                    partNumber: item.partNumber,
+                    description: item.description,
+                    unit: item.unit,
+                    quantity: parseFloat(item.quantity) || 0,
+                    estimatedPrice: parseFloat(item.estimatedPrice) || 0,
+                    purpose: '',
+                    priority: item.priority
+                }))
+            };
+
+            try {
+                let response;
+                if (editingId) {
+                    response = await fetch(`/api/purchase-requests/${editingId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    response = await fetch('/api/purchase-requests', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                }
+
+                if (!response.ok) throw new Error('Save failed');
+
+                Swal.fire('Success', `PR ${editingId ? 'updated' : 'created'} successfully`, 'success');
+                resetForm();
+                switchTab('list');
+                loadPRs();
+            } catch (error) {
+                console.error('Error saving:', error);
+                Swal.fire('Error', 'Failed to save PR', 'error');
+            }
+        });
+
+        // File upload
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.style.borderColor = '#f5576c'; });
+        uploadZone.addEventListener('dragleave', () => { uploadZone.style.borderColor = '#ccc'; });
+        uploadZone.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadZone.style.borderColor = '#ccc';
+            if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+        });
+
+        fileInput.addEventListener('change', function() {
+            if (this.files[0]) handleFile(this.files[0]);
+        });
+
+        function handleFile(file) {
+            if (!file.name.endsWith('.csv')) {
+                Swal.fire('Error', 'Please upload CSV file', 'error');
+                return;
+            }
+            uploadedFile = file;
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('uploadPreview').style.display = 'block';
+            document.getElementById('btnUpload').disabled = false;
+        }
+
+        async function uploadFile() {
+            if (!uploadedFile) return;
+
+            const formData = new FormData();
+            formData.append('file', uploadedFile);
+            formData.append('site', document.getElementById('uploadSite').value);
+            formData.append('department', document.getElementById('uploadDepartment').value);
+
+            document.getElementById('btnUpload').disabled = true;
+            document.getElementById('btnUpload').innerHTML = '<i class="bi bi-hourglass-split"></i> Uploading...';
+
+            try {
+                const response = await fetch('/api/purchase-requests/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (!response.ok) throw new Error(result.error);
+
+                Swal.fire('Success', result.message, 'success');
+                uploadedFile = null;
+                document.getElementById('uploadPreview').style.display = 'none';
+                document.getElementById('btnUpload').disabled = true;
+                fileInput.value = '';
+                switchTab('list');
+                loadPRs();
+            } catch (error) {
+                console.error('Error uploading:', error);
+                Swal.fire('Error', error.message || 'Upload failed', 'error');
+            } finally {
+                document.getElementById('btnUpload').disabled = false;
+                document.getElementById('btnUpload').innerHTML = '<i class="bi bi-cloud-upload"></i> Upload';
+            }
+        }
+
+        // Download template
+        function downloadTemplate() {
+            const template = 'PartNumber;Description;Unit;Quantity;EstimatedPrice;Purpose;Priority\nPART001;Sample Part Description;PCS;10;25.00;Maintenance;NORMAL';
+            const blob = new Blob([template], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'pr_template.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Format helpers
+        function formatDate(date) {
+            if (!date) return '-';
+            return new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        function formatCurrency(num) {
+            return 'Rp ' + (num || 0).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        });
+        }
+
+        function formatNumber(num) {
+            return (num || 0).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        });
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPRs();
+        });
+    </script>
+</body>
+</html>
