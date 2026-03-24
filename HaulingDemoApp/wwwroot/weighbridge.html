@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weighbridge - LFN Hauling</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
+        :root {
+            --navy: #0f172a; --navy-mid: #1e293b;
+            --accent: #7c3aed; --accent-dim: rgba(124,58,237,0.15);
+            --bg-page: #F8FAFC; --bg-card: #ffffff; --border-color: #e2e8f0;
+            --text-primary: #1e293b; --text-secondary: #64748b;
+            --success: #22c55e; --warning: #f59e0b; --danger: #ef4444;
+        }
+        body { background: var(--bg-page); min-height: 100vh; color: var(--text-primary); }
+        .navbar { background: rgba(15,23,42,0.97); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); padding: 0.7rem 0; box-shadow: 0 1px 20px rgba(0,0,0,0.3); }
+        .navbar-brand { font-weight: 700; font-size: 1.4rem; color: #fff !important; display: flex; align-items: center; gap: 10px; }
+        .navbar-brand i { color: var(--accent); font-size: 1.8rem; }
+        .nav-link { color: rgba(255,255,255,0.6) !important; font-weight: 500; font-size: 0.82rem; padding: 0.45rem 0.7rem !important; border-radius: 8px; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
+        .nav-link i { font-size: 0.95rem; opacity: 0.7; }
+        .nav-link:hover, .nav-link.active { color: #fff !important; background: var(--accent-dim); }
+        .page-header { background: linear-gradient(135deg, var(--navy), var(--navy-mid)); color: white; padding: 24px 28px; border-radius: 12px; margin-bottom: 24px; }
+        .page-header h1 { margin: 0; font-size: 1.4rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .page-header p { margin: 4px 0 0; opacity: 0.6; font-size: 0.875rem; }
+        .stat-card { background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); border-top: 3px solid var(--accent); padding: 18px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+        .stat-card h6 { color: var(--text-secondary); font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+        .stat-card .number { font-size: 1.8rem; font-weight: 700; color: var(--text-primary); line-height: 1.1; }
+        .card { border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 1px 4px rgba(0,0,0,0.05); overflow: hidden; }
+        .card-header { background: #fff; border-bottom: 1px solid var(--border-color); padding: 16px 24px; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: space-between; }
+        .card-body { padding: 24px; }
+        .form-label { font-weight: 500; color: var(--text-primary); font-size: 0.85rem; }
+        .form-control, .form-select { border-radius: 10px; border: 1.5px solid var(--border-color); padding: 10px 14px; font-size: 0.9rem; transition: border-color 0.2s, box-shadow 0.2s; }
+        .form-control:focus, .form-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); outline: none; }
+        .btn-primary { background: var(--accent); border: none; border-radius: 10px; padding: 10px 20px; font-weight: 600; font-size: 0.88rem; transition: all 0.2s; color: #fff; }
+        .btn-primary:hover { background: #6321d4; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(124,58,237,0.4); }
+        .btn-outline-primary { border-radius: 10px; border: 1.5px solid var(--accent); color: var(--accent); font-weight: 500; font-size: 0.82rem; padding: 8px 16px; }
+        .btn-outline-primary:hover { background: var(--accent-dim); }
+        .btn-success { background: var(--success); border: none; border-radius: 10px; padding: 10px 20px; font-weight: 600; font-size: 0.88rem; color: #fff; }
+        .btn-success:hover { background: #16a34a; }
+        .btn-sm { border-radius: 8px; font-size: 0.8rem; padding: 6px 12px; }
+        .table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 0.875rem; }
+        .table thead th { background: #f8fafc; color: var(--text-secondary); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 14px; border-bottom: 2px solid var(--border-color); white-space: nowrap; }
+        .table tbody td { padding: 13px 14px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        .table tbody tr:hover { background: #f8fafc; }
+        .table-responsive { border-radius: 10px; overflow: hidden; border: 1px solid var(--border-color); }
+        .badge { border-radius: 50px; font-weight: 600; font-size: 0.72rem; padding: 4px 10px; }
+        .badge-linked { background: rgba(34,197,94,0.12); color: #15803d; }
+        .badge-unlinked { background: rgba(245,158,11,0.12); color: #d97706; }
+        .modal-content { border-radius: 16px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .modal-header { border-bottom: 1px solid var(--border-color); padding: 20px 24px; }
+        .modal-body { padding: 24px; }
+        .modal-footer { border-top: 1px solid var(--border-color); padding: 16px 24px; }
+        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.85); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
+        .spinner { width: 40px; height: 40px; border: 4px solid var(--border-color); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .filter-bar { background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); padding: 16px 20px; margin-bottom: 20px; }
+        .wb-card { background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); padding: 20px; margin-bottom: 12px; }
+        .wb-card .wb-number { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); }
+        .wb-card .wb-weight { font-size: 2rem; font-weight: 700; color: var(--accent); }
+        .wb-card .wb-meta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+        .wb-card .wb-meta span { font-size: 0.8rem; color: var(--text-secondary); display: flex; align-items: center; gap: 4px; }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+    </style>
+</head>
+<body>
+    <div id="loadingOverlay" class="loading-overlay" style="display:none">
+        <div class="spinner"></div>
+        <span style="color:var(--text-secondary);font-weight:500">Memuat...</span>
+    </div>
+
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html"><i class="bi bi-truck"></i> LFN Hauling</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent"><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navContent">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="master-vehicle.html"><i class="bi bi-truck"></i> Kendaraan</a></li>
+                    <li class="nav-item"><a class="nav-link" href="master-driver.html"><i class="bi bi-person-badge"></i> Driver</a></li>
+                    <li class="nav-item"><a class="nav-link" href="haul-trip.html"><i class="bi bi-geo-alt"></i> Haul Trip</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="weighbridge.html"><i class="bi bi-scale"></i> Weighbridge</a></li>
+                    <li class="nav-item"><a class="nav-link" href="inventory.html"><i class="bi bi-box-seam"></i> Inventory</a></li>
+                    <li class="nav-item"><a class="nav-link" href="finance.html"><i class="bi bi-wallet2"></i> Finance</a></li>
+                    <li class="nav-item"><a class="nav-link" href="hr.html"><i class="bi bi-people"></i> HR</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="page-header">
+            <h1><i class="bi bi-scale"></i> Weighbridge Management</h1>
+            <p>Kelola ticket weighbridge untuk penimbangan kendaraan hauling</p>
+        </div>
+
+        <!-- Summary -->
+        <div class="summary-grid mb-4" id="summaryCards">
+            <div class="stat-card">
+                <h6>Total Ticket</h6>
+                <div class="number" id="statTotal">0</div>
+            </div>
+            <div class="stat-card" style="border-top-color:#22c55e">
+                <h6>Linked to Trip</h6>
+                <div class="number" id="statLinked">0</div>
+            </div>
+            <div class="stat-card" style="border-top-color:#f59e0b">
+                <h6>Unlinked</h6>
+                <div class="number" id="statUnlinked">0</div>
+            </div>
+            <div class="stat-card" style="border-top-color:#7c3aed">
+                <h6>Total Net Weight</h6>
+                <div class="number" id="statNetWeight">0</div>
+            </div>
+        </div>
+
+        <!-- Filter -->
+        <div class="filter-bar">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">Trip</label>
+                    <select class="form-select" id="filterTrip">
+                        <option value="">Semua Trip</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">From Date</label>
+                    <input type="date" class="form-control" id="filterFromDate">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">To Date</label>
+                    <input type="date" class="form-control" id="filterToDate">
+                </div>
+                <div class="col-md-2">
+                    <button class="btn-primary w-100" onclick="loadTickets()"><i class="bi bi-search"></i> Filter</button>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn-outline-primary w-100" onclick="openAddModal()"><i class="bi bi-plus-lg"></i> New Ticket</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tickets Table -->
+        <div class="card">
+            <div class="card-header">
+                <span><i class="bi bi-list-ul"></i> Weighbridge Ticket List</span>
+                <span class="text-muted" id="ticketCount">0 records</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Ticket No</th>
+                                <th>Date</th>
+                                <th>Vehicle</th>
+                                <th>Driver</th>
+                                <th>1st Weight</th>
+                                <th>2nd Weight</th>
+                                <th>Net Weight</th>
+                                <th>Material</th>
+                                <th>Trip</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ticketTableBody">
+                            <tr><td colspan="10" class="text-center text-muted py-4"><i class="bi bi-hourglass-split" style="font-size:2rem;opacity:0.3"></i><br>Tidak ada data</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal fade" id="ticketModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle"><i class="bi bi-plus-circle"></i> New Weighbridge Ticket</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="ticketId">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Ticket Number <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="ticketNumber" placeholder="WB-2024-001" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Ticket Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="ticketDate" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Vehicle <span class="text-danger">*</span></label>
+                            <select class="form-select" id="ticketVehicle" required>
+                                <option value="">-- Select Vehicle --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Driver Name</label>
+                            <input type="text" class="form-control" id="ticketDriver" placeholder="Nama driver">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">First Weight (kg) <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" class="form-control" id="ticketFirstWeight" placeholder="0.00" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Second Weight (kg)</label>
+                            <input type="number" step="0.01" class="form-control" id="ticketSecondWeight" placeholder="0.00">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Net Weight (kg)</label>
+                            <input type="number" step="0.01" class="form-control" id="ticketNetWeight" placeholder="Auto" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Material Type</label>
+                            <input type="text" class="form-control" id="ticketMaterial" placeholder="e.g. Batubara">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Supplier / Destination</label>
+                            <input type="text" class="form-control" id="ticketSupplier" placeholder="Supplier atau tujuan">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Remarks</label>
+                            <textarea class="form-control" id="ticketRemarks" rows="2" placeholder="Catatan tambahan"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn-primary" onclick="saveTicket()"><i class="bi bi-check-lg"></i> Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Link Trip Modal -->
+    <div class="modal fade" id="linkModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-link"></i> Link to Haul Trip</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="linkTicketId">
+                    <p class="text-muted mb-2">Select a haul trip to link with this weighbridge ticket.</p>
+                    <label class="form-label">Haul Trip</label>
+                    <select class="form-select" id="linkTripSelect">
+                        <option value="">-- Select Trip --</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn-success" onclick="saveLink()"><i class="bi bi-link"></i> Link</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API = '/api';
+        let tickets = [];
+        let trips = [];
+        let vehicles = [];
+        let modal, linkModal;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            modal = new bootstrap.Modal(document.getElementById('ticketModal'));
+            linkModal = new bootstrap.Modal(document.getElementById('linkModal'));
+            loadVehicles();
+            loadTrips();
+            loadTickets();
+            loadSummary();
+            setDefaultDates();
+            document.getElementById('ticketFirstWeight').addEventListener('input', calculateNet);
+            document.getElementById('ticketSecondWeight').addEventListener('input', calculateNet);
+        });
+
+        function setDefaultDates() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('filterToDate').value = today;
+            document.getElementById('ticketDate').value = today;
+        }
+
+        function calculateNet() {
+            const first = parseFloat(document.getElementById('ticketFirstWeight').value) || 0;
+            const second = parseFloat(document.getElementById('ticketSecondWeight').value) || 0;
+            if (second > 0) {
+                document.getElementById('ticketNetWeight').value = (first - second).toFixed(2);
+            }
+        }
+
+        function showLoading() { document.getElementById('loadingOverlay').style.display = 'flex'; }
+        function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
+
+        async function loadVehicles() {
+            try {
+                const res = await fetch(`${API}/vehicle/master`);
+                if (res.ok) {
+                    vehicles = await res.json();
+                    populateSelect('ticketVehicle', vehicles, 'id', 'vehicleCode');
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadTrips() {
+            try {
+                const res = await fetch(`${API}/haul-trips`);
+                if (res.ok) {
+                    trips = await res.json();
+                    populateSelect('filterTrip', trips, 'id', 'id', 'Semua Trip');
+                    populateSelect('linkTripSelect', trips, 'id', 'id', '-- Select Trip --');
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function populateSelect(elId, data, valKey, labelKey, firstLabel = '-- Select --') {
+            const sel = document.getElementById(elId);
+            sel.innerHTML = `<option value="">${firstLabel}</option>`;
+            data.forEach(item => {
+                sel.innerHTML += `<option value="${item[valKey]}">#${item[valKey]} - ${item.materialType || 'Trip'}</option>`;
+            });
+        }
+
+        async function loadTickets() {
+            showLoading();
+            try {
+                const tripId = document.getElementById('filterTrip').value;
+                const fromDate = document.getElementById('filterFromDate').value;
+                const toDate = document.getElementById('filterToDate').value;
+                let url = `${API}/weighbridge?`;
+                if (tripId) url += `tripId=${tripId}&`;
+                if (fromDate) url += `fromDate=${fromDate}&`;
+                if (toDate) url += `toDate=${toDate}&`;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Failed to load tickets');
+                tickets = await res.json();
+                renderTickets();
+                renderSummary();
+            } catch (e) {
+                Swal.fire('Error', e.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function renderSummary() {
+            const linked = tickets.filter(t => t.haulTripId).length;
+            const unlinked = tickets.length - linked;
+            const totalNet = tickets.reduce((sum, t) => sum + (t.netWeight || 0), 0);
+            document.getElementById('statTotal').textContent = tickets.length;
+            document.getElementById('statLinked').textContent = linked;
+            document.getElementById('statUnlinked').textContent = unlinked;
+            document.getElementById('statNetWeight').textContent = totalNet.toFixed(0) + ' kg';
+        }
+
+        function getVehicleCode(id) {
+            const v = vehicles.find(x => x.id === id);
+            return v ? v.vehicleCode : `#${id}`;
+        }
+
+        function renderTickets() {
+            const tbody = document.getElementById('ticketTableBody');
+            document.getElementById('ticketCount').textContent = `${tickets.length} records`;
+            if (tickets.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted py-4"><i class="bi bi-hourglass-split" style="font-size:2rem;opacity:0.3"></i><br>Tidak ada data</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = tickets.map(t => `
+                <tr>
+                    <td><strong>${t.ticketNumber || `#${t.id}`}</strong></td>
+                    <td>${t.ticketDate ? t.ticketDate.split('T')[0] : '-'}</td>
+                    <td>${getVehicleCode(t.vehicleId)}</td>
+                    <td>${t.driverName || '-'}</td>
+                    <td>${t.firstWeight ? t.firstWeight.toLocaleString() : '-'} kg</td>
+                    <td>${t.secondWeight ? t.secondWeight.toLocaleString() : '-'} kg</td>
+                    <td><strong class="text-primary">${t.netWeight ? t.netWeight.toLocaleString() : '-'} kg</strong></td>
+                    <td>${t.materialType || '-'}</td>
+                    <td>
+                        ${t.haulTripId
+                            ? `<span class="badge badge-linked"><i class="bi bi-check-circle"></i> #${t.haulTripId}</span>`
+                            : `<span class="badge badge-unlinked"><i class="bi bi-link-45deg"></i> Unlinked</span>`
+                        }
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewTicket(${t.id})"><i class="bi bi-eye"></i></button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="editTicket(${t.id})"><i class="bi bi-pencil"></i></button>
+                        ${!t.haulTripId ? `<button class="btn btn-sm btn-success" onclick="openLinkModal(${t.id})"><i class="bi bi-link"></i></button>` : ''}
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteTicket(${t.id})"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openAddModal() {
+            document.getElementById('modalTitle').innerHTML = '<i class="bi bi-plus-circle"></i> New Weighbridge Ticket';
+            document.getElementById('ticketId').value = '';
+            document.getElementById('ticketNumber').value = '';
+            document.getElementById('ticketDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('ticketVehicle').value = '';
+            document.getElementById('ticketDriver').value = '';
+            document.getElementById('ticketFirstWeight').value = '';
+            document.getElementById('ticketSecondWeight').value = '';
+            document.getElementById('ticketNetWeight').value = '';
+            document.getElementById('ticketMaterial').value = '';
+            document.getElementById('ticketSupplier').value = '';
+            document.getElementById('ticketRemarks').value = '';
+            modal.show();
+        }
+
+        function editTicket(id) {
+            const t = tickets.find(x => x.id === id);
+            if (!t) return;
+            document.getElementById('modalTitle').innerHTML = '<i class="bi bi-pencil"></i> Edit Weighbridge Ticket';
+            document.getElementById('ticketId').value = t.id;
+            document.getElementById('ticketNumber').value = t.ticketNumber || '';
+            document.getElementById('ticketDate').value = t.ticketDate ? t.ticketDate.split('T')[0] : '';
+            document.getElementById('ticketVehicle').value = t.vehicleId || '';
+            document.getElementById('ticketDriver').value = t.driverName || '';
+            document.getElementById('ticketFirstWeight').value = t.firstWeight || '';
+            document.getElementById('ticketSecondWeight').value = t.secondWeight || '';
+            document.getElementById('ticketNetWeight').value = t.netWeight || '';
+            document.getElementById('ticketMaterial').value = t.materialType || '';
+            document.getElementById('ticketSupplier').value = t.supplierOrDestination || '';
+            document.getElementById('ticketRemarks').value = t.remarks || '';
+            modal.show();
+        }
+
+        async function saveTicket() {
+            const id = document.getElementById('ticketId').value;
+            const firstWeight = parseFloat(document.getElementById('ticketFirstWeight').value);
+            const secondWeight = parseFloat(document.getElementById('ticketSecondWeight').value) || 0;
+            const netWeight = secondWeight > 0 ? firstWeight - secondWeight : parseFloat(document.getElementById('ticketNetWeight').value) || 0;
+
+            const data = {
+                ticketNumber: document.getElementById('ticketNumber').value,
+                ticketDate: document.getElementById('ticketDate').value,
+                vehicleId: parseInt(document.getElementById('ticketVehicle').value) || null,
+                driverName: document.getElementById('ticketDriver').value,
+                firstWeight: firstWeight,
+                secondWeight: secondWeight,
+                netWeight: netWeight,
+                materialType: document.getElementById('ticketMaterial').value,
+                supplierOrDestination: document.getElementById('ticketSupplier').value,
+                remarks: document.getElementById('ticketRemarks').value
+            };
+
+            try {
+                let res;
+                if (id) {
+                    res = await fetch(`${API}/weighbridge/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    res = await fetch(`${API}/weighbridge`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                }
+                if (!res.ok) throw new Error('Save failed');
+                modal.hide();
+                Swal.fire('Success', 'Ticket saved successfully', 'success');
+                loadTickets();
+            } catch (e) {
+                Swal.fire('Error', e.message, 'error');
+            }
+        }
+
+        function viewTicket(id) {
+            const t = tickets.find(x => x.id === id);
+            if (!t) return;
+            Swal.fire({
+                title: `Ticket: ${t.ticketNumber || `#${t.id}`}`,
+                html: `
+                    <table class="table table-borderless text-start" style="font-size:0.9rem">
+                        <tr><td class="text-muted">Date</td><td>${t.ticketDate ? t.ticketDate.split('T')[0] : '-'}</td></tr>
+                        <tr><td class="text-muted">Vehicle</td><td>${getVehicleCode(t.vehicleId)}</td></tr>
+                        <tr><td class="text-muted">Driver</td><td>${t.driverName || '-'}</td></tr>
+                        <tr><td class="text-muted">First Weight</td><td>${t.firstWeight ? t.firstWeight.toLocaleString() + ' kg' : '-'}</td></tr>
+                        <tr><td class="text-muted">Second Weight</td><td>${t.secondWeight ? t.secondWeight.toLocaleString() + ' kg' : '-'}</td></tr>
+                        <tr><td class="text-muted">Net Weight</td><td><strong>${t.netWeight ? t.netWeight.toLocaleString() + ' kg' : '-'}</strong></td></tr>
+                        <tr><td class="text-muted">Material</td><td>${t.materialType || '-'}</td></tr>
+                        <tr><td class="text-muted">Supplier/Dest</td><td>${t.supplierOrDestination || '-'}</td></tr>
+                        <tr><td class="text-muted">Trip</td><td>${t.haulTripId ? `#${t.haulTripId}` : '<span class="badge badge-unlinked">Unlinked</span>'}</td></tr>
+                        ${t.remarks ? `<tr><td class="text-muted">Remarks</td><td>${t.remarks}</td></tr>` : ''}
+                    </table>
+                `,
+                width: '500px'
+            });
+        }
+
+        function openLinkModal(id) {
+            document.getElementById('linkTicketId').value = id;
+            document.getElementById('linkTripSelect').value = '';
+            linkModal.show();
+        }
+
+        async function saveLink() {
+            const ticketId = document.getElementById('linkTicketId').value;
+            const tripId = parseInt(document.getElementById('linkTripSelect').value);
+            if (!tripId) {
+                Swal.fire('Warning', 'Please select a trip', 'warning');
+                return;
+            }
+            try {
+                const res = await fetch(`${API}/weighbridge/${ticketId}/link-trip`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tripId })
+                });
+                if (!res.ok) throw new Error('Link failed');
+                linkModal.hide();
+                Swal.fire('Success', 'Ticket linked to trip', 'success');
+                loadTickets();
+            } catch (e) {
+                Swal.fire('Error', e.message, 'error');
+            }
+        }
+
+        async function deleteTicket(id) {
+            const result = await Swal.fire({
+                title: 'Delete Ticket?',
+                text: 'This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Delete',
+                cancelButtonText: 'Cancel'
+            });
+            if (!result.isConfirmed) return;
+            try {
+                const res = await fetch(`${API}/weighbridge/${id}`, { method: 'DELETE' });
+                if (!res.ok) throw new Error('Delete failed');
+                Swal.fire('Deleted', 'Ticket deleted successfully', 'success');
+                loadTickets();
+            } catch (e) {
+                Swal.fire('Error', e.message, 'error');
+            }
+        }
+
+        function loadSummary() {
+            loadTickets();
+        }
+    </script>
+</body>
+</html>

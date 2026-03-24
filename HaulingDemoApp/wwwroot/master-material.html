@@ -189,7 +189,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const API = "https://lfn-hauling-903235665988.asia-southeast1.run.app/api/materials/master";
+        const API = "/api/material/master";
         const MODAL = new bootstrap.Modal(document.getElementById("formModal"));
         let editingId = null;
 
@@ -232,7 +232,7 @@
             noData.style.display = "none";
             tbody.innerHTML = data.map(r => `
                 <tr>
-                    <td>{r.materialCode ?? '-'}</td><td>{r.materialName ?? '-'}</td><td>{r.materialGroup ?? '-'}</td><td>{r.materialType ?? '-'}</td><td>{r.uomCode ?? '-'}</td><td>{r.unitPrice != null ? "Rp " + Number(r.unitPrice).toLocaleString("id-ID") : "-"}</td><td><span class="badge" :class="badgeClass(r.status)">{r.status}</span></td><td><button class="btn btn-sm btn-outline-primary me-1" onclick="editRow(r.id)"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-outline-danger" onclick="deleteRow(r.id)"><i class="bi bi-trash"></i></button></td>
+                    <td>{r.materialCode ?? '-'}</td><td>{r.materialName ?? '-'}</td><td>{r.materialGroup ?? '-'}</td><td>{r.materialType ?? '-'}</td><td>{r.uomCode ?? '-'}</td><td>{r.unitPrice != null ? "Rp " + Number(r.unitPrice).toLocaleString("id-ID") : "-"}</td><td><span class="${badgeClass(r.status) || 'badge-active'}">${r.status}</span></td><td><button class="btn btn-sm btn-outline-primary me-1" onclick="editRow(r.id)"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-outline-danger" onclick="deleteRow(r.id)"><i class="bi bi-trash"></i></button></td>
                 </tr>
             `).join("");
         }

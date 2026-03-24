@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Haul Trip - LFN Hauling</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
+        :root {
+            --navy: #0f172a; --navy-mid: #1e293b;
+            --accent: #7c3aed; --accent-dim: rgba(124,58,237,0.15);
+            --bg-page: #F8FAFC; --bg-card: #ffffff; --border-color: #e2e8f0;
+            --text-primary: #1e293b; --text-secondary: #64748b;
+            --success: #22c55e; --warning: #f59e0b; --danger: #ef4444;
+        }
+        body { background: var(--bg-page); min-height: 100vh; color: var(--text-primary); }
+        .navbar { background: rgba(15,23,42,0.97); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); padding: 0.7rem 0; box-shadow: 0 1px 20px rgba(0,0,0,0.3); }
+        .navbar-brand { font-weight: 700; font-size: 1.4rem; color: #fff !important; display: flex; align-items: center; gap: 10px; }
+        .navbar-brand i { color: var(--accent); font-size: 1.8rem; }
+        .nav-link { color: rgba(255,255,255,0.6) !important; font-weight: 500; font-size: 0.82rem; padding: 0.45rem 0.7rem !important; border-radius: 8px; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
+        .nav-link i { font-size: 0.95rem; opacity: 0.7; }
+        .nav-link:hover, .nav-link.active { color: #fff !important; background: var(--accent-dim); }
+        .page-header { background: linear-gradient(135deg, var(--navy), var(--navy-mid)); color: white; padding: 24px 28px; border-radius: 12px; margin-bottom: 24px; }
+        .page-header h1 { margin: 0; font-size: 1.4rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .page-header p { margin: 4px 0 0; opacity: 0.6; font-size: 0.875rem; }
+        .stat-card { background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); border-top: 3px solid var(--accent); padding: 18px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+        .stat-card h6 { color: var(--text-secondary); font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+        .stat-card .number { font-size: 1.8rem; font-weight: 700; color: var(--text-primary); line-height: 1.1; }
+        .card { border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 1px 4px rgba(0,0,0,0.05); overflow: hidden; }
+        .card-header { background: #fff; border-bottom: 1px solid var(--border-color); padding: 16px 24px; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: space-between; }
+        .card-body { padding: 24px; }
+        .form-label { font-weight: 500; color: var(--text-primary); font-size: 0.85rem; }
+        .form-control, .form-select { border-radius: 10px; border: 1.5px solid var(--border-color); padding: 10px 14px; font-size: 0.9rem; transition: border-color 0.2s, box-shadow 0.2s; }
+        .form-control:focus, .form-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); outline: none; }
+        .btn-primary { background: var(--accent); border: none; border-radius: 10px; padding: 10px 20px; font-weight: 600; font-size: 0.88rem; transition: all 0.2s; color: #fff; }
+        .btn-primary:hover { background: #6321d4; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(124,58,237,0.4); }
+        .btn-outline-primary { border-radius: 10px; border: 1.5px solid var(--accent); color: var(--accent); font-weight: 500; font-size: 0.82rem; padding: 8px 16px; }
+        .btn-outline-primary:hover { background: var(--accent-dim); }
+        .btn-success { background: var(--success); border: none; border-radius: 10px; padding: 10px 20px; font-weight: 600; font-size: 0.88rem; color: #fff; }
+        .btn-success:hover { background: #16a34a; }
+        .btn-warning { background: var(--warning); border: none; border-radius: 10px; padding: 10px 20px; font-weight: 600; font-size: 0.88rem; color: #fff; }
+        .btn-warning:hover { background: #d97706; }
+        .btn-danger { background: var(--danger); border: none; border-radius: 10px; padding: 10px 20px; font-weight: 600; font-size: 0.88rem; color: #fff; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-sm { border-radius: 8px; font-size: 0.8rem; padding: 6px 12px; }
+        .table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 0.875rem; }
+        .table thead th { background: #f8fafc; color: var(--text-secondary); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 14px; border-bottom: 2px solid var(--border-color); white-space: nowrap; }
+        .table tbody td { padding: 13px 14px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        .table tbody tr:hover { background: #f8fafc; }
+        .table-responsive { border-radius: 10px; overflow: hidden; border: 1px solid var(--border-color); }
+        .badge { border-radius: 50px; font-weight: 600; font-size: 0.72rem; padding: 4px 10px; }
+        .badge-planned { background: rgba(59,130,246,0.12); color: #1d4ed8; }
+        .badge-active { background: rgba(245,158,11,0.12); color: #d97706; }
+        .badge-completed { background: rgba(34,197,94,0.12); color: #15803d; }
+        .badge-cancelled { background: rgba(100,116,139,0.12); color: #475569; }
+        .modal-content { border-radius: 16px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .modal-header { border-bottom: 1px solid var(--border-color); padding: 20px 24px; }
+        .modal-body { padding: 24px; }
+        .modal-footer { border-top: 1px solid var(--border-color); padding: 16px 24px; }
+        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.85); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
+        .spinner { width: 40px; height: 40px; border: 4px solid var(--border-color); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .tab-btn { border-radius: 10px; padding: 10px 20px; font-weight: 600; font-size: 0.88rem; border: none; transition: all 0.2s; }
+        .tab-btn.active { background: var(--accent); color: #fff; }
+        .tab-btn:not(.active) { background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border-color); }
+        .tab-btn:not(.active):hover { background: var(--accent-dim); color: var(--accent); }
+        .trip-card { background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); padding: 16px; margin-bottom: 12px; transition: all 0.2s; cursor: pointer; }
+        .trip-card:hover { border-color: var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .trip-card.selected { border-color: var(--accent); background: var(--accent-dim); }
+        .trip-status { display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; font-weight: 600; padding: 3px 10px; border-radius: 50px; }
+        .trip-status.planned { background: rgba(59,130,246,0.12); color: #1d4ed8; }
+        .trip-status.active { background: rgba(245,158,11,0.12); color: #d97706; }
+        .trip-status.completed { background: rgba(34,197,94,0.12); color: #15803d; }
+        .trip-status.cancelled { background: rgba(100,116,139,0.12); color: #475569; }
+        .filter-bar { background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); padding: 16px 20px; margin-bottom: 20px; }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+    </style>
+</head>
+<body>
+    <div id="loadingOverlay" class="loading-overlay" style="display:none">
+        <div class="spinner"></div>
+        <span style="color:var(--text-secondary);font-weight:500">Memuat...</span>
+    </div>
+
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html"><i class="bi bi-truck"></i> LFN Hauling</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent"><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navContent">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="master-vehicle.html"><i class="bi bi-truck"></i> Kendaraan</a></li>
+                    <li class="nav-item"><a class="nav-link" href="master-driver.html"><i class="bi bi-person-badge"></i> Driver</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="haul-trip.html"><i class="bi bi-geo-alt"></i> Haul Trip</a></li>
+                    <li class="nav-item"><a class="nav-link" href="weighbridge.html"><i class="bi bi-scale"></i> Weighbridge</a></li>
+                    <li class="nav-item"><a class="nav-link" href="inventory.html"><i class="bi bi-box-seam"></i> Inventory</a></li>
+                    <li class="nav-item"><a class="nav-link" href="finance.html"><i class="bi bi-wallet2"></i> Finance</a></li>
+                    <li class="nav-item"><a class="nav-link" href="hr.html"><i class="bi bi-people"></i> HR</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="page-header">
+            <h1><i class="bi bi-geo-alt-fill"></i> Haul Trip Management</h1>
+            <p>Kelola perjalanan hauling material dari sumber ke tujuan</p>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-grid mb-4" id="summaryCards">
+            <div class="stat-card">
+                <h6>Total Trip</h6>
+                <div class="number" id="statTotal">0</div>
+            </div>
+            <div class="stat-card" style="border-top-color:#22c55e">
+                <h6>Completed</h6>
+                <div class="number" id="statCompleted">0</div>
+            </div>
+            <div class="stat-card" style="border-top-color:#f59e0b">
+                <h6>In Progress</h6>
+                <div class="number" id="statActive">0</div>
+            </div>
+            <div class="stat-card" style="border-top-color:#7c3aed">
+                <h6>Total Material</h6>
+                <div class="number" id="statMaterial">0</div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label">Driver</label>
+                    <select class="form-select" id="filterDriver">
+                        <option value="">Semua Driver</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Route</label>
+                    <select class="form-select" id="filterRoute">
+                        <option value="">Semua Route</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" id="filterStatus">
+                        <option value="">Semua Status</option>
+                        <option value="Planned">Planned</option>
+                        <option value="InProgress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">From Date</label>
+                    <input type="date" class="form-control" id="filterFromDate">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">To Date</label>
+                    <input type="date" class="form-control" id="filterToDate">
+                </div>
+                <div class="col-md-2">
+                    <button class="btn-primary w-100" onclick="loadTrips()"><i class="bi bi-search"></i> Filter</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex gap-2 mb-3">
+            <button class="btn-primary" onclick="openAddModal()"><i class="bi bi-plus-lg"></i> New Trip</button>
+            <button class="btn-outline-primary" onclick="loadSummary()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+        </div>
+
+        <!-- Trips Table -->
+        <div class="card">
+            <div class="card-header">
+                <span><i class="bi bi-list-ul"></i> Haul Trip List</span>
+                <span class="text-muted" id="tripCount">0 records</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Trip No</th>
+                                <th>Date</th>
+                                <th>Driver</th>
+                                <th>Vehicle</th>
+                                <th>Route</th>
+                                <th>Material</th>
+                                <th>Qty</th>
+                                <th>Fuel</th>
+                                <th>Distance</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tripTableBody">
+                            <tr><td colspan="11" class="text-center text-muted py-4"><i class="bi bi-hourglass-split" style="font-size:2rem;opacity:0.3"></i><br>Tidak ada data</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal fade" id="tripModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle"><i class="bi bi-plus-circle"></i> New Haul Trip</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="tripId">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Trip Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="tripDate" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Status <span class="text-danger">*</span></label>
+                            <select class="form-select" id="tripStatus" required>
+                                <option value="Planned">Planned</option>
+                                <option value="InProgress">In Progress</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Driver <span class="text-danger">*</span></label>
+                            <select class="form-select" id="tripDriver" required>
+                                <option value="">-- Select Driver --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Vehicle <span class="text-danger">*</span></label>
+                            <select class="form-select" id="tripVehicle" required>
+                                <option value="">-- Select Vehicle --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Route <span class="text-danger">*</span></label>
+                            <select class="form-select" id="tripRoute" required>
+                                <option value="">-- Select Route --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Material Type</label>
+                            <input type="text" class="form-control" id="tripMaterial" placeholder="e.g. Batubara, Overburden">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Quantity</label>
+                            <input type="number" step="0.01" class="form-control" id="tripQuantity" placeholder="0.00">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Unit</label>
+                            <input type="text" class="form-control" id="tripUnit" placeholder="e.g. Ton">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Distance (Km)</label>
+                            <input type="number" step="0.1" class="form-control" id="tripDistance" placeholder="0.0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Start Time</label>
+                            <input type="time" class="form-control" id="tripStartTime">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">End Time</label>
+                            <input type="time" class="form-control" id="tripEndTime">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Fuel Consumed (L)</label>
+                            <input type="number" step="0.01" class="form-control" id="tripFuel" placeholder="0.00">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Notes</label>
+                            <textarea class="form-control" id="tripNotes" rows="2" placeholder="Additional notes..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn-primary" onclick="saveTrip()"><i class="bi bi-check-lg"></i> Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Modal -->
+    <div class="modal fade" id="viewModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-info-circle"></i> Trip Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="viewModalBody">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn-success" onclick="markCompleted()"><i class="bi bi-check-circle"></i> Mark Completed</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API = '/api';
+        let trips = [];
+        let drivers = [];
+        let vehicles = [];
+        let routes = [];
+        let modal, viewModal, viewTripId;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            modal = new bootstrap.Modal(document.getElementById('tripModal'));
+            viewModal = new bootstrap.Modal(document.getElementById('viewModal'));
+            loadDrivers();
+            loadVehicles();
+            loadRoutes();
+            loadTrips();
+            loadSummary();
+            setDefaultDates();
+        });
+
+        function setDefaultDates() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('filterToDate').value = today;
+            document.getElementById('tripDate').value = today;
+        }
+
+        function showLoading() { document.getElementById('loadingOverlay').style.display = 'flex'; }
+        function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
+
+        async function loadDrivers() {
+            try {
+                const res = await fetch(`${API}/driver/master`);
+                if (res.ok) {
+                    drivers = await res.json();
+                    populateSelect('tripDriver', drivers, 'id', 'driverName');
+                    populateSelect('filterDriver', drivers, 'id', 'driverName', 'Semua Driver');
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadVehicles() {
+            try {
+                const res = await fetch(`${API}/vehicle/master`);
+                if (res.ok) {
+                    vehicles = await res.json();
+                    populateSelect('tripVehicle', vehicles, 'id', 'vehicleCode');
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadRoutes() {
+            try {
+                const res = await fetch(`${API}/route/master`);
+                if (res.ok) {
+                    routes = await res.json();
+                    populateSelect('tripRoute', routes, 'id', 'routeName');
+                    populateSelect('filterRoute', routes, 'id', 'routeName', 'Semua Route');
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function populateSelect(elId, data, valKey, labelKey, firstLabel = '-- Select --') {
+            const sel = document.getElementById(elId);
+            sel.innerHTML = `<option value="">${firstLabel}</option>`;
+            data.forEach(item => {
+                sel.innerHTML += `<option value="${item[valKey]}">${item[labelKey]}</option>`;
+            });
+        }
+
+        async function loadTrips() {
+            showLoading();
+            try {
+                const driverId = document.getElementById('filterDriver').value;
+                const routeId = document.getElementById('filterRoute').value;
+                const status = document.getElementById('filterStatus').value;
+                const fromDate = document.getElementById('filterFromDate').value;
+                const toDate = document.getElementById('filterToDate').value;
+
+                let url = `${API}/haul-trips?`;
+                if (driverId) url += `driverId=${driverId}&`;
+                if (routeId) url += `routeId=${routeId}&`;
+                if (status) url += `status=${status}&`;
+                if (fromDate) url += `fromDate=${fromDate}&`;
+                if (toDate) url += `toDate=${toDate}&`;
+
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Failed to load trips');
+                trips = await res.json();
+                renderTrips();
+            } catch (e) {
+                Swal.fire('Error', e.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function loadSummary() {
+            try {
+                const fromDate = document.getElementById('filterFromDate').value;
+                const toDate = document.getElementById('filterToDate').value;
+                let url = `${API}/haul-trips/summary?`;
+                if (fromDate) url += `fromDate=${fromDate}&`;
+                if (toDate) url += `toDate=${toDate}&`;
+                const res = await fetch(url);
+                if (res.ok) {
+                    const s = await res.json();
+                    document.getElementById('statTotal').textContent = s.totalTrips || 0;
+                    document.getElementById('statCompleted').textContent = s.completed || 0;
+                    document.getElementById('statMaterial').textContent = (s.totalMaterial || 0).toFixed(1);
+                    document.getElementById('statActive').textContent = ((s.totalTrips || 0) - (s.completed || 0));
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function getStatusClass(status) {
+            const map = {
+                'Planned': 'badge-planned',
+                'InProgress': 'badge-active',
+                'Completed': 'badge-completed',
+                'Cancelled': 'badge-cancelled'
+            };
+            return map[status] || 'badge-secondary';
+        }
+
+        function getStatusLabel(status) {
+            const map = {
+                'Planned': 'Planned',
+                'InProgress': 'In Progress',
+                'Completed': 'Completed',
+                'Cancelled': 'Cancelled'
+            };
+            return map[status] || status;
+        }
+
+        function getDriverName(id) {
+            const d = drivers.find(x => x.id === id);
+            return d ? d.driverName : `#${id}`;
+        }
+
+        function getVehicleCode(id) {
+            const v = vehicles.find(x => x.id === id);
+            return v ? v.vehicleCode : `#${id}`;
+        }
+
+        function getRouteName(id) {
+            const r = routes.find(x => x.id === id);
+            return r ? r.routeName : `#${id}`;
+        }
+
+        function renderTrips() {
+            const tbody = document.getElementById('tripTableBody');
+            document.getElementById('tripCount').textContent = `${trips.length} records`;
+            if (trips.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="11" class="text-center text-muted py-4"><i class="bi bi-hourglass-split" style="font-size:2rem;opacity:0.3"></i><br>Tidak ada data trip</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = trips.map(t => `
+                <tr>
+                    <td><strong>#${t.id}</strong></td>
+                    <td>${t.tripDate ? t.tripDate.split('T')[0] : '-'}</td>
+                    <td>${getDriverName(t.driverId)}</td>
+                    <td>${getVehicleCode(t.vehicleId)}</td>
+                    <td>${getRouteName(t.routeId)}</td>
+                    <td>${t.materialType || '-'}</td>
+                    <td>${t.quantity ? t.quantity.toFixed(2) : '-'} ${t.unit || ''}</td>
+                    <td>${t.fuelConsumed ? t.fuelConsumed.toFixed(2) : '-'} L</td>
+                    <td>${t.distanceKm ? t.distanceKm.toFixed(1) : '-'} km</td>
+                    <td><span class="badge ${getStatusClass(t.tripStatus)}">${getStatusLabel(t.tripStatus)}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewTrip(${t.id})"><i class="bi bi-eye"></i></button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="editTrip(${t.id})"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteTrip(${t.id})"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openAddModal() {
+            document.getElementById('modalTitle').innerHTML = '<i class="bi bi-plus-circle"></i> New Haul Trip';
+            document.getElementById('tripId').value = '';
+            document.getElementById('tripDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('tripStatus').value = 'Planned';
+            document.getElementById('tripDriver').value = '';
+            document.getElementById('tripVehicle').value = '';
+            document.getElementById('tripRoute').value = '';
+            document.getElementById('tripMaterial').value = '';
+            document.getElementById('tripQuantity').value = '';
+            document.getElementById('tripUnit').value = '';
+            document.getElementById('tripDistance').value = '';
+            document.getElementById('tripStartTime').value = '';
+            document.getElementById('tripEndTime').value = '';
+            document.getElementById('tripFuel').value = '';
+            document.getElementById('tripNotes').value = '';
+            modal.show();
+        }
+
+        function editTrip(id) {
+            const t = trips.find(x => x.id === id);
+            if (!t) return;
+            document.getElementById('modalTitle').innerHTML = '<i class="bi bi-pencil"></i> Edit Haul Trip';
+            document.getElementById('tripId').value = t.id;
+            document.getElementById('tripDate').value = t.tripDate ? t.tripDate.split('T')[0] : '';
+            document.getElementById('tripStatus').value = t.tripStatus || 'Planned';
+            document.getElementById('tripDriver').value = t.driverId || '';
+            document.getElementById('tripVehicle').value = t.vehicleId || '';
+            document.getElementById('tripRoute').value = t.routeId || '';
+            document.getElementById('tripMaterial').value = t.materialType || '';
+            document.getElementById('tripQuantity').value = t.quantity || '';
+            document.getElementById('tripUnit').value = t.unit || '';
+            document.getElementById('tripDistance').value = t.distanceKm || '';
+            document.getElementById('tripStartTime').value = t.startTime || '';
+            document.getElementById('tripEndTime').value = t.endTime || '';
+            document.getElementById('tripFuel').value = t.fuelConsumed || '';
+            document.getElementById('tripNotes').value = t.notes || '';
+            modal.show();
+        }
+
+        async function saveTrip() {
+            const id = document.getElementById('tripId').value;
+            const data = {
+                driverId: parseInt(document.getElementById('tripDriver').value) || null,
+                vehicleId: parseInt(document.getElementById('tripVehicle').value) || null,
+                routeId: parseInt(document.getElementById('tripRoute').value) || null,
+                tripDate: document.getElementById('tripDate').value,
+                startTime: document.getElementById('tripStartTime').value,
+                endTime: document.getElementById('tripEndTime').value,
+                materialType: document.getElementById('tripMaterial').value,
+                quantity: parseFloat(document.getElementById('tripQuantity').value) || 0,
+                unit: document.getElementById('tripUnit').value,
+                distanceKm: parseFloat(document.getElementById('tripDistance').value) || 0,
+                fuelConsumed: parseFloat(document.getElementById('tripFuel').value) || 0,
+                tripStatus: document.getElementById('tripStatus').value,
+                notes: document.getElementById('tripNotes').value
+            };
+
+            try {
+                let res;
+                if (id) {
+                    res = await fetch(`${API}/haul-trips/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    res = await fetch(`${API}/haul-trips`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                }
+                if (!res.ok) throw new Error('Save failed');
+                modal.hide();
+                Swal.fire('Success', 'Trip saved successfully', 'success');
+                loadTrips();
+                loadSummary();
+            } catch (e) {
+                Swal.fire('Error', e.message, 'error');
+            }
+        }
+
+        function viewTrip(id) {
+            const t = trips.find(x => x.id === id);
+            if (!t) return;
+            viewTripId = id;
+            document.getElementById('viewModalBody').innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr><td class="text-muted" style="width:140px">Trip No</td><td><strong>#${t.id}</strong></td></tr>
+                            <tr><td class="text-muted">Date</td><td>${t.tripDate ? t.tripDate.split('T')[0] : '-'}</td></tr>
+                            <tr><td class="text-muted">Driver</td><td>${getDriverName(t.driverId)}</td></tr>
+                            <tr><td class="text-muted">Vehicle</td><td>${getVehicleCode(t.vehicleId)}</td></tr>
+                            <tr><td class="text-muted">Route</td><td>${getRouteName(t.routeId)}</td></tr>
+                            <tr><td class="text-muted">Material</td><td>${t.materialType || '-'}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr><td class="text-muted">Quantity</td><td>${t.quantity ? t.quantity.toFixed(2) : '-'} ${t.unit || ''}</td></tr>
+                            <tr><td class="text-muted">Distance</td><td>${t.distanceKm ? t.distanceKm.toFixed(1) : '-'} km</td></tr>
+                            <tr><td class="text-muted">Fuel Consumed</td><td>${t.fuelConsumed ? t.fuelConsumed.toFixed(2) : '-'} L</td></tr>
+                            <tr><td class="text-muted">Start Time</td><td>${t.startTime || '-'}</td></tr>
+                            <tr><td class="text-muted">End Time</td><td>${t.endTime || '-'}</td></tr>
+                            <tr><td class="text-muted">Status</td><td><span class="badge ${getStatusClass(t.tripStatus)}">${getStatusLabel(t.tripStatus)}</span></td></tr>
+                        </table>
+                    </div>
+                    ${t.notes ? `<div class="col-12"><p class="text-muted mb-1">Notes</p><p>${t.notes}</p></div>` : ''}
+                </div>
+            `;
+            viewModal.show();
+        }
+
+        async function markCompleted() {
+            try {
+                const res = await fetch(`${API}/haul-trips/${viewTripId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tripStatus: 'Completed' })
+                });
+                if (!res.ok) throw new Error('Update failed');
+                viewModal.hide();
+                Swal.fire('Success', 'Trip marked as completed', 'success');
+                loadTrips();
+                loadSummary();
+            } catch (e) {
+                Swal.fire('Error', e.message, 'error');
+            }
+        }
+
+        async function deleteTrip(id) {
+            const result = await Swal.fire({
+                title: 'Delete Trip?',
+                text: 'This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Delete',
+                cancelButtonText: 'Cancel'
+            });
+            if (!result.isConfirmed) return;
+            try {
+                const res = await fetch(`${API}/haul-trips/${id}`, { method: 'DELETE' });
+                if (!res.ok) throw new Error('Delete failed');
+                Swal.fire('Deleted', 'Trip deleted successfully', 'success');
+                loadTrips();
+                loadSummary();
+            } catch (e) {
+                Swal.fire('Error', e.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
