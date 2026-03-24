@@ -4178,7 +4178,7 @@ app.MapPut("/api/pm/{id}", async (int id, PMInput input, AppDbContext db) =>
     pm.UnitNo = input.UnitNo;
     pm.MerkType = input.MerkType;
     pm.PMType = input.PMType;
-    pm.Description = input.Description;
+    pm.Description = input.UnitNo;
     pm.Status = input.Status;
     pm.ScheduledDate = input.ScheduledDate;
     pm.StartDate = input.StartDate;
@@ -7856,11 +7856,11 @@ app.MapPut("/api/vehicle/master/{id}", async (AppDbContext db, int id, Vehicle i
 {
     var v = await db.Vehicles.FindAsync(id);
     if (v == null) return Results.NotFound();
-    v.VehicleCode = input.VehicleCode; v.VehicleDescription = input.VehicleDescription;
+    v.VehicleCode = input.VehicleCode; v.VehicleCode = input.VehicleCode;
     v.VehicleType = input.VehicleType; v.Brand = input.Brand; v.Model = input.Model;
-    v.LicensePlate = input.LicensePlate; v.VehicleStatus = input.VehicleStatus;
-    v.FuelType = input.FuelType; v.Capacity = input.Capacity;
-    v.LastOdometer = input.LastOdometer; v.CurrentLocation = input.CurrentLocation;
+    v.PoliceNumber = input.PoliceNumber; v.Status = input.Status;
+    v.FuelType = input.FuelType; v.CapacityWeight = input.CapacityWeight;
+    v.ChassisNumber = input.ChassisNumber; v.SiteCode = input.SiteCode;
     v.UpdatedAt = DateTime.UtcNow;
     await db.SaveChangesAsync();
     return Results.Ok(v);
@@ -7877,7 +7877,7 @@ app.MapDelete("/api/vehicle/master/{id}", async (AppDbContext db, int id) =>
 
 // ==================== DRIVER MASTER ====================
 app.MapGet("/api/driver/master", async (AppDbContext db) =>
-    await db.Drivers.OrderBy(d => d.DriverName).ToListAsync());
+    await db.Drivers.OrderBy(d => d.FullName).ToListAsync());
 
 app.MapGet("/api/driver/master/{id}", async (AppDbContext db, int id) =>
     await db.Drivers.FindAsync(id) is { } d ? Results.Ok(d) : Results.NotFound());
@@ -7894,11 +7894,12 @@ app.MapPut("/api/driver/master/{id}", async (AppDbContext db, int id, Driver inp
 {
     var d = await db.Drivers.FindAsync(id);
     if (d == null) return Results.NotFound();
-    d.DriverCode = input.DriverCode; d.DriverName = input.DriverName;
-    d.LicenseNumber = input.LicenseNumber; d.LicenseType = input.LicenseType;
-    d.Phone = input.Phone; d.Address = input.Address;
-    d.DateOfBirth = input.DateOfBirth; d.JoinDate = input.JoinDate;
-    d.DriverStatus = input.DriverStatus; d.UpdatedAt = DateTime.UtcNow;
+    d.DriverCode = input.DriverCode; d.FullName = input.FullName;
+    d.NIK = input.NIK; d.SIM = input.SIM;
+    d.SIMType = input.SIMType; d.Phone = input.Phone;
+    d.Address = input.Address; d.DateOfBirth = input.DateOfBirth;
+    d.JoinDate = input.JoinDate; d.Status = input.Status;
+    d.UpdatedAt = DateTime.UtcNow;
     await db.SaveChangesAsync();
     return Results.Ok(d);
 });
@@ -7927,14 +7928,18 @@ app.MapPost("/api/route/master", async (AppDbContext db, RouteMaster route) =>
     return Results.Created($"/api/route/master/{route.Id}", route);
 });
 
-app.MapPut("/api/route/master/{id}", async (AppDbContext db, int id, RouteMaster input) =>
+app.MapPut("/api/route/master/{id}", async (AppDbContext db, int id, HaulingDemoApp.Models.Route input) =>
 {
     var r = await db.RouteMasters.FindAsync(id);
     if (r == null) return Results.NotFound();
     r.RouteCode = input.RouteCode; r.RouteName = input.RouteName;
-    r.Origin = input.Origin; r.Destination = input.Destination;
-    r.DistanceKm = input.DistanceKm; r.EstimatedTimeMinutes = input.EstimatedTimeMinutes;
-    r.RouteType = input.RouteType; r.Status = input.Status;
+    r.Site = input.SiteCode ?? r.Site; r.OriginPit = input.OriginLocation;
+    r.Destination = input.DestinationLocation; r.DistanceKM = input.DistanceKm;
+    r.RoadType = input.RoadCondition ?? r.RoadType;
+    r.EstimatedFuelPerTrip = input.HaulCostPerKm ?? r.EstimatedFuelPerTrip;
+    r.CostPerKM = input.FuelConsumptionPerKm ?? r.CostPerKM;
+    r.RouteType = input.RouteType ?? r.RouteType;
+    r.Status = input.Status; r.Remarks = input.Remarks;
     r.UpdatedAt = DateTime.UtcNow;
     await db.SaveChangesAsync();
     return Results.Ok(r);
@@ -7950,14 +7955,15 @@ app.MapDelete("/api/route/master/{id}", async (AppDbContext db, int id) =>
 });
 
 // ==================== HAUL TRIPS ====================
-app.MapGet("/api/haul-trips", async (AppDbContext db, int? driverId, int? routeId, DateTime? fromDate, DateTime? toDate, string? status) =>
+app.MapGet("/api/haul-trips", async (AppDbContext db, string? site, string? driverId, string? routeCode, DateTime? fromDate, DateTime? toDate, string? status) =>
 {
     var q = db.HaulTrips.AsQueryable();
-    if (driverId.HasValue) q = q.Where(h => h.DriverId == driverId);
-    if (routeId.HasValue) q = q.Where(h => h.RouteId == routeId);
+    if (!string.IsNullOrEmpty(site)) q = q.Where(h => h.Site == site);
+    if (!string.IsNullOrEmpty(driverId)) q = q.Where(h => h.DriverId == driverId);
+    if (!string.IsNullOrEmpty(routeCode)) q = q.Where(h => h.RouteCode == routeCode);
     if (fromDate.HasValue) q = q.Where(h => h.TripDate >= fromDate);
     if (toDate.HasValue) q = q.Where(h => h.TripDate <= toDate);
-    if (!string.IsNullOrEmpty(status)) q = q.Where(h => h.TripStatus == status);
+    if (!string.IsNullOrEmpty(status)) q = q.Where(h => h.Status == status);
     return await q.OrderByDescending(h => h.TripDate).ToListAsync();
 });
 
@@ -7967,7 +7973,7 @@ app.MapGet("/api/haul-trips/{id}", async (AppDbContext db, int id) =>
 app.MapPost("/api/haul-trips", async (AppDbContext db, HaulTrip trip) =>
 {
     trip.CreatedAt = DateTime.UtcNow;
-    trip.TripStatus = trip.TripStatus ?? "Planned";
+    trip.UpdatedAt = DateTime.UtcNow;
     db.HaulTrips.Add(trip);
     await db.SaveChangesAsync();
     return Results.Created($"/api/haul-trips/{trip.Id}", trip);
@@ -7977,11 +7983,26 @@ app.MapPut("/api/haul-trips/{id}", async (AppDbContext db, int id, HaulTrip inpu
 {
     var t = await db.HaulTrips.FindAsync(id);
     if (t == null) return Results.NotFound();
-    t.DriverId = input.DriverId; t.VehicleId = input.VehicleId; t.RouteId = input.RouteId;
-    t.TripDate = input.TripDate; t.StartTime = input.StartTime; t.EndTime = input.EndTime;
-    t.MaterialType = input.MaterialType; t.Quantity = input.Quantity; t.Unit = input.Unit;
-    t.TripStatus = input.TripStatus; t.Notes = input.Notes;
-    t.FuelConsumed = input.FuelConsumed; t.DistanceKm = input.DistanceKm;
+    t.TripDate = input.TripDate; t.Site = input.Site;
+    t.UnitNo = input.UnitNo; t.DriverId = input.DriverId;
+    t.DriverName = input.DriverName; t.RouteCode = input.RouteCode;
+    t.RouteName = input.RouteName; t.Shift = input.Shift;
+    t.MaterialType = input.MaterialType; t.OriginPit = input.OriginPit;
+    t.DestinationStockpile = input.DestinationStockpile;
+    t.WBTicketIn = input.WBTicketIn; t.WBTicketOut = input.WBTicketOut;
+    t.GrossWeight = input.GrossWeight; t.TareWeight = input.TareWeight;
+    t.NetWeight = input.NetWeight; t.PayloadTon = input.PayloadTon;
+    t.StartTime = input.StartTime; t.EndTime = input.EndTime;
+    t.CycleTimeMinutes = input.CycleTimeMinutes;
+    t.LoadingTimeMinutes = input.LoadingTimeMinutes;
+    t.HaulingTimeMinutes = input.HaulingTimeMinutes;
+    t.DumpingTimeMinutes = input.DumpingTimeMinutes;
+    t.ReturningTimeMinutes = input.ReturningTimeMinutes;
+    t.DistanceKM = input.DistanceKM; t.FuelConsumed = input.FuelConsumed;
+    t.HMStart = input.HMStart; t.HMEnd = input.HMEnd;
+    t.RatePerTon = input.RatePerTon; t.TripRevenue = input.TripRevenue;
+    t.TripCost = input.TripCost; t.Status = input.Status;
+    t.Remarks = input.Remarks;
     t.UpdatedAt = DateTime.UtcNow;
     await db.SaveChangesAsync();
     return Results.Ok(t);
@@ -8002,22 +8023,28 @@ app.MapGet("/api/haul-trips/summary", async (AppDbContext db, DateTime? fromDate
     if (fromDate.HasValue) q = q.Where(h => h.TripDate >= fromDate);
     if (toDate.HasValue) q = q.Where(h => h.TripDate <= toDate);
     var trips = await q.ToListAsync();
+    var totalDistance = trips.Sum(t => t.DistanceKM ?? 0);
+    var totalFuel = trips.Sum(t => t.FuelConsumed ?? 0);
     return Results.Ok(new
     {
         totalTrips = trips.Count,
-        completed = trips.Count(t => t.TripStatus == "Completed"),
-        totalMaterial = trips.Sum(t => t.Quantity),
-        totalFuel = trips.Sum(t => t.FuelConsumed),
-        avgFuelEfficiency = trips.Count > 0 && trips.Sum(t => t.DistanceKm) > 0
-            ? Math.Round(trips.Sum(t => t.FuelConsumed) / trips.Sum(t => t.DistanceKm) * 100, 2) : 0
+        completed = trips.Count(t => t.Status == "COMPLETED"),
+        totalPayloadTon = trips.Sum(t => t.PayloadTon ?? 0),
+        totalFuel = totalFuel,
+        totalDistance = totalDistance,
+        avgFuelEfficiency = totalDistance > 0
+            ? Math.Round(totalFuel / totalDistance, 4) : 0,
+        totalRevenue = trips.Sum(t => t.TripRevenue ?? 0),
+        totalCost = trips.Sum(t => t.TripCost ?? 0)
     });
 });
 
 // ==================== WEIGHBRIDGE TICKETS ====================
-app.MapGet("/api/weighbridge", async (AppDbContext db, int? tripId, DateTime? fromDate, DateTime? toDate) =>
+app.MapGet("/api/weighbridge", async (AppDbContext db, string? site, string? tripNumber, DateTime? fromDate, DateTime? toDate) =>
 {
     var q = db.WeighbridgeTickets.AsQueryable();
-    if (tripId.HasValue) q = q.Where(w => w.HaulTripId == tripId);
+    if (!string.IsNullOrEmpty(site)) q = q.Where(w => w.Site == site);
+    if (!string.IsNullOrEmpty(tripNumber)) q = q.Where(w => w.TripNumber == tripNumber);
     if (fromDate.HasValue) q = q.Where(w => w.TicketDate >= fromDate);
     if (toDate.HasValue) q = q.Where(w => w.TicketDate <= toDate);
     return await q.OrderByDescending(w => w.TicketDate).ToListAsync();
@@ -8029,6 +8056,7 @@ app.MapGet("/api/weighbridge/{id}", async (AppDbContext db, int id) =>
 app.MapPost("/api/weighbridge", async (AppDbContext db, WeighbridgeTicket ticket) =>
 {
     ticket.CreatedAt = DateTime.UtcNow;
+    ticket.UpdatedAt = DateTime.UtcNow;
     db.WeighbridgeTickets.Add(ticket);
     await db.SaveChangesAsync();
     return Results.Created($"/api/weighbridge/{ticket.Id}", ticket);
@@ -8038,12 +8066,21 @@ app.MapPut("/api/weighbridge/{id}", async (AppDbContext db, int id, WeighbridgeT
 {
     var w = await db.WeighbridgeTickets.FindAsync(id);
     if (w == null) return Results.NotFound();
-    w.HaulTripId = input.HaulTripId; w.TicketNumber = input.TicketNumber;
-    w.TicketDate = input.TicketDate; w.VehicleId = input.VehicleId;
-    w.FirstWeight = input.FirstWeight; w.SecondWeight = input.SecondWeight;
-    w.NetWeight = input.NetWeight; w.MaterialType = input.MaterialType;
-    w.SupplierOrDestination = input.SupplierOrDestination;
-    w.DriverName = input.DriverName; w.Remarks = input.Remarks;
+    w.TicketNumber = input.TicketNumber; w.TicketDate = input.TicketDate;
+    w.Site = input.Site; w.TicketType = input.TicketType;
+    w.UnitNo = input.UnitNo; w.DriverName = input.DriverName;
+    w.DriverBadge = input.DriverBadge; w.FirstWeight = input.FirstWeight;
+    w.SecondWeight = input.SecondWeight; w.NetWeight = input.NetWeight;
+    w.MaterialType = input.MaterialType; w.OriginPit = input.OriginPit;
+    w.DestinationStockpile = input.DestinationStockpile;
+    w.TareCompensation = input.TareCompensation;
+    w.FinalNetWeight = input.FinalNetWeight;
+    w.VehicleType = input.VehicleType; w.AxleLoad = input.AxleLoad;
+    w.WeighbridgeOperator = input.WeighbridgeOperator;
+    w.FirstWeighTime = input.FirstWeighTime;
+    w.SecondWeighTime = input.SecondWeighTime;
+    w.TripNumber = input.TripNumber; w.IsLinked = input.IsLinked;
+    w.Status = input.Status; w.Remarks = input.Remarks;
     w.UpdatedAt = DateTime.UtcNow;
     await db.SaveChangesAsync();
     return Results.Ok(w);
@@ -8062,19 +8099,21 @@ app.MapPost("/api/weighbridge/{id}/link-trip", async (AppDbContext db, int id, L
 {
     var w = await db.WeighbridgeTickets.FindAsync(id);
     if (w == null) return Results.NotFound();
-    w.HaulTripId = req.TripId;
+    w.TripNumber = req.TripNumber ?? w.TripNumber;
+    w.IsLinked = true;
     w.UpdatedAt = DateTime.UtcNow;
     await db.SaveChangesAsync();
     return Results.Ok(w);
 });
 
 // ==================== WORK ORDERS ====================
-app.MapGet("/api/work-orders", async (AppDbContext db, string? status, string? priority, int? assignedTo) =>
+app.MapGet("/api/work-orders", async (AppDbContext db, string? site, string? status, string? priority, string? assignedTo) =>
 {
     var q = db.WorkOrders.AsQueryable();
+    if (!string.IsNullOrEmpty(site)) q = q.Where(w => w.Site == site);
     if (!string.IsNullOrEmpty(status)) q = q.Where(w => w.Status == status);
     if (!string.IsNullOrEmpty(priority)) q = q.Where(w => w.Priority == priority);
-    if (assignedTo.HasValue) q = q.Where(w => w.AssignedTo == assignedTo);
+    if (!string.IsNullOrEmpty(assignedTo)) q = q.Where(w => w.AssignedTo == assignedTo);
     return await q.OrderByDescending(w => w.CreatedAt).ToListAsync();
 });
 
@@ -8084,7 +8123,7 @@ app.MapGet("/api/work-orders/{id}", async (AppDbContext db, int id) =>
 app.MapPost("/api/work-orders", async (AppDbContext db, WorkOrder wo) =>
 {
     wo.CreatedAt = DateTime.UtcNow;
-    wo.Status = wo.Status ?? "Open";
+    wo.UpdatedAt = DateTime.UtcNow;
     db.WorkOrders.Add(wo);
     await db.SaveChangesAsync();
     return Results.Created($"/api/work-orders/{wo.Id}", wo);
@@ -8094,11 +8133,16 @@ app.MapPut("/api/work-orders/{id}", async (AppDbContext db, int id, WorkOrder in
 {
     var wo = await db.WorkOrders.FindAsync(id);
     if (wo == null) return Results.NotFound();
-    wo.WorkOrderNumber = input.WorkOrderNumber; wo.Title = input.Title;
-    wo.Description = input.Description; wo.Priority = input.Priority;
+    wo.WONumber = input.WONumber; wo.Site = input.Site;
+    wo.UnitNo = input.UnitNo; wo.MerkType = input.MerkType;
+    wo.Category = input.Category; wo.WOType = input.WOType;
+    wo.Priority = input.Priority; wo.Problem = input.Problem;
+    wo.Cause = input.Cause; wo.ActionTaken = input.ActionTaken;
     wo.Status = input.Status; wo.AssignedTo = input.AssignedTo;
-    wo.DueDate = input.DueDate; wo.CompletedDate = input.CompletedDate;
-    wo.Remarks = input.Remarks; wo.UpdatedAt = DateTime.UtcNow;
+    wo.ScheduledDate = input.ScheduledDate; wo.StartDate = input.StartDate;
+    wo.EndDate = input.EndDate; wo.EstimatedCost = input.EstimatedCost;
+    wo.ActualCost = input.ActualCost; wo.Remarks = input.Remarks;
+    wo.UpdatedAt = DateTime.UtcNow;
     await db.SaveChangesAsync();
     return Results.Ok(wo);
 });
@@ -8113,11 +8157,12 @@ app.MapDelete("/api/work-orders/{id}", async (AppDbContext db, int id) =>
 });
 
 // ==================== PREVENTIVE MAINTENANCE ====================
-app.MapGet("/api/preventive-maintenance", async (AppDbContext db, string? status) =>
+app.MapGet("/api/preventive-maintenance", async (AppDbContext db, string? site, string? status) =>
 {
     var q = db.PreventiveMaintenances.AsQueryable();
+    if (!string.IsNullOrEmpty(site)) q = q.Where(p => p.Site == site);
     if (!string.IsNullOrEmpty(status)) q = q.Where(p => p.Status == status);
-    return await q.OrderByDescending(p => p.NextDueDate).ToListAsync();
+    return await q.OrderByDescending(p => p.ScheduledDate).ToListAsync();
 });
 
 app.MapGet("/api/preventive-maintenance/{id}", async (AppDbContext db, int id) =>
@@ -8126,7 +8171,7 @@ app.MapGet("/api/preventive-maintenance/{id}", async (AppDbContext db, int id) =
 app.MapPost("/api/preventive-maintenance", async (AppDbContext db, PreventiveMaintenance pm) =>
 {
     pm.CreatedAt = DateTime.UtcNow;
-    pm.Status = pm.Status ?? "Scheduled";
+    pm.UpdatedAt = DateTime.UtcNow;
     db.PreventiveMaintenances.Add(pm);
     await db.SaveChangesAsync();
     return Results.Created($"/api/preventive-maintenance/{pm.Id}", pm);
@@ -8136,12 +8181,15 @@ app.MapPut("/api/preventive-maintenance/{id}", async (AppDbContext db, int id, P
 {
     var pm = await db.PreventiveMaintenances.FindAsync(id);
     if (pm == null) return Results.NotFound();
-    pm.VehicleId = input.VehicleId; pm.Description = input.Description;
-    pm.ScheduleType = input.ScheduleType; pm.IntervalKm = input.IntervalKm;
-    pm.IntervalDays = input.IntervalDays; pm.LastDoneDate = input.LastDoneDate;
-    pm.NextDueDate = input.NextDueDate; pm.EstimatedCost = input.EstimatedCost;
-    pm.ActualCost = input.ActualCost; pm.Status = input.Status;
-    pm.Remarks = input.Remarks; pm.UpdatedAt = DateTime.UtcNow;
+    pm.PMNumber = input.PMNumber; pm.PMDate = input.PMDate;
+    pm.Site = input.Site; pm.UnitNo = input.UnitNo;
+    pm.MerkType = input.MerkType; pm.PMType = input.PMType;
+    pm.Description = input.Description; pm.Status = input.Status;
+    pm.ScheduledDate = input.ScheduledDate; pm.StartDate = input.StartDate;
+    pm.EndDate = input.EndDate; pm.HMValue = input.HMValue;
+    pm.NextHMValue = input.NextHMValue; pm.AssignedTo = input.AssignedTo;
+    pm.Remarks = input.Remarks;
+    pm.UpdatedAt = DateTime.UtcNow;
     await db.SaveChangesAsync();
     return Results.Ok(pm);
 });
@@ -8156,11 +8204,12 @@ app.MapDelete("/api/preventive-maintenance/{id}", async (AppDbContext db, int id
 });
 
 // ==================== CORRECTIVE MAINTENANCE ====================
-app.MapGet("/api/corrective-maintenance", async (AppDbContext db, string? status) =>
+app.MapGet("/api/corrective-maintenance", async (AppDbContext db, string? site, string? status) =>
 {
     var q = db.CorrectiveMaintenances.AsQueryable();
+    if (!string.IsNullOrEmpty(site)) q = q.Where(c => c.Site == site);
     if (!string.IsNullOrEmpty(status)) q = q.Where(c => c.Status == status);
-    return await q.OrderByDescending(c => c.ReportedDate).ToListAsync();
+    return await q.OrderByDescending(c => c.CMDate).ToListAsync();
 });
 
 app.MapGet("/api/corrective-maintenance/{id}", async (AppDbContext db, int id) =>
@@ -8169,7 +8218,7 @@ app.MapGet("/api/corrective-maintenance/{id}", async (AppDbContext db, int id) =
 app.MapPost("/api/corrective-maintenance", async (AppDbContext db, CorrectiveMaintenance cm) =>
 {
     cm.CreatedAt = DateTime.UtcNow;
-    cm.Status = cm.Status ?? "Reported";
+    cm.UpdatedAt = DateTime.UtcNow;
     db.CorrectiveMaintenances.Add(cm);
     await db.SaveChangesAsync();
     return Results.Created($"/api/corrective-maintenance/{cm.Id}", cm);
@@ -8179,13 +8228,19 @@ app.MapPut("/api/corrective-maintenance/{id}", async (AppDbContext db, int id, C
 {
     var cm = await db.CorrectiveMaintenances.FindAsync(id);
     if (cm == null) return Results.NotFound();
-    cm.VehicleId = input.VehicleId; cm.WorkOrderId = input.WorkOrderId;
-    cm.IssueDescription = input.IssueDescription; cm.ReportedDate = input.ReportedDate;
-    cm.RepairDate = input.RepairDate; cm.TechnicianId = input.TechnicianId;
-    cm.RepairDescription = input.RepairDescription; cm.SparePartsUsed = input.SparePartsUsed;
-    cm.LaborCost = input.LaborCost; cm.PartsCost = input.PartsCost;
-    cm.TotalCost = input.TotalCost; cm.Status = input.Status;
-    cm.Remarks = input.Remarks; cm.UpdatedAt = DateTime.UtcNow;
+    cm.CMNumber = input.CMNumber; cm.CMDate = input.CMDate;
+    cm.Site = input.Site; cm.UnitNo = input.UnitNo;
+    cm.MerkType = input.MerkType; cm.Category = input.Category;
+    cm.CMType = input.CMType; cm.Priority = input.Priority;
+    cm.Problem = input.Problem; cm.RootCause = input.RootCause;
+    cm.Solution = input.Solution; cm.Status = input.Status;
+    cm.BreakdownStart = input.BreakdownStart;
+    cm.BreakdownEnd = input.BreakdownEnd;
+    cm.DowntimeHours = input.DowntimeHours; cm.RepairCost = input.RepairCost;
+    cm.PartsCost = input.PartsCost; cm.LaborCost = input.LaborCost;
+    cm.ReportedBy = input.ReportedBy; cm.AssignedTo = input.AssignedTo;
+    cm.Remarks = input.Remarks;
+    cm.UpdatedAt = DateTime.UtcNow;
     await db.SaveChangesAsync();
     return Results.Ok(cm);
 });
@@ -8200,37 +8255,39 @@ app.MapDelete("/api/corrective-maintenance/{id}", async (AppDbContext db, int id
 });
 
 // ==================== INVENTORY ====================
-app.MapGet("/api/inventory", async (AppDbContext db, string? warehouseCode, string? category, string? search) =>
+app.MapGet("/api/inventory", async (AppDbContext db, string? site, string? location, string? search) =>
 {
-    var q = db.InventoryItems.AsQueryable();
-    if (!string.IsNullOrEmpty(warehouseCode)) q = q.Where(i => i.WarehouseCode == warehouseCode);
-    if (!string.IsNullOrEmpty(category)) q = q.Where(i => i.Category == category);
+    var q = db.Inventories.AsQueryable();
+    if (!string.IsNullOrEmpty(site)) q = q.Where(i => i.Location.Contains(site));
+    if (!string.IsNullOrEmpty(location)) q = q.Where(i => i.Location == location);
     if (!string.IsNullOrEmpty(search))
-        q = q.Where(i => i.ItemCode.Contains(search) || i.ItemName.Contains(search));
-    return await q.OrderBy(i => i.ItemCode).ToListAsync();
+        q = q.Where(i => i.PartNumber.Contains(search) || i.MaterialDescription.Contains(search));
+    return await q.OrderBy(i => i.PartNumber).ToListAsync();
 });
 
 app.MapGet("/api/inventory/{id}", async (AppDbContext db, int id) =>
-    await db.InventoryItems.FindAsync(id) is { } i ? Results.Ok(i) : Results.NotFound());
+    await db.Inventories.FindAsync(id) is { } i ? Results.Ok(i) : Results.NotFound());
 
-app.MapPost("/api/inventory", async (AppDbContext db, InventoryItem item) =>
+app.MapPost("/api/inventory", async (AppDbContext db, Inventory item) =>
 {
     item.CreatedAt = DateTime.UtcNow;
-    db.InventoryItems.Add(item);
+    item.UpdatedAt = DateTime.UtcNow;
+    db.Inventories.Add(item);
     await db.SaveChangesAsync();
     return Results.Created($"/api/inventory/{item.Id}", item);
 });
 
-app.MapPut("/api/inventory/{id}", async (AppDbContext db, int id, InventoryItem input) =>
+app.MapPut("/api/inventory/{id}", async (AppDbContext db, int id, Inventory input) =>
 {
-    var i = await db.InventoryItems.FindAsync(id);
+    var i = await db.Inventories.FindAsync(id);
     if (i == null) return Results.NotFound();
-    i.ItemCode = input.ItemCode; i.ItemName = input.ItemName;
-    i.Description = input.Description; i.Category = input.Category;
-    i.Unit = input.Unit; i.WarehouseCode = input.WarehouseCode;
-    i.ReorderLevel = input.ReorderLevel; i.ReorderQty = input.ReorderQty;
-    i.StandardCost = input.StandardCost; i.StandardPrice = input.StandardPrice;
-    i.MinimumStock = input.MinimumStock; i.MaximumStock = input.MaximumStock;
+    i.PartNumber = input.PartNumber;
+    i.MaterialDescription = input.MaterialDescription;
+    i.Unit = input.Unit; i.Location = input.Location;
+    i.MinStock = input.MinStock; i.MaxStock = input.MaxStock;
+    i.Stock = input.Stock; i.QtyMinAlert = input.QtyMinAlert;
+    i.StockValue = input.StockValue; i.UnitPrice = input.UnitPrice;
+    i.LastPOPrice = input.LastPOPrice;
     i.UpdatedAt = DateTime.UtcNow;
     await db.SaveChangesAsync();
     return Results.Ok(i);
@@ -8238,58 +8295,59 @@ app.MapPut("/api/inventory/{id}", async (AppDbContext db, int id, InventoryItem 
 
 app.MapDelete("/api/inventory/{id}", async (AppDbContext db, int id) =>
 {
-    var i = await db.InventoryItems.FindAsync(id);
+    var i = await db.Inventories.FindAsync(id);
     if (i == null) return Results.NotFound();
-    db.InventoryItems.Remove(i);
+    db.Inventories.Remove(i);
     await db.SaveChangesAsync();
     return Results.Ok(new { message = "Deleted" });
 });
 
-app.MapPost("/api/inventory/adjustment", async (AppDbContext db, InventoryAdjustment adj) =>
+app.MapPost("/api/inventory/adjustment", async (AppDbContext db, InventoryAdjustmentRequest req) =>
 {
-    adj.CreatedAt = DateTime.UtcNow;
-    var item = await db.InventoryItems.FindAsync(adj.ItemId);
+    var item = await db.Inventories.FindAsync(req.ItemId);
     if (item == null) return Results.NotFound(new { message = "Item not found" });
-    if (adj.AdjustmentType == "Add")
-        item.CurrentStock += adj.Quantity;
-    else if (adj.AdjustmentType == "Remove" || adj.AdjustmentType == "Reduce")
-        item.CurrentStock -= adj.Quantity;
-    else if (adj.AdjustmentType == "Set")
-        item.CurrentStock = adj.Quantity;
+    if (req.AdjustmentType == "Add")
+        item.Stock += req.Quantity;
+    else if (req.AdjustmentType == "Remove" || req.AdjustmentType == "Reduce")
+        item.Stock -= req.Quantity;
+    else if (req.AdjustmentType == "Set")
+        item.Stock = req.Quantity;
     item.UpdatedAt = DateTime.UtcNow;
-    db.InventoryAdjustments.Add(adj);
     await db.SaveChangesAsync();
-    return Results.Ok(new { item, adjustment = adj });
+    return Results.Ok(new { item });
 });
 
 // ==================== PURCHASE REQUESTS ====================
-app.MapGet("/api/purchase-requests", async (AppDbContext db, string? status, int? requestedBy) =>
+app.MapGet("/api/purchase-requests", async (AppDbContext db, string? site, string? status, string? requestedBy) =>
 {
     var q = db.PurchaseRequests.AsQueryable();
-    if (!string.IsNullOrEmpty(status)) q = q.Where(p => p.RequestStatus == status);
-    if (requestedBy.HasValue) q = q.Where(p => p.RequestedBy == requestedBy);
-    return await q.OrderByDescending(p => p.RequestDate).ToListAsync();
+    if (!string.IsNullOrEmpty(site)) q = q.Where(p => p.Site == site);
+    if (!string.IsNullOrEmpty(status)) q = q.Where(p => p.Status == status);
+    if (!string.IsNullOrEmpty(requestedBy)) q = q.Where(p => p.RequestedBy == requestedBy);
+    return await q.OrderByDescending(p => p.PRDate).ToListAsync();
 });
 
 app.MapGet("/api/purchase-requests/{id}", async (AppDbContext db, int id) =>
     await db.PurchaseRequests.FindAsync(id) is { } pr ? Results.Ok(pr) : Results.NotFound());
 
 app.MapGet("/api/purchase-requests/{id}/items", async (AppDbContext db, int id) =>
-    await db.PRItems.Where(i => i.PurchaseRequestId == id).ToListAsync());
+    await db.PurchaseRequestItems.Where(i => i.PurchaseRequestId == id).ToListAsync());
 
 app.MapPost("/api/purchase-requests", async (AppDbContext db, PurchaseRequest pr) =>
 {
     pr.CreatedAt = DateTime.UtcNow;
-    pr.RequestStatus = pr.RequestStatus ?? "Draft";
+    pr.UpdatedAt = DateTime.UtcNow;
     db.PurchaseRequests.Add(pr);
     await db.SaveChangesAsync();
     return Results.Created($"/api/purchase-requests/{pr.Id}", pr);
 });
 
-app.MapPost("/api/purchase-requests/{id}/items", async (AppDbContext db, int id, PRItem item) =>
+app.MapPost("/api/purchase-requests/{id}/items", async (AppDbContext db, int id, PurchaseRequestItem item) =>
 {
     item.PurchaseRequestId = id;
-    db.PRItems.Add(item);
+    item.CreatedAt = DateTime.UtcNow;
+    item.UpdatedAt = DateTime.UtcNow;
+    db.PurchaseRequestItems.Add(item);
     await db.SaveChangesAsync();
     return Results.Created($"/api/purchase-requests/{id}/items/{item.Id}", item);
 });
@@ -8298,10 +8356,11 @@ app.MapPut("/api/purchase-requests/{id}", async (AppDbContext db, int id, Purcha
 {
     var pr = await db.PurchaseRequests.FindAsync(id);
     if (pr == null) return Results.NotFound();
-    pr.RequestNumber = input.RequestNumber; pr.RequestDate = input.RequestDate;
-    pr.RequestedBy = input.RequestedBy; pr.Department = input.Department;
-    pr.RequestStatus = input.RequestStatus; pr.Priority = input.Priority;
-    pr.Remarks = input.Remarks; pr.UpdatedAt = DateTime.UtcNow;
+    pr.PRDate = input.PRDate; pr.Site = input.Site;
+    pr.Department = input.Department; pr.RequestedBy = input.RequestedBy;
+    pr.ApprovedBy = input.ApprovedBy; pr.Status = input.Status;
+    pr.Remarks = input.Remarks;
+    pr.UpdatedAt = DateTime.UtcNow;
     await db.SaveChangesAsync();
     return Results.Ok(pr);
 });
@@ -8310,9 +8369,8 @@ app.MapPost("/api/purchase-requests/{id}/approve", async (AppDbContext db, int i
 {
     var pr = await db.PurchaseRequests.FindAsync(id);
     if (pr == null) return Results.NotFound();
-    pr.RequestStatus = "Approved";
-    pr.ApprovedBy = req.ApprovedBy;
-    pr.ApprovedAt = DateTime.UtcNow;
+    pr.Status = "APPROVED";
+    pr.ApprovedBy = req.ApproverName ?? pr.ApprovedBy;
     pr.UpdatedAt = DateTime.UtcNow;
     await db.SaveChangesAsync();
     return Results.Ok(pr);
@@ -8322,19 +8380,20 @@ app.MapDelete("/api/purchase-requests/{id}", async (AppDbContext db, int id) =>
 {
     var pr = await db.PurchaseRequests.FindAsync(id);
     if (pr == null) return Results.NotFound();
-    var items = await db.PRItems.Where(i => i.PurchaseRequestId == id).ToListAsync();
-    db.PRItems.RemoveRange(items);
+    var items = await db.PurchaseRequestItems.Where(i => i.PurchaseRequestId == id).ToListAsync();
+    db.PurchaseRequestItems.RemoveRange(items);
     db.PurchaseRequests.Remove(pr);
     await db.SaveChangesAsync();
     return Results.Ok(new { message = "Deleted" });
 });
 
 // ==================== PURCHASE ORDERS ====================
-app.MapGet("/api/purchase-orders", async (AppDbContext db, string? status, int? vendorId) =>
+app.MapGet("/api/purchase-orders", async (AppDbContext db, string? site, string? status, string? vendor) =>
 {
     var q = db.PurchaseOrders.AsQueryable();
-    if (!string.IsNullOrEmpty(status)) q = q.Where(p => p.POStatus == status);
-    if (vendorId.HasValue) q = q.Where(p => p.VendorId == vendorId);
+    if (!string.IsNullOrEmpty(site)) q = q.Where(p => p.Site == site);
+    if (!string.IsNullOrEmpty(status)) q = q.Where(p => p.Status == status);
+    if (!string.IsNullOrEmpty(vendor)) q = q.Where(p => p.Vendor == vendor);
     return await q.OrderByDescending(p => p.PODate).ToListAsync();
 });
 
@@ -8342,21 +8401,23 @@ app.MapGet("/api/purchase-orders/{id}", async (AppDbContext db, int id) =>
     await db.PurchaseOrders.FindAsync(id) is { } po ? Results.Ok(po) : Results.NotFound());
 
 app.MapGet("/api/purchase-orders/{id}/items", async (AppDbContext db, int id) =>
-    await db.POItems.Where(i => i.PurchaseOrderId == id).ToListAsync());
+    await db.PurchaseOrderItems.Where(i => i.PurchaseOrderId == id).ToListAsync());
 
 app.MapPost("/api/purchase-orders", async (AppDbContext db, PurchaseOrder po) =>
 {
     po.CreatedAt = DateTime.UtcNow;
-    po.POStatus = po.POStatus ?? "Draft";
+    po.UpdatedAt = DateTime.UtcNow;
     db.PurchaseOrders.Add(po);
     await db.SaveChangesAsync();
     return Results.Created($"/api/purchase-orders/{po.Id}", po);
 });
 
-app.MapPost("/api/purchase-orders/{id}/items", async (AppDbContext db, int id, POItem item) =>
+app.MapPost("/api/purchase-orders/{id}/items", async (AppDbContext db, int id, PurchaseOrderItem item) =>
 {
     item.PurchaseOrderId = id;
-    db.POItems.Add(item);
+    item.CreatedAt = DateTime.UtcNow;
+    item.UpdatedAt = DateTime.UtcNow;
+    db.PurchaseOrderItems.Add(item);
     await db.SaveChangesAsync();
     return Results.Created($"/api/purchase-orders/{id}/items/{item.Id}", item);
 });
@@ -8366,11 +8427,14 @@ app.MapPut("/api/purchase-orders/{id}", async (AppDbContext db, int id, Purchase
     var po = await db.PurchaseOrders.FindAsync(id);
     if (po == null) return Results.NotFound();
     po.PONumber = input.PONumber; po.PODate = input.PODate;
-    po.VendorId = input.VendorId; po.POStatus = input.POStatus;
-    po.DeliveryDate = input.DeliveryDate; po.DeliveryAddress = input.DeliveryAddress;
-    po.PaymentTerms = input.PaymentTerms; po.DiscountPercent = input.DiscountPercent;
-    po.TaxPercent = input.TaxPercent; po.TotalAmount = input.TotalAmount;
-    po.Remarks = input.Remarks; po.UpdatedAt = DateTime.UtcNow;
+    po.Site = input.Site; po.Vendor = input.Vendor;
+    po.VendorCode = input.VendorCode; po.PRNumber = input.PRNumber;
+    po.Status = input.Status; po.DeliveryDate = input.DeliveryDate;
+    po.DeliveryAddress = input.DeliveryAddress; po.PaymentTerms = input.PaymentTerms;
+    po.Discount = input.Discount; po.Tax = input.Tax;
+    po.TotalAmount = input.TotalAmount; po.ApprovedBy = input.ApprovedBy;
+    po.Remarks = input.Remarks;
+    po.UpdatedAt = DateTime.UtcNow;
     await db.SaveChangesAsync();
     return Results.Ok(po);
 });
@@ -8379,47 +8443,50 @@ app.MapDelete("/api/purchase-orders/{id}", async (AppDbContext db, int id) =>
 {
     var po = await db.PurchaseOrders.FindAsync(id);
     if (po == null) return Results.NotFound();
-    var items = await db.POItems.Where(i => i.PurchaseOrderId == id).ToListAsync();
-    db.POItems.RemoveRange(items);
+    var items = await db.PurchaseOrderItems.Where(i => i.PurchaseOrderId == id).ToListAsync();
+    db.PurchaseOrderItems.RemoveRange(items);
     db.PurchaseOrders.Remove(po);
     await db.SaveChangesAsync();
     return Results.Ok(new { message = "Deleted" });
 });
 
 // ==================== GOOD RECEIPTS ====================
-app.MapGet("/api/good-receipts", async (AppDbContext db, string? grStatus, int? poId) =>
+app.MapGet("/api/good-receipts", async (AppDbContext db, string? site, string? status) =>
 {
     var q = db.GoodReceipts.AsQueryable();
-    if (!string.IsNullOrEmpty(grStatus)) q = q.Where(g => g.GRStatus == grStatus);
-    if (poId.HasValue) q = q.Where(g => g.POId == poId);
-    return await q.OrderByDescending(g => g.ReceiptDate).ToListAsync();
+    if (!string.IsNullOrEmpty(site)) q = q.Where(g => g.Site == site);
+    if (!string.IsNullOrEmpty(status)) q = q.Where(g => g.Status == status);
+    return await q.OrderByDescending(g => g.GRDate).ToListAsync();
 });
 
 app.MapGet("/api/good-receipts/{id}", async (AppDbContext db, int id) =>
     await db.GoodReceipts.FindAsync(id) is { } gr ? Results.Ok(gr) : Results.NotFound());
 
 app.MapGet("/api/good-receipts/{id}/items", async (AppDbContext db, int id) =>
-    await db.GRItems.Where(i => i.GoodReceiptId == id).ToListAsync());
+    await db.GoodReceiptItems.Where(i => i.GoodReceiptId == id).ToListAsync());
 
 app.MapPost("/api/good-receipts", async (AppDbContext db, GoodReceipt gr) =>
 {
     gr.CreatedAt = DateTime.UtcNow;
-    gr.GRStatus = gr.GRStatus ?? "Received";
+    gr.UpdatedAt = DateTime.UtcNow;
     db.GoodReceipts.Add(gr);
     await db.SaveChangesAsync();
     return Results.Created($"/api/good-receipts/{gr.Id}", gr);
 });
 
-app.MapPost("/api/good-receipts/{id}/items", async (AppDbContext db, int id, GRItem item) =>
+app.MapPost("/api/good-receipts/{id}/items", async (AppDbContext db, int id, GoodReceiptItem item) =>
 {
     item.GoodReceiptId = id;
-    var invItem = await db.InventoryItems.FindAsync(item.ItemId);
+    var invItem = await db.Inventories.FindAsync(
+        db.Inventories.FirstOrDefault(i => i.PartNumber == item.PartNumber)?.Id ?? 0);
     if (invItem != null)
     {
-        invItem.CurrentStock += item.ReceivedQty;
+        invItem.Stock += item.ReceivedQty;
         invItem.UpdatedAt = DateTime.UtcNow;
     }
-    db.GRItems.Add(item);
+    item.CreatedAt = DateTime.UtcNow;
+    item.UpdatedAt = DateTime.UtcNow;
+    db.GoodReceiptItems.Add(item);
     await db.SaveChangesAsync();
     return Results.Created($"/api/good-receipts/{id}/items/{item.Id}", item);
 });
@@ -8428,10 +8495,12 @@ app.MapPut("/api/good-receipts/{id}", async (AppDbContext db, int id, GoodReceip
 {
     var gr = await db.GoodReceipts.FindAsync(id);
     if (gr == null) return Results.NotFound();
-    gr.GRNumber = input.GRNumber; gr.ReceiptDate = input.ReceiptDate;
-    gr.POId = input.POId; gr.WarehouseCode = input.WarehouseCode;
-    gr.ReceivedBy = input.ReceivedBy; gr.GRStatus = input.GRStatus;
-    gr.Remarks = input.Remarks; gr.UpdatedAt = DateTime.UtcNow;
+    gr.GRNumber = input.GRNumber; gr.GRDate = input.GRDate;
+    gr.Site = input.Site; gr.Vendor = input.Vendor;
+    gr.PONumber = input.PONumber; gr.Status = input.Status;
+    gr.ReceivedBy = input.ReceivedBy; gr.ApprovedBy = input.ApprovedBy;
+    gr.Remarks = input.Remarks;
+    gr.UpdatedAt = DateTime.UtcNow;
     await db.SaveChangesAsync();
     return Results.Ok(gr);
 });
@@ -8440,54 +8509,58 @@ app.MapDelete("/api/good-receipts/{id}", async (AppDbContext db, int id) =>
 {
     var gr = await db.GoodReceipts.FindAsync(id);
     if (gr == null) return Results.NotFound();
-    var items = await db.GRItems.Where(i => i.GoodReceiptId == id).ToListAsync();
+    var items = await db.GoodReceiptItems.Where(i => i.GoodReceiptId == id).ToListAsync();
     foreach (var item in items)
     {
-        var invItem = await db.InventoryItems.FindAsync(item.ItemId);
-        if (invItem != null) invItem.CurrentStock -= item.ReceivedQty;
+        var invItem = await db.Inventories.FirstOrDefaultAsync(i => i.PartNumber == item.PartNumber);
+        if (invItem != null) invItem.Stock -= item.ReceivedQty;
     }
-    db.GRItems.RemoveRange(items);
+    db.GoodReceiptItems.RemoveRange(items);
     db.GoodReceipts.Remove(gr);
     await db.SaveChangesAsync();
     return Results.Ok(new { message = "Deleted" });
 });
 
 // ==================== GOOD ISSUES ====================
-app.MapGet("/api/good-issues", async (AppDbContext db, string? giStatus, int? woId) =>
+app.MapGet("/api/good-issues", async (AppDbContext db, string? site, string? status) =>
 {
     var q = db.GoodIssues.AsQueryable();
-    if (!string.IsNullOrEmpty(giStatus)) q = q.Where(g => g.GIStatus == giStatus);
-    if (woId.HasValue) q = q.Where(g => g.WorkOrderId == woId);
-    return await q.OrderByDescending(g => g.IssueDate).ToListAsync();
+    if (!string.IsNullOrEmpty(site)) q = q.Where(g => g.Site == site);
+    if (!string.IsNullOrEmpty(status)) q = q.Where(g => g.Status == status);
+    return await q.OrderByDescending(g => g.GIDate).ToListAsync();
 });
 
 app.MapGet("/api/good-issues/{id}", async (AppDbContext db, int id) =>
     await db.GoodIssues.FindAsync(id) is { } gi ? Results.Ok(gi) : Results.NotFound());
 
 app.MapGet("/api/good-issues/{id}/items", async (AppDbContext db, int id) =>
-    await db.GIItems.Where(i => i.GoodIssueId == id).ToListAsync());
+    await db.GoodIssueItems.Where(i => i.GoodIssueId == id).ToListAsync());
 
 app.MapPost("/api/good-issues", async (AppDbContext db, GoodIssue gi) =>
 {
     gi.CreatedAt = DateTime.UtcNow;
-    gi.GIStatus = gi.GIStatus ?? "Issued";
+    gi.UpdatedAt = DateTime.UtcNow;
     db.GoodIssues.Add(gi);
     await db.SaveChangesAsync();
     return Results.Created($"/api/good-issues/{gi.Id}", gi);
 });
 
-app.MapPost("/api/good-issues/{id}/items", async (AppDbContext db, int id, GIItem item) =>
+app.MapPost("/api/good-issues/{id}/items", async (AppDbContext db, int id, GoodIssueItem item) =>
 {
     item.GoodIssueId = id;
-    var invItem = await db.InventoryItems.FindAsync(item.ItemId);
+    var invItem = await db.Inventories.FirstOrDefaultAsync(i => i.PartNumber == item.PartNumber);
     if (invItem != null)
     {
-        if (invItem.CurrentStock < item.IssuedQty)
+        if (invItem.Stock < item.IssuedQty)
             return Results.BadRequest(new { message = "Insufficient stock" });
-        invItem.CurrentStock -= item.IssuedQty;
+        item.StockBefore = invItem.Stock;
+        invItem.Stock -= item.IssuedQty;
+        item.StockAfter = invItem.Stock;
         invItem.UpdatedAt = DateTime.UtcNow;
     }
-    db.GIItems.Add(item);
+    item.CreatedAt = DateTime.UtcNow;
+    item.UpdatedAt = DateTime.UtcNow;
+    db.GoodIssueItems.Add(item);
     await db.SaveChangesAsync();
     return Results.Created($"/api/good-issues/{id}/items/{item.Id}", item);
 });
@@ -8496,10 +8569,12 @@ app.MapPut("/api/good-issues/{id}", async (AppDbContext db, int id, GoodIssue in
 {
     var gi = await db.GoodIssues.FindAsync(id);
     if (gi == null) return Results.NotFound();
-    gi.GINumber = input.GINumber; gi.IssueDate = input.IssueDate;
-    gi.WorkOrderId = input.WorkOrderId; gi.WarehouseCode = input.WarehouseCode;
-    gi.IssuedBy = input.IssuedBy; gi.GIStatus = input.GIStatus;
-    gi.Remarks = input.Remarks; gi.UpdatedAt = DateTime.UtcNow;
+    gi.GINumber = input.GINumber; gi.GIDate = input.GIDate;
+    gi.Site = input.Site; gi.Department = input.Department;
+    gi.RequestNumber = input.RequestNumber; gi.Status = input.Status;
+    gi.IssuedBy = input.IssuedBy; gi.ReceivedBy = input.ReceivedBy;
+    gi.ApprovedBy = input.ApprovedBy; gi.Remarks = input.Remarks;
+    gi.UpdatedAt = DateTime.UtcNow;
     await db.SaveChangesAsync();
     return Results.Ok(gi);
 });
@@ -8508,25 +8583,26 @@ app.MapDelete("/api/good-issues/{id}", async (AppDbContext db, int id) =>
 {
     var gi = await db.GoodIssues.FindAsync(id);
     if (gi == null) return Results.NotFound();
-    var items = await db.GIItems.Where(i => i.GoodIssueId == id).ToListAsync();
+    var items = await db.GoodIssueItems.Where(i => i.GoodIssueId == id).ToListAsync();
     foreach (var item in items)
     {
-        var invItem = await db.InventoryItems.FindAsync(item.ItemId);
-        if (invItem != null) invItem.CurrentStock += item.IssuedQty;
+        var invItem = await db.Inventories.FirstOrDefaultAsync(i => i.PartNumber == item.PartNumber);
+        if (invItem != null) invItem.Stock += item.IssuedQty;
     }
-    db.GIItems.RemoveRange(items);
+    db.GoodIssueItems.RemoveRange(items);
     db.GoodIssues.Remove(gi);
     await db.SaveChangesAsync();
     return Results.Ok(new { message = "Deleted" });
 });
 
 // ==================== EMPLOYEES ====================
-app.MapGet("/api/employees", async (AppDbContext db, string? department, string? status) =>
+app.MapGet("/api/employees", async (AppDbContext db, string? site, string? department, string? status) =>
 {
     var q = db.Employees.AsQueryable();
+    if (!string.IsNullOrEmpty(site)) q = q.Where(e => e.Site == site);
     if (!string.IsNullOrEmpty(department)) q = q.Where(e => e.Department == department);
-    if (!string.IsNullOrEmpty(status)) q = q.Where(e => e.EmploymentStatus == status);
-    return await q.OrderBy(e => e.EmployeeName).ToListAsync();
+    if (!string.IsNullOrEmpty(status)) q = q.Where(e => e.Status == status);
+    return await q.OrderBy(e => e.FullName).ToListAsync();
 });
 
 app.MapGet("/api/employees/{id}", async (AppDbContext db, int id) =>
@@ -8535,6 +8611,7 @@ app.MapGet("/api/employees/{id}", async (AppDbContext db, int id) =>
 app.MapPost("/api/employees", async (AppDbContext db, Employee emp) =>
 {
     emp.CreatedAt = DateTime.UtcNow;
+    emp.UpdatedAt = DateTime.UtcNow;
     db.Employees.Add(emp);
     await db.SaveChangesAsync();
     return Results.Created($"/api/employees/{emp.Id}", emp);
@@ -8544,12 +8621,15 @@ app.MapPut("/api/employees/{id}", async (AppDbContext db, int id, Employee input
 {
     var e = await db.Employees.FindAsync(id);
     if (e == null) return Results.NotFound();
-    e.EmployeeCode = input.EmployeeCode; e.EmployeeName = input.EmployeeName;
-    e.Position = input.Position; e.Department = input.Department;
-    e.Email = input.Email; e.Phone = input.Phone;
-    e.DateOfBirth = input.DateOfBirth; e.JoinDate = input.JoinDate;
-    e.EmploymentStatus = input.EmploymentStatus; e.Salary = input.Salary;
-    e.BankAccount = input.BankAccount; e.TaxId = input.TaxId;
+    e.EmployeeCode = input.EmployeeCode; e.FullName = input.FullName;
+    e.NickName = input.NickName; e.Gender = input.Gender;
+    e.BirthDate = input.BirthDate; e.Address = input.Address;
+    e.Phone = input.Phone; e.Email = input.Email;
+    e.Site = input.Site; e.Department = input.Department;
+    e.Position = input.Position; e.Level = input.Level;
+    e.EmployeeType = input.EmployeeType; e.Status = input.Status;
+    e.JoinDate = input.JoinDate; e.ResignDate = input.ResignDate;
+    e.Remarks = input.Remarks;
     e.UpdatedAt = DateTime.UtcNow;
     await db.SaveChangesAsync();
     return Results.Ok(e);
@@ -8565,10 +8645,11 @@ app.MapDelete("/api/employees/{id}", async (AppDbContext db, int id) =>
 });
 
 // ==================== ATTENDANCE ====================
-app.MapGet("/api/attendance", async (AppDbContext db, int? employeeId, DateTime? fromDate, DateTime? toDate) =>
+app.MapGet("/api/attendance", async (AppDbContext db, string? site, string? employeeCode, DateTime? fromDate, DateTime? toDate) =>
 {
     var q = db.Attendances.AsQueryable();
-    if (employeeId.HasValue) q = q.Where(a => a.EmployeeId == employeeId);
+    if (!string.IsNullOrEmpty(site)) q = q.Where(a => a.Site == site);
+    if (!string.IsNullOrEmpty(employeeCode)) q = q.Where(a => a.EmployeeCode == employeeCode);
     if (fromDate.HasValue) q = q.Where(a => a.AttendanceDate >= fromDate);
     if (toDate.HasValue) q = q.Where(a => a.AttendanceDate <= toDate);
     return await q.OrderByDescending(a => a.AttendanceDate).ToListAsync();
@@ -8580,6 +8661,7 @@ app.MapGet("/api/attendance/{id}", async (AppDbContext db, int id) =>
 app.MapPost("/api/attendance", async (AppDbContext db, Attendance att) =>
 {
     att.CreatedAt = DateTime.UtcNow;
+    att.UpdatedAt = DateTime.UtcNow;
     db.Attendances.Add(att);
     await db.SaveChangesAsync();
     return Results.Created($"/api/attendance/{att.Id}", att);
@@ -8589,10 +8671,12 @@ app.MapPut("/api/attendance/{id}", async (AppDbContext db, int id, Attendance in
 {
     var a = await db.Attendances.FindAsync(id);
     if (a == null) return Results.NotFound();
-    a.EmployeeId = input.EmployeeId; a.AttendanceDate = input.AttendanceDate;
-    a.CheckIn = input.CheckIn; a.CheckOut = input.CheckOut;
-    a.WorkHours = input.WorkHours; a.OverTime = input.OverTime;
-    a.Status = input.Status; a.Remarks = input.Remarks;
+    a.EmployeeCode = input.EmployeeCode; a.EmployeeName = input.EmployeeName;
+    a.Site = input.Site; a.Department = input.Department;
+    a.AttendanceDate = input.AttendanceDate; a.CheckIn = input.CheckIn;
+    a.CheckOut = input.CheckOut; a.Shift = input.Shift;
+    a.Status = input.Status; a.WorkingHours = input.WorkingHours;
+    a.OvertimeHours = input.OvertimeHours; a.Remarks = input.Remarks;
     a.UpdatedAt = DateTime.UtcNow;
     await db.SaveChangesAsync();
     return Results.Ok(a);
@@ -8608,13 +8692,14 @@ app.MapDelete("/api/attendance/{id}", async (AppDbContext db, int id) =>
 });
 
 // ==================== PAYROLL ====================
-app.MapGet("/api/payroll", async (AppDbContext db, int? employeeId, string? period, string? status) =>
+app.MapGet("/api/payroll", async (AppDbContext db, string? site, string? periodMonth, string? periodYear, string? status) =>
 {
     var q = db.Payrolls.AsQueryable();
-    if (employeeId.HasValue) q = q.Where(p => p.EmployeeId == employeeId);
-    if (!string.IsNullOrEmpty(period)) q = q.Where(p => p.PayrollPeriod == period);
-    if (!string.IsNullOrEmpty(status)) q = q.Where(p => p.PaymentStatus == status);
-    return await q.OrderByDescending(p => p.PayrollPeriod).ToListAsync();
+    if (!string.IsNullOrEmpty(site)) q = q.Where(p => p.Site == site);
+    if (!string.IsNullOrEmpty(periodMonth)) q = q.Where(p => p.PeriodMonth == periodMonth);
+    if (!string.IsNullOrEmpty(periodYear)) q = q.Where(p => p.PeriodYear == periodYear);
+    if (!string.IsNullOrEmpty(status)) q = q.Where(p => p.Status == status);
+    return await q.OrderByDescending(p => p.PayrollDate).ToListAsync();
 });
 
 app.MapGet("/api/payroll/{id}", async (AppDbContext db, int id) =>
@@ -8623,7 +8708,7 @@ app.MapGet("/api/payroll/{id}", async (AppDbContext db, int id) =>
 app.MapPost("/api/payroll", async (AppDbContext db, Payroll payroll) =>
 {
     payroll.CreatedAt = DateTime.UtcNow;
-    payroll.PaymentStatus = payroll.PaymentStatus ?? "Draft";
+    payroll.UpdatedAt = DateTime.UtcNow;
     db.Payrolls.Add(payroll);
     await db.SaveChangesAsync();
     return Results.Created($"/api/payroll/{payroll.Id}", payroll);
@@ -8633,11 +8718,18 @@ app.MapPut("/api/payroll/{id}", async (AppDbContext db, int id, Payroll input) =
 {
     var p = await db.Payrolls.FindAsync(id);
     if (p == null) return Results.NotFound();
-    p.EmployeeId = input.EmployeeId; p.PayrollPeriod = input.PayrollPeriod;
-    p.BasicSalary = input.BasicSalary; p.Allowances = input.Allowances;
-    p.Deductions = input.Deductions; p.OverTimePay = input.OverTimePay;
-    p.NetSalary = input.NetSalary; p.PaymentStatus = input.PaymentStatus;
-    p.PaymentDate = input.PaymentDate; p.Remarks = input.Remarks;
+    p.PeriodMonth = input.PeriodMonth; p.PeriodYear = input.PeriodYear;
+    p.EmployeeCode = input.EmployeeCode; p.EmployeeName = input.EmployeeName;
+    p.Site = input.Site; p.Department = input.Department;
+    p.Position = input.Position; p.BasicSalary = input.BasicSalary;
+    p.Allowance = input.Allowance; p.Overtime = input.Overtime;
+    p.Bonus = input.Bonus; p.TotalEarning = input.TotalEarning;
+    p.AbsenceDeduction = input.AbsenceDeduction; p.TaxDeduction = input.TaxDeduction;
+    p.InsuranceDeduction = input.InsuranceDeduction;
+    p.OtherDeduction = input.OtherDeduction;
+    p.TotalDeduction = input.TotalDeduction; p.NetSalary = input.NetSalary;
+    p.Status = input.Status; p.PaidDate = input.PaidDate;
+    p.Remarks = input.Remarks;
     p.UpdatedAt = DateTime.UtcNow;
     await db.SaveChangesAsync();
     return Results.Ok(p);
@@ -8653,12 +8745,12 @@ app.MapDelete("/api/payroll/{id}", async (AppDbContext db, int id) =>
 });
 
 // ==================== JOURNAL ENTRIES ====================
-app.MapGet("/api/journal", async (AppDbContext db, string? period, string? status, int? coaId) =>
+app.MapGet("/api/journal", async (AppDbContext db, string? periodMonth, string? periodYear, string? status) =>
 {
     var q = db.JournalEntries.AsQueryable();
-    if (!string.IsNullOrEmpty(period)) q = q.Where(j => j.JournalPeriod == period);
-    if (!string.IsNullOrEmpty(status)) q = q.Where(j => j.PostingStatus == status);
-    if (coaId.HasValue) q = q.Where(j => j.COAId == coaId);
+    if (!string.IsNullOrEmpty(periodMonth)) q = q.Where(j => j.PeriodMonth == periodMonth);
+    if (!string.IsNullOrEmpty(periodYear)) q = q.Where(j => j.PeriodYear == periodYear);
+    if (!string.IsNullOrEmpty(status)) q = q.Where(j => j.Status == status);
     return await q.OrderByDescending(j => j.EntryDate).ToListAsync();
 });
 
@@ -8666,35 +8758,65 @@ app.MapGet("/api/journal/{id}", async (AppDbContext db, int id) =>
     await db.JournalEntries.FindAsync(id) is { } j ? Results.Ok(j) : Results.NotFound());
 
 app.MapGet("/api/journal/{id}/lines", async (AppDbContext db, int id) =>
-    await db.JournalEntryLines.Where(l => l.JournalEntryId == id).ToListAsync());
+    await db.JournalLines.Where(l => l.JournalEntryId == id).ToListAsync());
 
-app.MapPost("/api/journal", async (AppDbContext db, JournalEntry je) =>
+app.MapPost("/api/journal", async (AppDbContext db, JournalEntryCreateRequest req) =>
 {
-    je.CreatedAt = DateTime.UtcNow;
-    je.PostingStatus = je.PostingStatus ?? "Draft";
-    db.JournalEntries.Add(je);
+    var entryDate = req.EntryDate ?? DateTime.UtcNow;
+    var entry = new JournalEntry
+    {
+        EntryNumber = req.EntryNumber ?? $"JE-{DateTime.UtcNow:yyyyMMddHHmmss}",
+        EntryDate = entryDate,
+        PeriodMonth = entryDate.ToString("MM"),
+        PeriodYear = entryDate.ToString("yyyy"),
+        EntryType = req.EntryType,
+        SourceModule = req.SourceModule ?? "MANUAL",
+        SourceId = req.SourceId,
+        Description = req.Description,
+        Status = "DRAFT",
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow
+    };
+    db.JournalEntries.Add(entry);
     await db.SaveChangesAsync();
-    return Results.Created($"/api/journal/{je.Id}", je);
-});
 
-app.MapPost("/api/journal/{id}/lines", async (AppDbContext db, int id, JournalEntryLine line) =>
-{
-    line.JournalEntryId = id;
-    db.JournalEntryLines.Add(line);
+    if (req.Lines != null)
+    {
+        foreach (var lineInput in req.Lines)
+        {
+            var line = new JournalLine
+            {
+                JournalEntryId = entry.Id,
+                AccountCode = lineInput.AccountCode,
+                AccountName = lineInput.AccountName ?? "",
+                DC = lineInput.DC,
+                Amount = lineInput.Amount,
+                CostCenter = lineInput.CostCenter,
+                Site = lineInput.Site,
+                Description = lineInput.Description,
+                CreatedAt = DateTime.UtcNow
+            };
+            db.JournalLines.Add(line);
+        }
+        var lines = await db.JournalLines.Where(l => l.JournalEntryId == entry.Id).ToListAsync();
+        entry.TotalDebit = lines.Where(l => l.DC == "D").Sum(l => l.Amount);
+        entry.TotalCredit = lines.Where(l => l.DC == "C").Sum(l => l.Amount);
+    }
+
     await db.SaveChangesAsync();
-    return Results.Created($"/api/journal/{id}/lines/{line.Id}", line);
+    return Results.Created($"/api/journal/{entry.Id}", entry);
 });
 
 app.MapPost("/api/journal/{id}/post", async (AppDbContext db, int id) =>
 {
     var je = await db.JournalEntries.FindAsync(id);
     if (je == null) return Results.NotFound();
-    var lines = await db.JournalEntryLines.Where(l => l.JournalEntryId == id).ToListAsync();
-    var debit = lines.Sum(l => l.Debit);
-    var credit = lines.Sum(l => l.Credit);
+    var lines = await db.JournalLines.Where(l => l.JournalEntryId == id).ToListAsync();
+    var debit = lines.Where(l => l.DC == "D").Sum(l => l.Amount);
+    var credit = lines.Where(l => l.DC == "C").Sum(l => l.Amount);
     if (Math.Abs(debit - credit) > 0.01m)
         return Results.BadRequest(new { message = "Journal entry is not balanced. Debit and Credit must be equal." });
-    je.PostingStatus = "Posted";
+    je.Status = "POSTED";
     je.PostedAt = DateTime.UtcNow;
     je.UpdatedAt = DateTime.UtcNow;
     await db.SaveChangesAsync();
@@ -8705,9 +8827,11 @@ app.MapPut("/api/journal/{id}", async (AppDbContext db, int id, JournalEntry inp
 {
     var je = await db.JournalEntries.FindAsync(id);
     if (je == null) return Results.NotFound();
-    je.JournalNumber = input.JournalNumber; je.EntryDate = input.EntryDate;
-    je.Description = input.Description; je.JournalPeriod = input.JournalPeriod;
-    je.Reference = input.Reference; je.Remarks = input.Remarks;
+    je.EntryNumber = input.EntryNumber; je.EntryDate = input.EntryDate;
+    je.PeriodMonth = input.PeriodMonth; je.PeriodYear = input.PeriodYear;
+    je.EntryType = input.EntryType; je.SourceModule = input.SourceModule;
+    je.SourceId = input.SourceId; je.Description = input.Description;
+    je.Status = input.Status;
     je.UpdatedAt = DateTime.UtcNow;
     await db.SaveChangesAsync();
     return Results.Ok(je);
@@ -8717,20 +8841,21 @@ app.MapDelete("/api/journal/{id}", async (AppDbContext db, int id) =>
 {
     var je = await db.JournalEntries.FindAsync(id);
     if (je == null) return Results.NotFound();
-    var lines = await db.JournalEntryLines.Where(l => l.JournalEntryId == id).ToListAsync();
-    db.JournalEntryLines.RemoveRange(lines);
+    var lines = await db.JournalLines.Where(l => l.JournalEntryId == id).ToListAsync();
+    db.JournalLines.RemoveRange(lines);
     db.JournalEntries.Remove(je);
     await db.SaveChangesAsync();
     return Results.Ok(new { message = "Deleted" });
 });
 
 // ==================== BUDGETS ====================
-app.MapGet("/api/budgets", async (AppDbContext db, string? fiscalYear, string? department) =>
+app.MapGet("/api/budgets", async (AppDbContext db, string? site, string? periodYear, string? department) =>
 {
     var q = db.Budgets.AsQueryable();
-    if (!string.IsNullOrEmpty(fiscalYear)) q = q.Where(b => b.FiscalYear == fiscalYear);
+    if (!string.IsNullOrEmpty(site)) q = q.Where(b => b.Site == site);
+    if (!string.IsNullOrEmpty(periodYear)) q = q.Where(b => b.PeriodYear == periodYear);
     if (!string.IsNullOrEmpty(department)) q = q.Where(b => b.Department == department);
-    return await q.OrderByDescending(b => b.FiscalYear).ToListAsync();
+    return await q.OrderByDescending(b => b.PeriodYear).ThenBy(b => b.AccountCode).ToListAsync();
 });
 
 app.MapGet("/api/budgets/{id}", async (AppDbContext db, int id) =>
@@ -8739,7 +8864,7 @@ app.MapGet("/api/budgets/{id}", async (AppDbContext db, int id) =>
 app.MapPost("/api/budgets", async (AppDbContext db, Budget budget) =>
 {
     budget.CreatedAt = DateTime.UtcNow;
-    budget.Status = budget.Status ?? "Draft";
+    budget.UpdatedAt = DateTime.UtcNow;
     db.Budgets.Add(budget);
     await db.SaveChangesAsync();
     return Results.Created($"/api/budgets/{budget.Id}", budget);
@@ -8749,10 +8874,17 @@ app.MapPut("/api/budgets/{id}", async (AppDbContext db, int id, Budget input) =>
 {
     var b = await db.Budgets.FindAsync(id);
     if (b == null) return Results.NotFound();
-    b.FiscalYear = input.FiscalYear; b.Department = input.Department;
-    b.COAId = input.COAId; b.BudgetAmount = input.BudgetAmount;
-    b.SpentAmount = input.SpentAmount; b.RemainingAmount = input.BudgetAmount - input.SpentAmount;
+    b.PeriodMonth = input.PeriodMonth; b.PeriodYear = input.PeriodYear;
+    b.Site = input.Site; b.Department = input.Department;
+    b.Division = input.Division; b.AccountCode = input.AccountCode;
+    b.AccountName = input.AccountName; b.PlannedAmount = input.PlannedAmount;
+    b.ActualAmount = input.ActualAmount;
+    b.CommittedAmount = input.CommittedAmount;
+    b.AvailableBudget = input.PlannedAmount - input.ActualAmount - input.CommittedAmount;
+    b.UtilizationPercent = input.PlannedAmount > 0
+        ? Math.Round((input.ActualAmount + input.CommittedAmount) * 100 / input.PlannedAmount, 2) : 0;
     b.Status = input.Status; b.Remarks = input.Remarks;
+    b.ApprovedDate = input.ApprovedDate; b.ApprovedBy = input.ApprovedBy;
     b.UpdatedAt = DateTime.UtcNow;
     await db.SaveChangesAsync();
     return Results.Ok(b);
@@ -8768,12 +8900,13 @@ app.MapDelete("/api/budgets/{id}", async (AppDbContext db, int id) =>
 });
 
 // ==================== FUEL ANALYSIS ====================
-app.MapGet("/api/fuel-analysis", async (AppDbContext db, DateTime? fromDate, DateTime? toDate) =>
+app.MapGet("/api/fuel-analysis", async (AppDbContext db, string? site, string? periodMonth, string? periodYear) =>
 {
     var q = db.FuelAnalyses.AsQueryable();
-    if (fromDate.HasValue) q = q.Where(f => f.AnalysisDate >= fromDate);
-    if (toDate.HasValue) q = q.Where(f => f.AnalysisDate <= toDate);
-    return await q.OrderByDescending(f => f.AnalysisDate).ToListAsync();
+    if (!string.IsNullOrEmpty(site)) q = q.Where(f => f.Site == site);
+    if (!string.IsNullOrEmpty(periodMonth)) q = q.Where(f => f.PeriodMonth == periodMonth);
+    if (!string.IsNullOrEmpty(periodYear)) q = q.Where(f => f.PeriodYear == periodYear);
+    return await q.OrderByDescending(f => f.PeriodYear).ThenByDescending(f => f.PeriodMonth).ToListAsync();
 });
 
 app.MapGet("/api/fuel-analysis/{id}", async (AppDbContext db, int id) =>
@@ -8784,21 +8917,29 @@ app.MapPost("/api/fuel-analysis/generate", async (AppDbContext db, FuelAnalysisG
     var trips = await db.HaulTrips
         .Where(t => t.TripDate >= req.FromDate && t.TripDate <= req.ToDate)
         .ToListAsync();
-    if (trips.Count == 0) return Results.BadRequest(new { message = "No haul trips found in date range" });
+    if (trips.Count == 0)
+        return Results.BadRequest(new { message = "No haul trips found in date range" });
+
+    var site = trips.FirstOrDefault()?.Site ?? "";
+    var periodMonth = req.FromDate.ToString("MM");
+    var periodYear = req.FromDate.ToString("yyyy");
+    var totalKm = trips.Sum(t => t.DistanceKM ?? 0);
+    var totalFuel = trips.Sum(t => t.FuelConsumed ?? 0);
+    var totalTon = trips.Sum(t => t.PayloadTon ?? 0);
+
     var analysis = new FuelAnalysis
     {
-        AnalysisDate = DateTime.UtcNow,
-        PeriodStart = req.FromDate,
-        PeriodEnd = req.ToDate,
+        PeriodMonth = periodMonth,
+        PeriodYear = periodYear,
+        Site = site,
+        TotalFuelLitres = totalFuel,
+        TotalKM = totalKm,
+        TotalTon = totalTon,
         TotalTrips = trips.Count,
-        TotalFuelConsumed = trips.Sum(t => t.FuelConsumed),
-        TotalDistance = trips.Sum(t => t.DistanceKm),
-        AverageFuelEfficiency = trips.Sum(t => t.DistanceKm) > 0
-            ? Math.Round(trips.Sum(t => t.FuelConsumed) / trips.Sum(t => t.DistanceKm) * 100, 2) : 0,
-        FuelCostPerKm = trips.Sum(t => t.DistanceKm) > 0
-            ? Math.Round((trips.Sum(t => t.FuelConsumed) * req.FuelPricePerLiter) / trips.Sum(t => t.DistanceKm), 2) : 0,
-        TotalFuelCost = trips.Sum(t => t.FuelConsumed) * req.FuelPricePerLiter,
-        FuelPricePerLiter = req.FuelPricePerLiter,
+        LitrePerKM = totalKm > 0 ? Math.Round(totalFuel / totalKm, 4) : 0,
+        LitrePerTon = totalTon > 0 ? Math.Round(totalFuel / totalTon, 4) : 0,
+        FuelCost = totalFuel * req.FuelPricePerLiter,
+        FuelCostPerTon = totalTon > 0 ? Math.Round((totalFuel * req.FuelPricePerLiter) / totalTon, 2) : 0,
         CreatedAt = DateTime.UtcNow
     };
     db.FuelAnalyses.Add(analysis);
@@ -8816,13 +8957,14 @@ app.MapDelete("/api/fuel-analysis/{id}", async (AppDbContext db, int id) =>
 });
 
 // ==================== UNIT COST TRACKING ====================
-app.MapGet("/api/unit-cost", async (AppDbContext db, DateTime? fromDate, DateTime? toDate, int? vehicleId) =>
+app.MapGet("/api/unit-cost", async (AppDbContext db, string? site, string? periodMonth, string? periodYear, string? unitNo) =>
 {
     var q = db.UnitCostTrackings.AsQueryable();
-    if (fromDate.HasValue) q = q.Where(u => u.CostDate >= fromDate);
-    if (toDate.HasValue) q = q.Where(u => u.CostDate <= toDate);
-    if (vehicleId.HasValue) q = q.Where(u => u.VehicleId == vehicleId);
-    return await q.OrderByDescending(u => u.CostDate).ToListAsync();
+    if (!string.IsNullOrEmpty(site)) q = q.Where(u => u.Site == site);
+    if (!string.IsNullOrEmpty(periodMonth)) q = q.Where(u => u.PeriodMonth == periodMonth);
+    if (!string.IsNullOrEmpty(periodYear)) q = q.Where(u => u.PeriodYear == periodYear);
+    if (!string.IsNullOrEmpty(unitNo)) q = q.Where(u => u.UnitNo == unitNo);
+    return await q.OrderByDescending(u => u.PeriodYear).ThenByDescending(u => u.PeriodMonth).ToListAsync();
 });
 
 app.MapPost("/api/unit-cost", async (AppDbContext db, UnitCostTracking uc) =>
@@ -8843,12 +8985,13 @@ app.MapDelete("/api/unit-cost/{id}", async (AppDbContext db, int id) =>
 });
 
 // ==================== DRIVER PRODUCTIVITY ====================
-app.MapGet("/api/driver-productivity", async (AppDbContext db, DateTime? fromDate, DateTime? toDate) =>
+app.MapGet("/api/driver-productivity", async (AppDbContext db, string? site, string? periodMonth, string? periodYear) =>
 {
     var q = db.DriverProductivities.AsQueryable();
-    if (fromDate.HasValue) q = q.Where(d => d.ReportDate >= fromDate);
-    if (toDate.HasValue) q = q.Where(d => d.ReportDate <= toDate);
-    return await q.OrderByDescending(d => d.ReportDate).ToListAsync();
+    if (!string.IsNullOrEmpty(site)) q = q.Where(d => d.Site == site);
+    if (!string.IsNullOrEmpty(periodMonth)) q = q.Where(d => d.PeriodMonth == periodMonth);
+    if (!string.IsNullOrEmpty(periodYear)) q = q.Where(d => d.PeriodYear == periodYear);
+    return await q.OrderByDescending(d => d.PeriodYear).ThenByDescending(d => d.PeriodMonth).ToListAsync();
 });
 
 app.MapGet("/api/driver-productivity/{id}", async (AppDbContext db, int id) =>
@@ -8859,22 +9002,31 @@ app.MapPost("/api/driver-productivity/generate", async (AppDbContext db, DriverP
     var trips = await db.HaulTrips
         .Where(t => t.DriverId == req.DriverId && t.TripDate >= req.FromDate && t.TripDate <= req.ToDate)
         .ToListAsync();
-    if (trips.Count == 0) return Results.BadRequest(new { message = "No trips found for driver in date range" });
-    var driver = await db.Drivers.FindAsync(req.DriverId);
+    if (trips.Count == 0)
+        return Results.BadRequest(new { message = "No trips found for driver in date range" });
+
+    var site = trips.FirstOrDefault()?.Site ?? "";
+    var periodMonth = req.FromDate.ToString("MM");
+    var periodYear = req.FromDate.ToString("yyyy");
+    var totalKm = trips.Sum(t => t.DistanceKM ?? 0);
+    var totalFuel = trips.Sum(t => t.FuelConsumed ?? 0);
+    var days = Math.Max(1, (req.ToDate - req.FromDate).Days + 1);
+
     var productivity = new DriverProductivity
     {
+        PeriodMonth = periodMonth,
+        PeriodYear = periodYear,
+        Site = site,
         DriverId = req.DriverId,
-        DriverName = driver?.DriverName ?? "",
-        ReportDate = DateTime.UtcNow,
-        PeriodStart = req.FromDate,
-        PeriodEnd = req.ToDate,
+        DriverName = trips.FirstOrDefault()?.DriverName ?? "",
+        UnitNo = trips.FirstOrDefault()?.UnitNo ?? "",
         TotalTrips = trips.Count,
-        TotalMaterialHauled = trips.Sum(t => t.Quantity),
-        TotalDistance = trips.Sum(t => t.DistanceKm),
-        TotalFuelConsumed = trips.Sum(t => t.FuelConsumed),
-        AverageTripsPerDay = (decimal)trips.Count / Math.Max(1, (req.ToDate - req.FromDate).Days + 1),
-        FuelEfficiency = trips.Sum(t => t.DistanceKm) > 0
-            ? Math.Round(trips.Sum(t => t.FuelConsumed) / trips.Sum(t => t.DistanceKm) * 100, 2) : 0,
+        TargetTrips = 0,
+        TotalTon = trips.Sum(t => t.PayloadTon ?? 0),
+        TotalKM = totalKm,
+        TotalFuelLitres = totalFuel,
+        FuelEfficiency = totalKm > 0 ? Math.Round(totalFuel / totalKm, 4) : 0,
+        WorkingDays = days,
         CreatedAt = DateTime.UtcNow
     };
     db.DriverProductivities.Add(productivity);
@@ -8892,12 +9044,13 @@ app.MapDelete("/api/driver-productivity/{id}", async (AppDbContext db, int id) =
 });
 
 // ==================== PRODUCTION DATA ====================
-app.MapGet("/api/production-data", async (AppDbContext db, DateTime? fromDate, DateTime? toDate) =>
+app.MapGet("/api/production-data", async (AppDbContext db, string? site, string? periodMonth, string? periodYear) =>
 {
     var q = db.ProductionData.AsQueryable();
-    if (fromDate.HasValue) q = q.Where(p => p.ProductionDate >= fromDate);
-    if (toDate.HasValue) q = q.Where(p => p.ProductionDate <= toDate);
-    return await q.OrderByDescending(p => p.ProductionDate).ToListAsync();
+    if (!string.IsNullOrEmpty(site)) q = q.Where(p => p.Site == site);
+    if (!string.IsNullOrEmpty(periodMonth)) q = q.Where(p => p.PeriodMonth == periodMonth);
+    if (!string.IsNullOrEmpty(periodYear)) q = q.Where(p => p.PeriodYear == periodYear);
+    return await q.OrderByDescending(p => p.PeriodYear).ThenByDescending(p => p.PeriodMonth).ToListAsync();
 });
 
 app.MapGet("/api/production-data/{id}", async (AppDbContext db, int id) =>
@@ -8906,6 +9059,7 @@ app.MapGet("/api/production-data/{id}", async (AppDbContext db, int id) =>
 app.MapPost("/api/production-data", async (AppDbContext db, ProductionData pd) =>
 {
     pd.CreatedAt = DateTime.UtcNow;
+    pd.UpdatedAt = DateTime.UtcNow;
     db.ProductionData.Add(pd);
     await db.SaveChangesAsync();
     return Results.Created($"/api/production-data/{pd.Id}", pd);
@@ -8915,11 +9069,15 @@ app.MapPut("/api/production-data/{id}", async (AppDbContext db, int id, Producti
 {
     var p = await db.ProductionData.FindAsync(id);
     if (p == null) return Results.NotFound();
-    p.ProductionDate = input.ProductionDate; p.Shift = input.Shift;
-    p.MaterialType = input.MaterialType; p.Quantity = input.Quantity;
-    p.Unit = input.Unit; p.Location = input.Location;
-    p.EquipmentId = input.EquipmentId; p.OperatorId = input.OperatorId;
-    p.Remarks = input.Remarks; p.UpdatedAt = DateTime.UtcNow;
+    p.PeriodMonth = input.PeriodMonth; p.PeriodYear = input.PeriodYear;
+    p.Site = input.Site; p.Division = input.Division;
+    p.TotalTonase = input.TotalTonase; p.TotalOperatingHours = input.TotalOperatingHours;
+    p.TotalOverburden = input.TotalOverburden; p.HaulingDistance = input.HaulingDistance;
+    p.TotalCost = input.TotalCost; p.CostPerTon = input.CostPerTon;
+    p.FuelCost = input.FuelCost; p.MaintenanceCost = input.MaintenanceCost;
+    p.LaborCost = input.LaborCost; p.OtherCost = input.OtherCost;
+    p.Remarks = input.Remarks;
+    p.UpdatedAt = DateTime.UtcNow;
     await db.SaveChangesAsync();
     return Results.Ok(p);
 });
@@ -8944,81 +9102,86 @@ app.MapGet("/api/kpi/dashboard", async (AppDbContext db, DateTime? fromDate, Dat
     var workOrders = await db.WorkOrders.ToListAsync();
     var pm = await db.PreventiveMaintenances.ToListAsync();
     var cm = await db.CorrectiveMaintenances.ToListAsync();
-    var payroll = await db.Payrolls.Where(p => p.PaymentStatus == "Paid").ToListAsync();
-    var inventory = await db.InventoryItems.ToListAsync();
+    var payroll = await db.Payrolls.Where(p => p.Status == "PAID").ToListAsync();
+    var inventory = await db.Inventories.ToListAsync();
     var budgets = await db.Budgets.ToListAsync();
-    var fuelAnalysis = await db.FuelAnalyses.Where(f => f.PeriodStart >= fStart && f.PeriodEnd <= fEnd).ToListAsync();
-    var productData = await db.ProductionData.Where(p => p.ProductionDate >= fStart && p.ProductionDate <= fEnd).ToListAsync();
-    var driverProductivity = await db.DriverProductivities.Where(d => d.PeriodStart >= fStart && d.PeriodEnd <= fEnd).ToListAsync();
+    var fuelAnalysis = await db.FuelAnalyses.ToListAsync();
+    var productData = await db.ProductionData.ToListAsync();
+    var driverProd = await db.DriverProductivities.ToListAsync();
+
+    var totalDistance = trips.Sum(t => t.DistanceKM ?? 0);
+    var totalFuel = trips.Sum(t => t.FuelConsumed ?? 0);
+
     return Results.Ok(new
     {
         period = new { from = fStart, to = fEnd },
         hauling = new
         {
             totalTrips = trips.Count,
-            completedTrips = trips.Count(t => t.TripStatus == "Completed"),
-            totalMaterial = trips.Sum(t => t.Quantity),
-            totalFuel = trips.Sum(t => t.FuelConsumed),
-            avgFuelEfficiency = trips.Count > 0 && trips.Sum(t => t.DistanceKm) > 0
-                ? Math.Round(trips.Sum(t => t.FuelConsumed) / trips.Sum(t => t.DistanceKm) * 100, 2) : 0,
-            activeVehicles = vehicles.Count(v => v.VehicleStatus == "Active"),
-            activeDrivers = drivers.Count(d => d.DriverStatus == "Active"),
-            vehicleUtilization = vehicles.Count > 0
-                ? Math.Round(trips.Select(t => t.VehicleId).Distinct().Count() * 100.0 / vehicles.Count(v => v.VehicleStatus == "Active"), 2) : 0
+            completedTrips = trips.Count(t => t.Status == "COMPLETED"),
+            totalPayloadTon = trips.Sum(t => t.PayloadTon ?? 0),
+            totalFuel = totalFuel,
+            totalDistance = totalDistance,
+            avgFuelEfficiency = totalDistance > 0 ? Math.Round(totalFuel / totalDistance, 4) : 0,
+            activeVehicles = vehicles.Count(v => v.Status == "ACTIVE"),
+            activeDrivers = drivers.Count(d => d.Status == "ACTIVE"),
+            avgCycleTimeMinutes = trips.Count > 0 ? Math.Round(trips.Average(t => t.CycleTimeMinutes ?? 0), 1) : 0,
+            totalRevenue = trips.Sum(t => t.TripRevenue ?? 0)
         },
         maintenance = new
         {
-            openWorkOrders = workOrders.Count(w => w.Status == "Open"),
-            inProgressWorkOrders = workOrders.Count(w => w.Status == "In Progress"),
-            completedWorkOrders = workOrders.Count(w => w.Status == "Completed"),
-            overdueWorkOrders = workOrders.Count(w => w.DueDate < DateTime.UtcNow && w.Status != "Completed"),
-            scheduledPM = pm.Count(m => m.Status == "Scheduled"),
-            completedPM = pm.Count(m => m.Status == "Completed"),
-            openCM = cm.Count(m => m.Status == "Reported" || m.Status == "In Progress"),
-            completedCM = cm.Count(m => m.Status == "Completed")
+            openWorkOrders = workOrders.Count(w => w.Status == "OPEN"),
+            inProgressWorkOrders = workOrders.Count(w => w.Status == "IN_PROGRESS"),
+            completedWorkOrders = workOrders.Count(w => w.Status == "COMPLETED"),
+            overdueWorkOrders = workOrders.Count(w => w.ScheduledDate < DateTime.UtcNow && w.Status != "COMPLETED"),
+            scheduledPM = pm.Count(m => m.Status == "SCHEDULED"),
+            completedPM = pm.Count(m => m.Status == "COMPLETED"),
+            openCM = cm.Count(m => m.Status == "REPORTED" || m.Status == "IN_REPAIR"),
+            completedCM = cm.Count(m => m.Status == "COMPLETED")
         },
         inventory = new
         {
             totalItems = inventory.Count,
-            lowStock = inventory.Count(i => i.CurrentStock <= i.MinimumStock),
-            reorderNeeded = inventory.Count(i => i.CurrentStock <= i.ReorderLevel),
-            totalInventoryValue = inventory.Sum(i => i.CurrentStock * i.StandardCost)
+            lowStock = inventory.Count(i => i.Stock <= i.MinStock),
+            totalInventoryValue = inventory.Sum(i => i.StockValue)
         },
         finance = new
         {
             totalPayroll = payroll.Sum(p => p.NetSalary),
-            totalBudget = budgets.Sum(b => b.BudgetAmount),
-            totalSpent = budgets.Sum(b => b.SpentAmount),
-            budgetUtilization = budgets.Count > 0 && budgets.Sum(b => b.BudgetAmount) > 0
-                ? Math.Round(budgets.Sum(b => b.SpentAmount) * 100.0 / budgets.Sum(b => b.BudgetAmount), 2) : 0
+            totalPlannedBudget = budgets.Sum(b => b.PlannedAmount),
+            totalActualBudget = budgets.Sum(b => b.ActualAmount),
+            budgetUtilization = budgets.Count > 0 && budgets.Sum(b => b.PlannedAmount) > 0
+                ? Math.Round(budgets.Sum(b => b.ActualAmount) * 100m / budgets.Sum(b => b.PlannedAmount), 2) : 0m
         },
         fuel = fuelAnalysis.Count > 0 ? new
         {
-            totalFuelConsumed = fuelAnalysis.Sum(f => f.TotalFuelConsumed),
-            avgFuelEfficiency = fuelAnalysis.Average(f => f.AverageFuelEfficiency),
-            totalFuelCost = fuelAnalysis.Sum(f => f.TotalFuelCost),
-            avgFuelCostPerKm = fuelAnalysis.Average(f => f.FuelCostPerKm)
+            totalFuelLitres = fuelAnalysis.Sum(f => f.TotalFuelLitres),
+            avgLitrePerKM = fuelAnalysis.Average(f => f.LitrePerKM),
+            totalFuelCost = fuelAnalysis.Sum(f => f.FuelCost)
         } : null,
         production = productData.Count > 0 ? new
         {
-            totalProduction = productData.Sum(p => p.Quantity),
-            avgDailyProduction = productData.Count > 0 ? Math.Round(productData.Average(p => p.Quantity), 2) : 0
+            totalTonase = productData.Sum(p => p.TotalTonase),
+            totalOperatingHours = productData.Sum(p => p.TotalOperatingHours),
+            avgCostPerTon = productData.Sum(p => p.TotalTonase) > 0
+                ? Math.Round(productData.Sum(p => p.TotalCost) / productData.Sum(p => p.TotalTonase), 2) : 0
         } : null,
-        driverPerformance = driverProductivity.Count > 0 ? new
+        driverPerformance = driverProd.Count > 0 ? new
         {
-            avgTripsPerDriver = Math.Round(driverProductivity.Average(d => d.TotalTrips), 1),
-            avgFuelEfficiency = driverProductivity.Count > 0 ? Math.Round(driverProductivity.Average(d => d.FuelEfficiency), 2) : 0,
-            topDriver = driverProductivity.OrderByDescending(d => d.TotalTrips).FirstOrDefault()?.DriverName
+            avgTripsPerDriver = Math.Round(driverProd.Average(d => d.TotalTrips), 1),
+            avgFuelEfficiency = Math.Round(driverProd.Average(d => d.FuelEfficiency), 4),
+            topDriver = driverProd.OrderByDescending(d => d.TotalTrips).FirstOrDefault()?.DriverName
         } : null
     });
 });
 
 // ==================== APPROVAL WORKFLOW ====================
-app.MapGet("/api/approvals", async (AppDbContext db, string? status, string? module) =>
+app.MapGet("/api/approvals", async (AppDbContext db, string? site, string? status, string? moduleType) =>
 {
     var q = db.ApprovalWorkflows.AsQueryable();
+    if (!string.IsNullOrEmpty(site)) q = q.Where(a => a.SiteCode == site);
     if (!string.IsNullOrEmpty(status)) q = q.Where(a => a.Status == status);
-    if (!string.IsNullOrEmpty(module)) q = q.Where(a => a.Module == module);
+    if (!string.IsNullOrEmpty(moduleType)) q = q.Where(a => a.ModuleType == moduleType);
     return await q.OrderByDescending(a => a.CreatedAt).ToListAsync();
 });
 
@@ -9028,7 +9191,7 @@ app.MapGet("/api/approvals/{id}", async (AppDbContext db, int id) =>
 app.MapPost("/api/approvals", async (AppDbContext db, ApprovalWorkflow aw) =>
 {
     aw.CreatedAt = DateTime.UtcNow;
-    aw.Status = aw.Status ?? "Pending";
+    aw.UpdatedAt = DateTime.UtcNow;
     db.ApprovalWorkflows.Add(aw);
     await db.SaveChangesAsync();
     return Results.Created($"/api/approvals/{aw.Id}", aw);
@@ -9038,9 +9201,8 @@ app.MapPost("/api/approvals/{id}/approve", async (AppDbContext db, int id, Appro
 {
     var aw = await db.ApprovalWorkflows.FindAsync(id);
     if (aw == null) return Results.NotFound();
-    aw.Status = "Approved";
-    aw.ApprovedBy = req.ApprovedBy;
-    aw.ApprovedAt = DateTime.UtcNow;
+    aw.Status = "APPROVED";
+    aw.ApproverName = req.ApproverName;
     aw.UpdatedAt = DateTime.UtcNow;
     await db.SaveChangesAsync();
     return Results.Ok(aw);
@@ -9050,11 +9212,10 @@ app.MapPost("/api/approvals/{id}/reject", async (AppDbContext db, int id, Reject
 {
     var aw = await db.ApprovalWorkflows.FindAsync(id);
     if (aw == null) return Results.NotFound();
-    aw.Status = "Rejected";
-    aw.RejectedReason = req.Reason;
+    aw.Status = "REJECTED";
     aw.UpdatedAt = DateTime.UtcNow;
     await db.SaveChangesAsync();
-    return Results.Ok(aw);
+    return Results.Ok(new { status = "REJECTED", reason = req.Reason });
 });
 
 app.MapDelete("/api/approvals/{id}", async (AppDbContext db, int id) =>
@@ -9066,21 +9227,5 @@ app.MapDelete("/api/approvals/{id}", async (AppDbContext db, int id) =>
     return Results.Ok(new { message = "Deleted" });
 });
 
-// ==================== HELPER REQUEST CLASSES ====================
-public class LinkTripRequest { public int TripId { get; set; } }
-public class FuelAnalysisGenerateRequest
-{
-    public DateTime FromDate { get; set; }
-    public DateTime ToDate { get; set; }
-    public decimal FuelPricePerLiter { get; set; }
-}
-public class DriverProductivityGenerateRequest
-{
-    public int DriverId { get; set; }
-    public DateTime FromDate { get; set; }
-    public DateTime ToDate { get; set; }
-}
-public class ApproveRequest { public int ApprovedBy { get; set; } }
-public class RejectRequest { public string? Reason { get; set; } }
 
 app.Run();
