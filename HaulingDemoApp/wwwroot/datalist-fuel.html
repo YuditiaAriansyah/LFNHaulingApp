@@ -787,6 +787,13 @@
                 const response = await fetch(`${API_BASE}/api/sites`);
                 if (response.ok) {
                     const data = await response.json();
+            // Demo: use localStorage seed if API returns empty
+            var _seedKey_ = "lfn_fuel";
+            var _apiData_ = data || [];
+            if (_apiData_.length === 0) {
+                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) data = _seed_; } catch(e) {}
+            }
+            
                     const sites = data.sites || [];
                     const select = document.getElementById('filterSite');
 
@@ -2325,5 +2332,16 @@
             }
         }
     </script>
-</body>
+
+        // ── DEMO SEED: auto-populate 4 sample records ──
+        (function() {
+            var key = "lfn_fuel";
+            try {
+                if (!localStorage.getItem(key)) {
+                    localStorage.setItem(key, JSON.stringify([{"id": "fl01", "transactionDate": "2026-03-24", "siteCode": "TNG", "vehicleCode": "VH-001", "licensePlate": "DA 1234 OT", "driverName": "Joko Susilo", "fuelType": "Solar Dex", "quantity": 350, "uom": "LTR", "odometer": 124500, "hmValue": 8453, "fuelRate": 0.38, "transactionType": "USAGE", "remarks": "Trip Hauling 8x PP", "status": "POSTED"}, {"id": "fl02", "transactionDate": "2026-03-24", "siteCode": "TNG", "vehicleCode": "VH-002", "licensePlate": "DA 2345 OT", "driverName": "Asep Saepudin", "fuelType": "Solar Dex", "quantity": 320, "uom": "LTR", "odometer": 98200, "hmValue": 6123, "fuelRate": 0.38, "transactionType": "USAGE", "remarks": "Trip Hauling 7x PP", "status": "POSTED"}, {"id": "fl03", "transactionDate": "2026-03-24", "siteCode": "KCM", "vehicleCode": "VH-003", "licensePlate": "KT 1111 PT", "driverName": "Rizky Ramadhan", "fuelType": "Solar Dex", "quantity": 295, "uom": "LTR", "odometer": 45600, "hmValue": 3203, "fuelRate": 0.37, "transactionType": "USAGE", "remarks": "Trip Hauling site KTC", "status": "POSTED"}, {"id": "fl04", "transactionDate": "2026-03-24", "siteCode": "TNG", "vehicleCode": "VF-001", "licensePlate": "DA 9999 OT", "driverName": "Siti Aminah", "fuelType": "Solar Dex", "quantity": 180, "uom": "LTR", "odometer": 76000, "hmValue": 5601, "fuelRate": 0.45, "transactionType": "USAGE", "remarks": "Fuel tanker delivery", "status": "PENDING"}]));
+                }
+            } catch(e) {}
+        })();
+    
+    </body>
 </html>

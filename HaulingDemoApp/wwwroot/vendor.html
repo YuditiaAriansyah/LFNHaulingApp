@@ -518,6 +518,13 @@ function switchTab(tab) {
             try {
                 const response = await fetch(`/api/vendors?category=${category}&status=${status}`);
                 vendors = await response.json();
+            // Demo: use localStorage seed if API returns empty
+            var _seedKey_ = "lfn_vendors";
+            var _apiData_ = vendors || [];
+            if (_apiData_.length === 0) {
+                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) vendors = _seed_; } catch(e) {}
+            }
+            
                 renderTable();
                 loadStats();
             } catch (error) {
@@ -741,5 +748,16 @@ function switchTab(tab) {
             loadCategories();
         });
     </script>
-</body>
+
+        // ── DEMO SEED: auto-populate 4 sample records ──
+        (function() {
+            var key = "lfn_vendors";
+            try {
+                if (!localStorage.getItem(key)) {
+                    localStorage.setItem(key, JSON.stringify([{"id": "v01", "vendorCode": "VND-001", "vendorName": "PT Pertamina (persero) Lubricants", "category": "FUEL", "contactPerson": "Dian Pratama", "phone": "021-5789-1234", "email": "sales.lube@pertamina.co.id", "address": "Jl. Medan Merdeka Timur No.1A, Jakarta", "npwp": "01.001.001.2-001.000", "bankAccount": "130001234567", "bankName": "Bank BRI", "remarks": "Supplier oli dan pelumas resmi", "status": "ACTIVE"}, {"id": "v02", "vendorCode": "VND-002", "vendorName": "CV Borneo Tyre Mart", "category": "TYRE", "contactPerson": "Hendra Gunawan", "phone": "0511-3344-5566", "email": "borneo.tyre@gmail.com", "address": "Jl. A. Yani Km 6, Banjarmasin", "npwp": "02.002.002.3-002.000", "bankAccount": "0011223344", "bankName": "Bank Kalteng", "remarks": "Supplier ban segala ukuran", "status": "ACTIVE"}, {"id": "v03", "vendorCode": "VND-003", "vendorName": "PT Hino Motors Sales Indonesia", "category": "PART", "contactPerson": "Ferry Tanoto", "phone": "021-3456-7890", "email": "hino.sales@hino.co.id", "address": "Jl. Gaya Motor III No.5, Jakarta Utara", "npwp": "03.003.003.4-003.000", "bankAccount": "8812345678", "bankName": "Bank BCA", "remarks": "Sparepart resmi Hino", "status": "ACTIVE"}, {"id": "v04", "vendorCode": "VND-004", "vendorName": "PT Vale Indonesia TBK", "category": "MINING", "contactPerson": "Ahmad Dahlan", "phone": "021-5678-9012", "email": "procurement@vale.com", "address": "Menara Vale, Jl. Jend. Sudirman Kav.52-53", "npwp": "04.004.004.5-004.000", "bankAccount": "1199008877", "bankName": "Bank CIMB", "remarks": "Rekanan mining operation", "status": "INACTIVE"}]));
+                }
+            } catch(e) {}
+        })();
+    
+    </body>
 </html>

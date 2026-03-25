@@ -529,6 +529,13 @@
                 const res = await fetch(url);
                 if (!res.ok) throw new Error('Failed to load KPI');
                 const d = await res.json();
+            // Demo: use localStorage seed if API returns empty
+            var _seedKey_ = "lfn_kpi";
+            var _apiData_ = d || [];
+            if (_apiData_.length === 0) {
+                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) d = _seed_; } catch(e) {}
+            }
+            
 
                 // Hauling
                 const h = d.hauling || {};
@@ -609,5 +616,16 @@
             }
         }
     </script>
-</body>
+
+        // ── DEMO SEED: auto-populate 4 sample records ──
+        (function() {
+            var key = "lfn_kpi";
+            try {
+                if (!localStorage.getItem(key)) {
+                    localStorage.setItem(key, JSON.stringify([{"id": "k01", "period": "Maret 2026", "siteCode": "TNG", "totalTrips": 1248, "totalMaterial": 24950, "avgCycleTime": 48.5, "avgPayload": 19.9, "fuelEfficiency": 0.38, "availability": 92.5, "utilization": 88.3, "oee": 81.2, "status": "PUBLISHED"}, {"id": "k02", "period": "Februari 2026", "siteCode": "TNG", "totalTrips": 1156, "totalMaterial": 23120, "avgCycleTime": 50.2, "avgPayload": 20.0, "fuelEfficiency": 0.39, "availability": 90.1, "utilization": 85.7, "oee": 77.3, "status": "PUBLISHED"}, {"id": "k03", "period": "Maret 2026", "siteCode": "KCM", "totalTrips": 892, "totalMaterial": 17840, "avgCycleTime": 52.0, "avgPayload": 20.0, "fuelEfficiency": 0.37, "availability": 88.0, "utilization": 82.5, "oee": 72.6, "status": "PUBLISHED"}, {"id": "k04", "period": "Maret 2026", "siteCode": "ALL", "totalTrips": 2140, "totalMaterial": 42790, "avgCycleTime": 49.8, "avgPayload": 19.99, "fuelEfficiency": 0.375, "availability": 90.8, "utilization": 86.1, "oee": 78.2, "status": "PENDING"}]));
+                }
+            } catch(e) {}
+        })();
+    
+    </body>
 </html>

@@ -565,6 +565,13 @@ function switchTab(tab) {
             try {
                 const response = await fetch(`/api/purchase-orders?site=${site}&status=${status}`);
                 pos = await response.json();
+            // Demo: use localStorage seed if API returns empty
+            var _seedKey_ = "lfn_po";
+            var _apiData_ = pos || [];
+            if (_apiData_.length === 0) {
+                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) pos = _seed_; } catch(e) {}
+            }
+            
                 renderTable();
                 loadStats();
             } catch (error) {
@@ -865,5 +872,16 @@ function switchTab(tab) {
             loadPOs();
         });
     </script>
-</body>
+
+        // ── DEMO SEED: auto-populate 4 sample records ──
+        (function() {
+            var key = "lfn_po";
+            try {
+                if (!localStorage.getItem(key)) {
+                    localStorage.setItem(key, JSON.stringify([{"id": "po01", "poNumber": "PO-2026-0001", "vendorCode": "VND-001", "vendorName": "PT Pertamina", "siteCode": "TNG", "orderDate": "2026-03-11", "deliveryDate": "2026-03-14", "itemDescription": "Solar Dex 5000 Liter", "quantity": 5000, "uomCode": "LTR", "unitPrice": 15150, "totalAmount": 75750000, "currency": "IDR", "status": "RECEIVED", "remarks": ""}, {"id": "po02", "poNumber": "PO-2026-0002", "vendorCode": "VND-002", "vendorName": "CV Borneo Tyre Mart", "siteCode": "TNG", "orderDate": "2026-03-16", "deliveryDate": "2026-03-23", "itemDescription": "Ban Bridgestone 1200R20", "quantity": 8, "uomCode": "PCS", "unitPrice": 5800000, "totalAmount": 46400000, "currency": "IDR", "status": "IN_TRANSIT", "remarks": ""}, {"id": "po03", "poNumber": "PO-2026-0003", "vendorCode": "VND-003", "vendorName": "PT Hino Motors Sales", "siteCode": "TNG", "orderDate": "2026-03-12", "deliveryDate": "2026-03-25", "itemDescription": "Filter oli Hino 500 (set 10pcs)", "quantity": 10, "uomCode": "SET", "unitPrice": 450000, "totalAmount": 4500000, "currency": "IDR", "status": "APPROVED", "remarks": ""}, {"id": "po04", "poNumber": "PO-2026-0004", "vendorCode": "VND-001", "vendorName": "PT Pertamina", "siteCode": "KCM", "orderDate": "2026-03-19", "deliveryDate": "2026-03-22", "itemDescription": "Oli Shell Rimula R4 X 15W-40", "quantity": 100, "uomCode": "LTR", "unitPrice": 85000, "totalAmount": 8500000, "currency": "IDR", "status": "PENDING", "remarks": ""}]));
+                }
+            } catch(e) {}
+        })();
+    
+    </body>
 </html>

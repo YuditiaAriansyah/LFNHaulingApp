@@ -523,6 +523,13 @@ function switchTab(tab) {
             try {
                 const response = await fetch(`/api/good-receipts?site=${site}&status=${status}`);
                 grs = await response.json();
+            // Demo: use localStorage seed if API returns empty
+            var _seedKey_ = "lfn_gr";
+            var _apiData_ = grs || [];
+            if (_apiData_.length === 0) {
+                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) grs = _seed_; } catch(e) {}
+            }
+            
                 renderTable();
                 loadStats();
             } catch (error) {
@@ -806,5 +813,16 @@ function switchTab(tab) {
             loadGRs();
         });
     </script>
-</body>
+
+        // ── DEMO SEED: auto-populate 4 sample records ──
+        (function() {
+            var key = "lfn_gr";
+            try {
+                if (!localStorage.getItem(key)) {
+                    localStorage.setItem(key, JSON.stringify([{"id": "gr01", "grNumber": "GR-2026-0001", "poNumber": "PO-2026-0001", "vendorCode": "VND-001", "vendorName": "PT Pertamina", "siteCode": "TNG", "receivedDate": "2026-03-14", "receivedBy": "Joko Susilo", "itemDescription": "Solar Dex", "quantityReceived": 4980, "uomCode": "LTR", "condition": "GOOD", "warehouseLocation": "Tangki BBM Site Tanjung", "status": "COMPLETED"}, {"id": "gr02", "grNumber": "GR-2026-0002", "poNumber": "PO-2026-0002", "vendorCode": "VND-002", "vendorName": "CV Borneo Tyre Mart", "siteCode": "TNG", "receivedDate": "2026-03-23", "receivedBy": "Asep Saepudin", "itemDescription": "Ban Bridgestone 1200R20", "quantityReceived": 8, "uomCode": "PCS", "condition": "GOOD", "warehouseLocation": "Gudang Ban Site Tanjung", "status": "IN_TRANSIT"}, {"id": "gr03", "grNumber": "GR-2026-0003", "poNumber": "PO-2026-0003", "vendorCode": "VND-003", "vendorName": "PT Hino Motors Sales", "siteCode": "TNG", "receivedDate": "2026-03-25", "receivedBy": "Heru Wijaya", "itemDescription": "Filter oli Hino 500", "quantityReceived": 10, "uomCode": "SET", "condition": "GOOD", "warehouseLocation": "Gudang Sparepart", "status": "PENDING"}, {"id": "gr04", "grNumber": "GR-2026-0004", "poNumber": "PO-2026-0004", "vendorCode": "VND-001", "vendorName": "PT Pertamina", "siteCode": "KCM", "receivedDate": "2026-03-22", "receivedBy": "Rizky Ramadhan", "itemDescription": "Oli Shell Rimula R4 X", "quantityReceived": 95, "uomCode": "LTR", "condition": "PARTIAL", "warehouseLocation": "Tangki BBM KTC Camp", "status": "PARTIAL"}]));
+                }
+            } catch(e) {}
+        })();
+    
+    </body>
 </html>

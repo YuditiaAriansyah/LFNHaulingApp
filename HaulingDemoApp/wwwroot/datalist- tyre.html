@@ -825,5 +825,16 @@
             }
         }
     </script>
-</body>
+
+        // ── DEMO SEED: auto-populate 4 sample records ──
+        (function() {
+            var key = "lfn_tyre";
+            try {
+                if (!localStorage.getItem(key)) {
+                    localStorage.setItem(key, JSON.stringify([{"id": "tr01", "tyreSerialNo": "TYR-001-BR", "vehicleCode": "VH-001", "licensePlate": "DA 1234 OT", "tyreSize": "1200R20", "brand": "Bridgestone", "pattern": "V-Steer", "position": "FL", "mountDate": "2025-09-15", "totalHours": 3250, "remainingTreadMm": 18.5, "remarks": "Ban depan kiri", "status": "IN_USE"}, {"id": "tr02", "tyreSerialNo": "TYR-002-BR", "vehicleCode": "VH-002", "licensePlate": "DA 2345 OT", "tyreSize": "1200R20", "brand": "Bridgestone", "pattern": "V-Steer", "position": "FR", "mountDate": "2025-08-20", "totalHours": 3100, "remainingTreadMm": 15.2, "remarks": "Tread menipis, monitor ketat", "status": "IN_USE"}, {"id": "tr03", "tyreSerialNo": "TYR-003-GD", "vehicleCode": "VH-001", "licensePlate": "DA 1234 OT", "tyreSize": "1200R20", "brand": "Goodyear", "pattern": "RLS", "position": "RL", "mountDate": "2025-07-10", "totalHours": 3450, "remainingTreadMm": 8.0, "remarks": "Segera diganti - tread habis", "status": "CRITICAL"}, {"id": "tr04", "tyreSerialNo": "TYR-004-CT", "vehicleCode": "VH-003", "licensePlate": "KT 1111 PT", "tyreSize": "1200R20", "brand": "Continental", "pattern": "HCS", "position": "FL", "mountDate": "2025-11-05", "totalHours": 2100, "remainingTreadMm": 22.0, "remarks": "Ban baru di VH-003", "status": "IN_USE"}]));
+                }
+            } catch(e) {}
+        })();
+    
+    </body>
 </html>

@@ -640,6 +640,13 @@ function switchTab(tab) {
             try {
                 const response = await fetch(`/api/fleet?site=${site}&status=${status}&category=${category}`);
                 vehicles = await response.json();
+            // Demo: use localStorage seed if API returns empty
+            var _seedKey_ = "lfn_fleet";
+            var _apiData_ = vehicles || [];
+            if (_apiData_.length === 0) {
+                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) vehicles = _seed_; } catch(e) {}
+            }
+            
                 renderTable();
                 loadStats();
                 loadSummary();
@@ -981,5 +988,16 @@ function switchTab(tab) {
             loadCategories();
         });
     </script>
-</body>
+
+        // ── DEMO SEED: auto-populate 4 sample records ──
+        (function() {
+            var key = "lfn_fleet";
+            try {
+                if (!localStorage.getItem(key)) {
+                    localStorage.setItem(key, JSON.stringify([{"id": "f01", "unitNo": "VH-001", "licensePlate": "DA 1234 OT", "vehicleType": "HAULING", "siteCode": "TNG", "driverName": "Joko Susilo", "status": "ACTIVE", "category": "HAULING", "hmValue": 8450, "fuelLevel": 78.5, "odometer": 124500, "remarks": "Unit primary hauling Tanjung"}, {"id": "f02", "unitNo": "VH-002", "licensePlate": "DA 2345 OT", "vehicleType": "HAULING", "siteCode": "TNG", "driverName": "Asep Saepudin", "status": "ACTIVE", "category": "HAULING", "hmValue": 6120, "fuelLevel": 45.2, "odometer": 98200, "remarks": "Unit secondary hauling Tanjung"}, {"id": "f03", "unitNo": "VS-001", "licensePlate": "DA 8888 OT", "vehicleType": "SUPPORT", "siteCode": "TNG", "driverName": "Belum Ditugaskan", "status": "IDLE", "category": "SUPPORT", "hmValue": 3200, "fuelLevel": 92.0, "odometer": 45000, "remarks": "Kendaraan support supervisor"}, {"id": "f04", "unitNo": "VF-001", "licensePlate": "DA 9999 OT", "vehicleType": "FUEL_TANKER", "siteCode": "TNG", "driverName": "Siti Aminah", "status": "MAINTENANCE", "category": "FUEL_TANKER", "hmValue": 5600, "fuelLevel": 20.0, "odometer": 76000, "remarks": "Tangki BBM - sedang service rem"}]));
+                }
+            } catch(e) {}
+        })();
+    
+    </body>
 </html>

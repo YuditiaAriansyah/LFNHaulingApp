@@ -486,6 +486,13 @@
             try {
                 const res = await fetch('/api/sites/master?status=ACTIVE');
                 allSites = await res.json();
+            // Demo: use localStorage seed if API returns empty
+            var _seedKey_ = "lfn_users";
+            var _apiData_ = allSites || [];
+            if (_apiData_.length === 0) {
+                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) allSites = _seed_; } catch(e) {}
+            }
+            
                 const opts = allSites.map(s => `<option value="${s.siteCode}">${s.siteCode} - ${s.siteName}</option>`).join('');
                 document.getElementById('userSite').innerHTML = '<option value="">-- Semua Site --</option>' + opts;
             } catch {}
@@ -717,5 +724,16 @@
             }
         }
     </script>
-</body>
+
+        // ── DEMO SEED: auto-populate 4 sample records ──
+        (function() {
+            var key = "lfn_users";
+            try {
+                if (!localStorage.getItem(key)) {
+                    localStorage.setItem(key, JSON.stringify([{"id": "u01", "username": "yuditia.ariansyah", "fullName": "Yuditia Ariansyah", "email": "yuditia@lfmining.co.id", "role": "ADMIN", "department": "IT", "site": "HO", "phone": "0811-2233-4455", "lastLogin": "2026-03-24T08:15:00Z", "status": "ACTIVE"}, {"id": "u02", "username": "heru.wijaya", "fullName": "Heru Wijaya", "email": "heru.wijaya@lfmining.co.id", "role": "MANAGER", "department": "Operations", "site": "TNG", "phone": "0812-3344-5566", "lastLogin": "2026-03-23T17:45:00Z", "status": "ACTIVE"}, {"id": "u03", "username": "siti.nurhaliza", "fullName": "Siti Nurhaliza", "email": "siti.nurhaliza@lfmining.co.id", "role": "USER", "department": "Finance", "site": "HO", "phone": "0813-4455-6677", "lastLogin": "2026-03-22T10:30:00Z", "status": "ACTIVE"}, {"id": "u04", "username": "andi.pratama", "fullName": "Andi Pratama", "email": "andi.pratama@lfmining.co.id", "role": "VIEWER", "department": "Procurement", "site": "KCM", "phone": "0814-5566-7788", "lastLogin": "2026-03-21T14:00:00Z", "status": "INACTIVE"}]));
+                }
+            } catch(e) {}
+        })();
+    
+    </body>
 </html>

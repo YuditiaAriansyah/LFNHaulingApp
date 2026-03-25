@@ -332,6 +332,13 @@
                 const res = await fetch(API + (params.toString() ? "?" + params : ""));
                 if (!res.ok) throw new Error(await res.text());
                 const data = await res.json();
+            // Demo: use localStorage seed if API returns empty
+            var _seedKey_ = "lfn_departments";
+            var _apiData_ = data || [];
+            if (_apiData_.length === 0) {
+                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) data = _seed_; } catch(e) {}
+            }
+            
                 renderTable(data);
                 renderStats(data);
             } catch (e) {
@@ -426,5 +433,16 @@
 
         loadData();
     </script>
-</body>
+
+        // ── DEMO SEED: auto-populate 4 sample records ──
+        (function() {
+            var key = "lfn_departments";
+            try {
+                if (!localStorage.getItem(key)) {
+                    localStorage.setItem(key, JSON.stringify([{"id": "d01", "deptCode": "DEPT-OPS", "deptName": "Operations", "deptLevel": "DIVISION", "parentDept": "", "siteCode": "TNG", "costCenterCode": "CC-OPS-001", "remarks": "Divisi operasi tambang", "status": "ACTIVE"}, {"id": "d02", "deptCode": "DEPT-MTN", "deptName": "Maintenance", "deptLevel": "DEPARTMENT", "parentDept": "DEPT-OPS", "siteCode": "TNG", "costCenterCode": "CC-MTN-001", "remarks": "Departemen pemeliharaan fleet", "status": "ACTIVE"}, {"id": "d03", "deptCode": "DEPT-FIN", "deptName": "Finance", "deptLevel": "DEPARTMENT", "parentDept": "", "siteCode": "HO", "costCenterCode": "CC-ADM-001", "remarks": "Departemen keuangan dan akuntansi", "status": "ACTIVE"}, {"id": "d04", "deptCode": "DEPT-HRD", "deptName": "Human Resources", "deptLevel": "DEPARTMENT", "parentDept": "", "siteCode": "HO", "costCenterCode": "CC-ADM-001", "remarks": "Departemen SDM dan umum", "status": "ACTIVE"}]));
+                }
+            } catch(e) {}
+        })();
+    
+    </body>
 </html>

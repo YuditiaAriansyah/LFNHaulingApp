@@ -357,6 +357,13 @@
                 const res = await fetch(API + (params.toString() ? "?" + params : ""));
                 if (!res.ok) throw new Error(await res.text());
                 const data = await res.json();
+            // Demo: use localStorage seed if API returns empty
+            var _seedKey_ = "lfn_routes";
+            var _apiData_ = data || [];
+            if (_apiData_.length === 0) {
+                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) data = _seed_; } catch(e) {}
+            }
+            
                 renderTable(data);
                 renderStats(data);
             } catch (e) {
@@ -451,5 +458,16 @@
 
         loadData();
     </script>
-</body>
+
+        // ── DEMO SEED: auto-populate 4 sample records ──
+        (function() {
+            var key = "lfn_routes";
+            try {
+                if (!localStorage.getItem(key)) {
+                    localStorage.setItem(key, JSON.stringify([{"id": "r01", "routeCode": "RT-TNG-01", "routeName": "Tanjung - Port Boomangan", "siteCode": "TNG", "originLocation": "Tanjung Mining Pit A", "destinationLocation": "Port Boomangan", "routeType": "HAUL", "distanceKm": 18.5, "travelTimeMin": 35, "haulCostPerKm": 45000, "fuelConsumptionPerKm": 0.38, "roadCondition": "MEDIUM", "remarks": "Rute utama hauling batu bara", "status": "ACTIVE"}, {"id": "r02", "routeCode": "RT-TNG-02", "routeName": "Tanjung - Dump Area B", "siteCode": "TNG", "originLocation": "Tanjung Mining Pit A", "destinationLocation": "Dump Area Overburden B", "routeType": "OVERBURDEN", "distanceKm": 6.2, "travelTimeMin": 15, "haulCostPerKm": 38000, "fuelConsumptionPerKm": 0.42, "roadCondition": "POOR", "remarks": "Rute pembuangan overburden", "status": "ACTIVE"}, {"id": "r03", "routeCode": "RT-KCM-01", "routeName": "KTC - Stockpile Utara", "siteCode": "KCM", "originLocation": "KTC Mining Pit North", "destinationLocation": "Stockpile Utara", "routeType": "HAUL", "distanceKm": 12.0, "travelTimeMin": 25, "haulCostPerKm": 52000, "fuelConsumptionPerKm": 0.35, "roadCondition": "GOOD", "remarks": "Rute hauling site KTC", "status": "ACTIVE"}, {"id": "r04", "routeCode": "RT-TNG-03", "routeName": "Return - Port ke Pit", "siteCode": "TNG", "originLocation": "Port Boomangan", "destinationLocation": "Tanjung Mining Pit A", "routeType": "RETURN", "distanceKm": 17.8, "travelTimeMin": 30, "haulCostPerKm": 28000, "fuelConsumptionPerKm": 0.3, "roadCondition": "MEDIUM", "remarks": "Rute kosong kembali ke pit", "status": "ACTIVE"}]));
+                }
+            } catch(e) {}
+        })();
+    
+    </body>
 </html>

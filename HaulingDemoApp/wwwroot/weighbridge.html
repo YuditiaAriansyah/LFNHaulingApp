@@ -440,6 +440,13 @@
                 const res = await fetch(`${API}/vehicle/master`);
                 if (res.ok) {
                     vehicles = await res.json();
+            // Demo: use localStorage seed if API returns empty
+            var _seedKey_ = "lfn_wb";
+            var _apiData_ = vehicles || [];
+            if (_apiData_.length === 0) {
+                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) vehicles = _seed_; } catch(e) {}
+            }
+            
                     populateSelect('ticketVehicle', vehicles, 'id', 'vehicleCode');
                 }
             } catch (e) { console.error(e); }
@@ -686,5 +693,16 @@
             loadTickets();
         }
     </script>
-</body>
+
+        // ── DEMO SEED: auto-populate 4 sample records ──
+        (function() {
+            var key = "lfn_wb";
+            try {
+                if (!localStorage.getItem(key)) {
+                    localStorage.setItem(key, JSON.stringify([{"id": "wb01", "ticketNo": "WB-2026-0001", "siteCode": "TNG", "weighbridgeId": "WB-01", "vehicleCode": "VH-001", "licensePlate": "DA 1234 OT", "weighingType": "LOADED", "firstWeight": 38.2, "secondWeight": 18.4, "netWeight": 19.8, "uom": "TON", "materialType": "COAL", "weighingDate": "2026-03-24T06:45:00Z", "weighingOfficer": "Siti Aminah", "remarks": "Berat bersih muatan batu bara", "status": "CONFIRMED"}, {"id": "wb02", "ticketNo": "WB-2026-0002", "siteCode": "TNG", "weighbridgeId": "WB-01", "vehicleCode": "VH-002", "licensePlate": "DA 2345 OT", "weighingType": "LOADED", "firstWeight": 38.6, "secondWeight": 18.5, "netWeight": 20.1, "uom": "TON", "materialType": "COAL", "weighingDate": "2026-03-24T07:10:00Z", "weighingOfficer": "Andi Pratama", "remarks": "Berat bersih muatan batu bara", "status": "CONFIRMED"}, {"id": "wb03", "ticketNo": "WB-2026-0003", "siteCode": "TNG", "weighbridgeId": "WB-02", "vehicleCode": "VF-001", "licensePlate": "DA 9999 OT", "weighingType": "EMPTY", "firstWeight": 18.4, "secondWeight": 0, "netWeight": 18.4, "uom": "TON", "materialType": "EMPTY", "weighingDate": "2026-03-24T07:30:00Z", "weighingOfficer": "Siti Aminah", "remarks": "Timbangan kosong setelah bongkar", "status": "CONFIRMED"}, {"id": "wb04", "ticketNo": "WB-2026-0004", "siteCode": "KCM", "weighbridgeId": "WB-KCM-01", "vehicleCode": "VH-003", "licensePlate": "KT 1111 PT", "weighingType": "LOADED", "firstWeight": 37.0, "secondWeight": 17.5, "netWeight": 19.5, "uom": "TON", "materialType": "COAL", "weighingDate": "2026-03-24T08:00:00Z", "weighingOfficer": "Hendra Gunawan", "remarks": "Weighing KTC site", "status": "PENDING"}]));
+                }
+            } catch(e) {}
+        })();
+    
+    </body>
 </html>

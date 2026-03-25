@@ -334,6 +334,13 @@
                 const res = await fetch(API + (params.toString() ? "?" + params : ""));
                 if (!res.ok) throw new Error(await res.text());
                 const data = await res.json();
+            // Demo: use localStorage seed if API returns empty
+            var _seedKey_ = "lfn_workflow";
+            var _apiData_ = data || [];
+            if (_apiData_.length === 0) {
+                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) data = _seed_; } catch(e) {}
+            }
+            
                 renderTable(data);
                 renderStats(data);
             } catch (e) {
@@ -432,5 +439,16 @@
 
         loadData();
     </script>
-</body>
+
+        // ── DEMO SEED: auto-populate 4 sample records ──
+        (function() {
+            var key = "lfn_workflow";
+            try {
+                if (!localStorage.getItem(key)) {
+                    localStorage.setItem(key, JSON.stringify([{"id": "w01", "workflowCode": "WF-PR-001", "workflowName": "Approval Purchase Request", "entityType": "PURCHASE_REQUEST", "minAmount": 0, "maxAmount": 50000000, "approvalLevels": 2, "level1Role": "MANAGER", "level2Role": "DIRECTOR", "remarks": "PR sampai 50jt只需要 manager approve", "status": "ACTIVE"}, {"id": "w02", "workflowCode": "WF-PR-002", "workflowName": "Approval PR di atas 50jt", "entityType": "PURCHASE_REQUEST", "minAmount": 50000001, "maxAmount": 999999999999, "approvalLevels": 3, "level1Role": "MANAGER", "level2Role": "DIRECTOR", "level3Role": "FINANCE_DIRECTOR", "remarks": "PR di atas 50jt还需要 finance director", "status": "ACTIVE"}, {"id": "w03", "workflowCode": "WF-RM-001", "workflowName": "Approval Repair & Maintenance", "entityType": "WORK_ORDER", "minAmount": 0, "maxAmount": 999999999999, "approvalLevels": 2, "level1Role": "SUPERVISOR", "level2Role": "MANAGER", "remarks": "Work order maintenance langsung ke manager", "status": "ACTIVE"}, {"id": "w04", "workflowCode": "WF-HR-001", "workflowName": "Approval Cuti Karyawan", "entityType": "LEAVE", "minAmount": 0, "maxAmount": 0, "approvalLevels": 2, "level1Role": "SUPERVISOR", "level2Role": "HR_MANAGER", "remarks": "Approval cuti karyawan tetap dan kontrak", "status": "ACTIVE"}]));
+                }
+            } catch(e) {}
+        })();
+    
+    </body>
 </html>

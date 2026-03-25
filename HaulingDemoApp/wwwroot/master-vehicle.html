@@ -359,6 +359,13 @@
                 const res = await fetch(API + (params.toString() ? "?" + params : ""));
                 if (!res.ok) throw new Error(await res.text());
                 const data = await res.json();
+            // Demo: use localStorage seed if API returns empty
+            var _seedKey_ = "lfn_vehicles";
+            var _apiData_ = data || [];
+            if (_apiData_.length === 0) {
+                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) data = _seed_; } catch(e) {}
+            }
+            
                 renderTable(data);
                 renderStats(data);
             } catch (e) {
@@ -457,5 +464,16 @@
 
         loadData();
     </script>
-</body>
+
+        // ── DEMO SEED: auto-populate 4 sample records ──
+        (function() {
+            var key = "lfn_vehicles";
+            try {
+                if (!localStorage.getItem(key)) {
+                    localStorage.setItem(key, JSON.stringify([{"id": "v01", "vehicleCode": "VH-001", "licensePlate": "DA 1234 OT", "vehicleType": "HAULING", "brand": "Hino", "model": "Hino 500 FM 260 JD", "engineNumber": "E001-HM500-2023", "chassisNumber": "CH001-HM500-2023", "manufactureYear": 2023, "siteCode": "TNG", "costCenterCode": "CC-OPS-001", "capacityTon": 20, "fuelType": "Diesel", "status": "ACTIVE", "remarks": "Unit primary hauling Tanjung"}, {"id": "v02", "vehicleCode": "VH-002", "licensePlate": "DA 2345 OT", "vehicleType": "HAULING", "brand": "Hino", "model": "Hino 500 FM 260 JD", "engineNumber": "E002-HM500-2023", "chassisNumber": "CH002-HM500-2023", "manufactureYear": 2023, "siteCode": "TNG", "costCenterCode": "CC-OPS-001", "capacityTon": 20, "fuelType": "Diesel", "status": "ACTIVE", "remarks": "Unit secondary hauling Tanjung"}, {"id": "v03", "vehicleCode": "VS-001", "licensePlate": "DA 8888 OT", "vehicleType": "SUPPORT", "brand": "Toyota", "model": "Hilux DPL 2.4", "engineNumber": "E003-HLX-2022", "chassisNumber": "CH003-HLX-2022", "manufactureYear": 2022, "siteCode": "TNG", "costCenterCode": "CC-OPS-001", "capacityTon": 1.5, "fuelType": "Diesel", "status": "ACTIVE", "remarks": "Unit support lapangan"}, {"id": "v04", "vehicleCode": "VF-001", "licensePlate": "DA 9999 OT", "vehicleType": "FUEL_TANKER", "brand": "Mitsubishi", "model": "Mitsubishi Fuso 120 PS", "engineNumber": "E004-FSO-2021", "chassisNumber": "CH004-FSO-2021", "manufactureYear": 2021, "siteCode": "TNG", "costCenterCode": "CC-MTN-001", "capacityTon": 5, "fuelType": "Diesel", "status": "MAINTENANCE", "remarks": "Tangki BBM kapasitas 5000 liter"}]));
+                }
+            } catch(e) {}
+        })();
+    
+    </body>
 </html>

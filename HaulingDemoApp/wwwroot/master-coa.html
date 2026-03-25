@@ -332,6 +332,13 @@
                 const res = await fetch(API + (params.toString() ? "?" + params : ""));
                 if (!res.ok) throw new Error(await res.text());
                 const data = await res.json();
+            // Demo: use localStorage seed if API returns empty
+            var _seedKey_ = "lfn_coa";
+            var _apiData_ = data || [];
+            if (_apiData_.length === 0) {
+                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) data = _seed_; } catch(e) {}
+            }
+            
                 renderTable(data);
                 renderStats(data);
             } catch (e) {
@@ -426,5 +433,16 @@
 
         loadData();
     </script>
-</body>
+
+        // ── DEMO SEED: auto-populate 4 sample records ──
+        (function() {
+            var key = "lfn_coa";
+            try {
+                if (!localStorage.getItem(key)) {
+                    localStorage.setItem(key, JSON.stringify([{"id": "c01", "coaCode": "4-100", "coaName": "Pendapatan Hauling", "coaLevel": "HEADER", "parentCode": "4", "coaType": "REVENUE", "remarks": "Akun pendapatan utama operasi hauling", "status": "ACTIVE"}, {"id": "c02", "coaCode": "4-110", "coaName": "Pendapatan Angkutan Batu Bara", "coaLevel": "DETAIL", "parentCode": "4-100", "coaType": "REVENUE", "remarks": "Pendapatan dari jasa angkut batu bara", "status": "ACTIVE"}, {"id": "c03", "coaCode": "5-100", "coaName": "Beban Operasional Hauling", "coaLevel": "HEADER", "parentCode": "5", "coaType": "EXPENSE", "remarks": "Akun beban operasi utama", "status": "ACTIVE"}, {"id": "c04", "coaCode": "5-110", "coaName": "Beban BBM (Solar)", "coaLevel": "DETAIL", "parentCode": "5-100", "coaType": "EXPENSE", "remarks": "Bahan bakar dump truck dan kendaraan", "status": "ACTIVE"}]));
+                }
+            } catch(e) {}
+        })();
+    
+    </body>
 </html>

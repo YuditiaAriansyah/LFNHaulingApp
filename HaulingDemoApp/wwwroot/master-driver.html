@@ -348,6 +348,13 @@
                 const res = await fetch(API + (params.toString() ? "?" + params : ""));
                 if (!res.ok) throw new Error(await res.text());
                 const data = await res.json();
+            // Demo: use localStorage seed if API returns empty
+            var _seedKey_ = "lfn_drivers";
+            var _apiData_ = data || [];
+            if (_apiData_.length === 0) {
+                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) data = _seed_; } catch(e) {}
+            }
+            
                 renderTable(data);
                 renderStats(data);
             } catch (e) {
@@ -442,5 +449,16 @@
 
         loadData();
     </script>
-</body>
+
+        // ── DEMO SEED: auto-populate 4 sample records ──
+        (function() {
+            var key = "lfn_drivers";
+            try {
+                if (!localStorage.getItem(key)) {
+                    localStorage.setItem(key, JSON.stringify([{"id": "dr01", "driverCode": "DRV-001", "nik": "3174051208900001", "fullName": "Joko Susilo", "birthDate": "1990-08-12", "gender": "Male", "phone": "0856-1234-5678", "email": "joko.susilo@email.com", "simType": "B2", "simExpiry": "2027-05-15", "siteCode": "TNG", "deptCode": "DEPT-OPS", "licensePlate": "DA 1234 OT", "status": "ACTIVE"}, {"id": "dr02", "driverCode": "DRV-002", "nik": "3174052307910002", "fullName": "Asep Saepudin", "birthDate": "1991-07-23", "gender": "Male", "phone": "0856-2345-6789", "email": "asep.saepudin@email.com", "simType": "B2", "simExpiry": "2026-11-20", "siteCode": "TNG", "deptCode": "DEPT-OPS", "licensePlate": "DA 2345 OT", "status": "ACTIVE"}, {"id": "dr03", "driverCode": "DRV-003", "nik": "6271050808890003", "fullName": "Rizky Ramadhan", "birthDate": "1989-08-08", "gender": "Male", "phone": "0857-3456-7890", "email": "rizky.ramadhan@email.com", "simType": "B1", "simExpiry": "2028-03-10", "siteCode": "KCM", "deptCode": "DEPT-OPS", "licensePlate": "KT 1111 PT", "status": "ACTIVE"}, {"id": "dr04", "driverCode": "DRV-004", "nik": "3271051505920004", "fullName": "Siti Aminah", "birthDate": "1992-05-15", "gender": "Female", "phone": "0858-4567-8901", "email": "siti.aminah@email.com", "simType": "B2", "simExpiry": "2026-08-25", "siteCode": "TNG", "deptCode": "DEPT-OPS", "licensePlate": "DA 3456 OT", "status": "INACTIVE"}]));
+                }
+            } catch(e) {}
+        })();
+    
+    </body>
 </html>

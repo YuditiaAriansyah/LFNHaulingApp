@@ -537,6 +537,13 @@ function switchTab(tab) {
             try {
                 const response = await fetch(`/api/good-issues?site=${site}&status=${status}`);
                 gis = await response.json();
+            // Demo: use localStorage seed if API returns empty
+            var _seedKey_ = "lfn_gi";
+            var _apiData_ = gis || [];
+            if (_apiData_.length === 0) {
+                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) gis = _seed_; } catch(e) {}
+            }
+            
                 renderTable();
                 loadStats();
             } catch (error) {
@@ -812,5 +819,16 @@ function switchTab(tab) {
             loadGIs();
         });
     </script>
-</body>
+
+        // ── DEMO SEED: auto-populate 4 sample records ──
+        (function() {
+            var key = "lfn_gi";
+            try {
+                if (!localStorage.getItem(key)) {
+                    localStorage.setItem(key, JSON.stringify([{"id": "gi01", "giNumber": "GI-2026-0001", "siteCode": "TNG", "issuedDate": "2026-03-15", "issuedBy": "Heru Wijaya", "department": "DEPT-OPS", "itemDescription": "Solar Dex untuk unit VH-001", "quantity": 350, "uomCode": "LTR", "purpose": "Operasi hauling harian", "recipient": "VH-001 (DA 1234 OT)", "status": "COMPLETED"}, {"id": "gi02", "giNumber": "GI-2026-0002", "siteCode": "TNG", "issuedDate": "2026-03-16", "issuedBy": "Joko Susilo", "department": "DEPT-MTN", "itemDescription": "Oli mesin Shell Rimula R4 X", "quantity": 20, "uomCode": "LTR", "purpose": "Service rutin VH-002", "recipient": "VH-002 (DA 2345 OT)", "status": "COMPLETED"}, {"id": "gi03", "giNumber": "GI-2026-0003", "siteCode": "KCM", "issuedDate": "2026-03-18", "issuedBy": "Rizky Ramadhan", "department": "DEPT-OPS", "itemDescription": "Solar Dex untuk unit VH-003", "quantity": 280, "uomCode": "LTR", "purpose": "Operasi hauling site KTC", "recipient": "VH-003 (KT 1111 PT)", "status": "PENDING"}, {"id": "gi04", "giNumber": "GI-2026-0004", "siteCode": "TNG", "issuedDate": "2026-03-20", "issuedBy": "Asep Saepudin", "department": "DEPT-MTN", "itemDescription": "Filter oli + filter udara Hino", "quantity": 2, "uomCode": "SET", "purpose": "PM berkala VH-001", "recipient": "VH-001 (DA 1234 OT)", "status": "CANCELLED"}]));
+                }
+            } catch(e) {}
+        })();
+    
+    </body>
 </html>

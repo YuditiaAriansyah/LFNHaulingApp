@@ -1041,6 +1041,13 @@ function switchTab(tab) {
             try {
                 const response = await fetch('/api/rm/summary');
                 const data = await response.json();
+            // Demo: use localStorage seed if API returns empty
+            var _seedKey_ = "lfn_rm";
+            var _apiData_ = data || [];
+            if (_apiData_.length === 0) {
+                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) data = _seed_; } catch(e) {}
+            }
+            
                 document.getElementById('statTotalWO').textContent = data.totalWorkOrders || 0;
                 document.getElementById('statOpenWO').textContent = data.openWorkOrders || 0;
                 document.getElementById('statTotalPM').textContent = data.totalPM || 0;
@@ -1633,5 +1640,16 @@ function switchTab(tab) {
             loadWorkOrders();
         });
     </script>
-</body>
+
+        // ── DEMO SEED: auto-populate 4 sample records ──
+        (function() {
+            var key = "lfn_rm";
+            try {
+                if (!localStorage.getItem(key)) {
+                    localStorage.setItem(key, JSON.stringify([{"id": "rm01", "workOrderNo": "WO-2026-0001", "siteCode": "TNG", "unitNo": "VH-001", "woType": "PREVENTIVE", "category": "PM", "description": "Service rutin 5000km - ganti oli, filter", "assignedTo": "Tim MTN-01", "woDate": "2026-03-10", "dueDate": "2026-03-12", "status": "COMPLETED"}, {"id": "rm02", "workOrderNo": "WO-2026-0002", "siteCode": "TNG", "unitNo": "VF-001", "woType": "CORRECTIVE", "category": "CORRECTIVE", "description": "Perbaikan sistem rem - kampas rem aus", "assignedTo": "Tim MTN-02", "woDate": "2026-03-18", "dueDate": "2026-03-20", "status": "IN_PROGRESS"}, {"id": "rm03", "workOrderNo": "WO-2026-0003", "siteCode": "KCM", "unitNo": "VH-003", "woType": "PREVENTIVE", "category": "PM", "description": "PM 10000km - inspeksi keseluruhan", "assignedTo": "Tim MTN-KCM", "woDate": "2026-03-15", "dueDate": "2026-03-17", "status": "COMPLETED"}, {"id": "rm04", "workOrderNo": "WO-2026-0004", "siteCode": "TNG", "unitNo": "VS-001", "woType": "CORRECTIVE", "category": "CORRECTIVE", "description": "Perbaikan AC - refrigerant habis", "assignedTo": "Tim MTN-01", "woDate": "2026-03-22", "dueDate": "2026-03-24", "status": "PENDING"}]));
+                }
+            } catch(e) {}
+        })();
+    
+    </body>
 </html>

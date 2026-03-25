@@ -697,6 +697,13 @@ function switchTab(tabName) {
             try {
                 const response = await fetch(`/api/purchase-requests?site=${site}&status=${status}`);
                 prs = await response.json();
+            // Demo: use localStorage seed if API returns empty
+            var _seedKey_ = "lfn_pr";
+            var _apiData_ = prs || [];
+            if (_apiData_.length === 0) {
+                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) prs = _seed_; } catch(e) {}
+            }
+            
                 renderTable();
                 loadStats();
             } catch (error) {
@@ -1149,5 +1156,16 @@ function switchTab(tabName) {
             loadPRs();
         });
     </script>
-</body>
+
+        // ── DEMO SEED: auto-populate 4 sample records ──
+        (function() {
+            var key = "lfn_pr";
+            try {
+                if (!localStorage.getItem(key)) {
+                    localStorage.setItem(key, JSON.stringify([{"id": "pr01", "prNumber": "PR-2026-0001", "siteCode": "TNG", "department": "DEPT-OPS", "requestedBy": "Heru Wijaya", "requestDate": "2026-03-10", "itemDescription": "Solar Dex 5000 Liter untuk unit hauling", "quantity": 5000, "uomCode": "LTR", "estimatedPrice": 75750000, "currency": "IDR", "status": "APPROVED", "remarks": "Stok BBM hampir habis, urgent"}, {"id": "pr02", "prNumber": "PR-2026-0002", "siteCode": "TNG", "department": "DEPT-MTN", "requestedBy": "Joko Susilo", "requestDate": "2026-03-15", "itemDescription": "Ban Bridgestone 1200R20 V-Steer - 8 pcs", "quantity": 8, "uomCode": "PCS", "estimatedPrice": 46400000, "currency": "IDR", "status": "PENDING", "remarks": ""}, {"id": "pr03", "prNumber": "PR-2026-0003", "siteCode": "KCM", "department": "DEPT-OPS", "requestedBy": "Rizky Ramadhan", "requestDate": "2026-03-18", "itemDescription": "Jasa service periodik 5000km Hino 500", "quantity": 2, "uomCode": "UNIT", "estimatedPrice": 7000000, "currency": "IDR", "status": "APPROVED", "remarks": ""}, {"id": "pr04", "prNumber": "PR-2026-0004", "siteCode": "TNG", "department": "DEPT-HRD", "requestedBy": "Siti Nurhaliza", "requestDate": "2026-03-20", "itemDescription": "Alat tulis kantor (ATK) bulanan", "quantity": 1, "uomCode": "PACK", "estimatedPrice": 2500000, "currency": "IDR", "status": "REJECTED", "remarks": "Budget tidak tersedia"}]));
+                }
+            } catch(e) {}
+        })();
+    
+    </body>
 </html>

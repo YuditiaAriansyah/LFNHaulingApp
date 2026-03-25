@@ -620,6 +620,13 @@ function switchTab(tabName) {
                 if (!response.ok) throw new Error('Failed to load inventory');
 
                 const data = await response.json();
+            // Demo: use localStorage seed if API returns empty
+            var _seedKey_ = "lfn_inventory";
+            var _apiData_ = data || [];
+            if (_apiData_.length === 0) {
+                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) data = _seed_; } catch(e) {}
+            }
+            
                 renderTable(data);
                 updateStats(data);
             } catch (error) {
@@ -981,5 +988,16 @@ function switchTab(tabName) {
             loadInventory();
         });
     </script>
-</body>
+
+        // ── DEMO SEED: auto-populate 4 sample records ──
+        (function() {
+            var key = "lfn_inventory";
+            try {
+                if (!localStorage.getItem(key)) {
+                    localStorage.setItem(key, JSON.stringify([{"id": "i01", "itemCode": "MAT-FUEL-001", "itemName": "Solar (Diesel) Dex", "category": "FUEL", "siteCode": "TNG", "location": "Tangki BBM Utama", "uomCode": "LTR", "quantity": 8500, "minStock": 3000, "maxStock": 20000, "unitPrice": 15150, "remarks": "Stok aman untuk 2 minggu", "status": "ACTIVE"}, {"id": "i02", "itemCode": "MAT-TYRE-001", "itemName": "Ban Bridgestone 1200R20", "category": "TYRE", "siteCode": "TNG", "location": "Gudang Ban A", "uomCode": "PCS", "quantity": 24, "minStock": 10, "maxStock": 50, "unitPrice": 5800000, "remarks": "Terakhir restock 2026-03-16", "status": "ACTIVE"}, {"id": "i03", "itemCode": "MAT-PART-001", "itemName": "Oli Shell Rimula R4 X 15W-40", "category": "PART", "siteCode": "TNG", "location": "Gudang Sparepart", "uomCode": "LTR", "quantity": 45, "minStock": 20, "maxStock": 200, "unitPrice": 85000, "remarks": "Stok menipis - perlu reorder", "status": "LOW_STOCK"}, {"id": "i04", "itemCode": "MAT-SVC-001", "itemName": "Filter Oli Hino 500", "category": "PART", "siteCode": "TNG", "location": "Gudang Sparepart", "uomCode": "PCS", "quantity": 8, "minStock": 5, "maxStock": 30, "unitPrice": 225000, "remarks": "Set filter lengkap Hino", "status": "ACTIVE"}]));
+                }
+            } catch(e) {}
+        })();
+    
+    </body>
 </html>

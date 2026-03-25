@@ -329,6 +329,13 @@
                 const res = await fetch(API + (params.toString() ? "?" + params : ""));
                 if (!res.ok) throw new Error(await res.text());
                 const data = await res.json();
+            // Demo: use localStorage seed if API returns empty
+            var _seedKey_ = "lfn_uoms";
+            var _apiData_ = data || [];
+            if (_apiData_.length === 0) {
+                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) data = _seed_; } catch(e) {}
+            }
+            
                 renderTable(data);
                 renderStats(data);
             } catch (e) {
@@ -418,5 +425,16 @@
 
         loadData();
     </script>
-</body>
+
+        // ── DEMO SEED: auto-populate 4 sample records ──
+        (function() {
+            var key = "lfn_uoms";
+            try {
+                if (!localStorage.getItem(key)) {
+                    localStorage.setItem(key, JSON.stringify([{"id": "u01", "uomCode": "LTR", "uomName": "Liter", "uomCategory": "VOLUME", "remarks": "Satuan volume cairan", "status": "ACTIVE"}, {"id": "u02", "uomCode": "KG", "uomName": "Kilogram", "uomCategory": "WEIGHT", "remarks": "Satuan berat", "status": "ACTIVE"}, {"id": "u03", "uomCode": "PCS", "uomName": "Pieces", "uomCategory": "COUNT", "remarks": "Satuan jumlah barang", "status": "ACTIVE"}, {"id": "u04", "uomCode": "TON", "uomName": "Metric Ton", "uomCategory": "WEIGHT", "remarks": "Satuan ton metrik", "status": "ACTIVE"}]));
+                }
+            } catch(e) {}
+        })();
+    
+    </body>
 </html>

@@ -453,6 +453,13 @@
             try {
                 const response = await fetch(`${API_BASE}/api/tyres/po-upload`, { method: 'POST', body: formData });
                 const result = await response.json();
+            // Demo: use localStorage seed if API returns empty
+            var _seedKey_ = "lfn_tyre_upload";
+            var _apiData_ = result || [];
+            if (_apiData_.length === 0) {
+                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) result = _seed_; } catch(e) {}
+            }
+            
                 if (response.ok) {
                     Swal.fire({ icon: 'success', title: 'Berhasil!', text: result.message }).then(() => {
                         window.location.href = 'datalist- tyre.html';
@@ -514,5 +521,16 @@
             }
         });
     </script>
-</body>
+
+        // ── DEMO SEED: auto-populate 4 sample records ──
+        (function() {
+            var key = "lfn_tyre_upload";
+            try {
+                if (!localStorage.getItem(key)) {
+                    localStorage.setItem(key, JSON.stringify([{"fileName": "Tyre_PO_TNG_2026-03-01.csv", "uploadDate": "2026-03-01", "uploadedBy": "Heru Wijaya", "totalRecords": 48, "status": "SUCCESS", "remarks": "Upload PO ban Bridgestone"}, {"fileName": "Tyre_Problem_TNG_2026-03-15.csv", "uploadDate": "2026-03-15", "uploadedBy": "Joko Susilo", "totalRecords": 12, "status": "SUCCESS", "remarks": "Report ban bermasalah"}, {"fileName": "Tyre_PO_KCM_2026-03-10.csv", "uploadDate": "2026-03-10", "uploadedBy": "Rizky Ramadhan", "totalRecords": 36, "status": "SUCCESS", "remarks": "Upload PO ban site KTC"}, {"fileName": "Tyre_Problem_TNG_2026-03-20.csv", "uploadDate": "2026-03-20", "uploadedBy": "Asep Saepudin", "totalRecords": 8, "status": "PARTIAL", "remarks": "2 record invalid format - perlu koreksi"}]));
+                }
+            } catch(e) {}
+        })();
+    
+    </body>
 </html>

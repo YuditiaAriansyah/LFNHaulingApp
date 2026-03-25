@@ -409,6 +409,13 @@
             try {
                 const res = await fetch(url);
                 allSites = await res.json();
+            // Demo: use localStorage seed if API returns empty
+            var _seedKey_ = "lfn_sites";
+            var _apiData_ = allSites || [];
+            if (_apiData_.length === 0) {
+                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) allSites = _seed_; } catch(e) {}
+            }
+            
                 updateStats();
                 renderTable();
             } catch (err) {
@@ -561,5 +568,16 @@
             }
         }
     </script>
-</body>
+
+        // ── DEMO SEED: auto-populate 4 sample records ──
+        (function() {
+            var key = "lfn_sites";
+            try {
+                if (!localStorage.getItem(key)) {
+                    localStorage.setItem(key, JSON.stringify([{"id": "s01", "siteCode": "TNG", "siteName": "Site Tanjung", "region": "Kalimantan Selatan", "siteType": "MINING", "city": "Banjarmasin", "province": "Kalimantan Selatan", "address": "Jl. Poros Tanjung Km 12, Tabuk", "timeZone": "Asia/Makassar", "contactPerson": "Ahmad Hidayat", "phone": "0812-3456-7890", "remarks": "Site tambang batu bara utama", "status": "ACTIVE"}, {"id": "s02", "siteCode": "KCM", "siteName": "KTC Mining Camp", "region": "Kalimantan Tengah", "siteType": "MINING", "city": "Palangka Raya", "province": "Kalimantan Tengah", "address": "KTC Camp Km 45, Kuala Kurun", "timeZone": "Asia/Makassar", "contactPerson": "Budi Santoso", "phone": "0813-4567-8901", "remarks": "Coal mining operation site", "status": "ACTIVE"}, {"id": "s03", "siteCode": "PTB", "siteName": "Port Boomangan", "region": "Kalimantan Selatan", "siteType": "PORT", "city": "Pelaihari", "province": "Kalimantan Selatan", "address": "Jl. Pelaihari Boomangan No.5", "timeZone": "Asia/Makassar", "contactPerson": "Dewi Rahayu", "phone": "0814-5678-9012", "remarks": "Port loading batu bara", "status": "ACTIVE"}, {"id": "s04", "siteCode": "GQS", "siteName": "Graha Quarry Site", "region": "Jawa Timur", "siteType": "QUARRY", "city": "Malang", "province": "Jawa Timur", "address": "Jl. Raya Quarry No.8, Tumpang", "timeZone": "Asia/Jakarta", "contactPerson": "Rudi Hermawan", "phone": "0815-6789-0123", "remarks": "Quarry batu kapur", "status": "INACTIVE"}]));
+                }
+            } catch(e) {}
+        })();
+    
+    </body>
 </html>
