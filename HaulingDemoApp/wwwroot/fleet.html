@@ -27,8 +27,8 @@
         .navbar { background: var(--navy); padding: 0.75rem 0; border-bottom: 1px solid rgba(255,255,255,0.08); box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
         .navbar-brand { font-weight: 700; font-size: 1.35rem; color: #fff !important; display: flex; align-items: center; gap: 8px; }
         .navbar-brand i { color: #38bdf8; font-size: 1.6rem; }
-        .nav-group { display: flex; align-items: center; gap: 2px; }
-        .nav-group-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.35); padding: 0 8px; margin-right: 4px; border-right: 1px solid rgba(255,255,255,0.15); }
+        
+        
         .nav-link { color: rgba(255,255,255,0.65) !important; font-weight: 500; font-size: 0.875rem; padding: 0.5rem 0.75rem !important; border-radius: 8px; transition: all 0.2s ease; display: flex; align-items: center; gap: 6px; position: relative; }
         .nav-link i { font-size: 1rem; opacity: 0.8; }
         .nav-link:hover, .nav-link.active { color: #fff !important; background: rgba(59,130,246,0.25); }
@@ -136,21 +136,155 @@
 
     </style>
 
-</head>
+
+    /* ===== NEW DROPDOWN NAVBAR STYLES ===== */
+    .nav-item.dropdown { position: relative; }
+    .nav-item.dropdown .nav-link {
+        color: rgba(255, 255, 255, 0.6) !important;
+        font-weight: 500;
+        font-size: 0.82rem;
+        padding: 0.45rem 0.7rem !important;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        white-space: nowrap;
+        text-decoration: none;
+    }
+    .nav-item.dropdown .nav-link:hover { color: rgba(255,255,255,0.9) !important; background: rgba(255,255,255,0.08); }
+    .nav-item.dropdown .nav-link.dropdown-toggle::after {
+        display: inline-block;
+        margin-left: 4px;
+        content: '';
+        border: 0;
+        border-top: 4px solid rgba(255,255,255,0.4);
+        border-right: 4px solid transparent;
+        border-bottom: 0;
+        border-left: 4px solid transparent;
+        vertical-align: middle;
+        transition: transform 0.2s;
+    }
+    .nav-item.dropdown:hover .nav-link.dropdown-toggle::after { border-top-color: rgba(255,255,255,0.7); }
+    .dropdown-menu {
+        background: rgba(15, 23, 42, 0.98) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 12px !important;
+        padding: 6px !important;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+        min-width: 220px !important;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        animation: dropdownFade 0.15s ease;
+        margin-top: 4px !important;
+    }
+    @keyframes dropdownFade {
+        from { opacity: 0; transform: translateY(-6px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .dropdown-divider { border-color: rgba(255,255,255,0.08) !important; margin: 4px 0; }
+    .dropdown-item {
+        color: rgba(255, 255, 255, 0.7) !important;
+        font-size: 0.82rem;
+        font-weight: 500;
+        padding: 8px 12px !important;
+        border-radius: 8px !important;
+        transition: all 0.15s ease;
+        display: flex !important;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
+    .dropdown-item:hover { color: #fff !important; background: rgba(59, 130, 246, 0.25) !important; }
+    .dropdown-item.active-page { color: #fff !important; background: rgba(59, 130, 246, 0.4) !important; }
+    .dropdown-item i { font-size: 0.9rem; width: 16px; text-align: center; opacity: 0.7; }
+    .dropdown-item:hover i { opacity: 1; }
+    .dropdown-item .bi { font-size: 0.9rem; }
+
+    </head>
 <body>
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
             <a class="navbar-brand" href="/"><i class="bi bi-car-front me-2"></i>LFN Fleet</a>
-            <div class="collapse navbar-collapse">
+                        <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a  class="nav-link" href="/" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-house me-1"></i> Home</a></li>
-                    <li class="nav-item"><a  class="nav-link" href="datalist-fuel.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-fuel-pump me-1"></i> Fuel</a></li>
-                    <li class="nav-item"><a  class="nav-link" href="inventory.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-boxes me-1"></i> Inventory</a></li>
-                    <li class="nav-item"><a  class="nav-link" href="data-Upload-Tyre.html" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;"<i class="bi bi-disc me-1"></i> Tyre</a></li>
-                    <li class="nav-item"><a  class="nav-link active" href="fleet.html" style="background:#2563eb!important;color:#fff!important;border:1.5px solid #2563eb!important;border-bottom:none!important;"<i class="bi bi-car-front me-1"></i> Fleet</a></li>
+          <li class="nav-item"><a class="nav-link" href="index.html"><i class="bi bi-house"></i> Home</a></li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">P1 Master</a>
+            <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="master-site.html"><i class="bi bi-geo-alt"></i> Site</a></li>
+                            <li><a class="dropdown-item" href="master-cost-center.html"><i class="bi bi-diagram-3"></i> Cost Center</a></li>
+                            <li><a class="dropdown-item" href="master-user.html"><i class="bi bi-people"></i> User</a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">P2 Master</a>
+            <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="master-department.html"><i class="bi bi-building"></i> Department</a></li>
+                            <li><a class="dropdown-item" href="master-driver.html"><i class="bi bi-person-badge"></i> Driver</a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">P3 Master</a>
+            <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="master-vehicle.html"><i class="bi bi-truck"></i> Vehicle</a></li>
+                            <li><a class="dropdown-item" href="master-route.html"><i class="bi bi-signpost-split"></i> Route</a></li>
+                            <li><a class="dropdown-item" href="master-material.html"><i class="bi bi-box-seam"></i> Material</a></li>
+                            <li><a class="dropdown-item" href="master-uom.html"><i class="bi bi-rulers"></i> UOM</a></li>
+                            <li><a class="dropdown-item" href="master-coa.html"><i class="bi bi-book"></i> COA</a></li>
+                            <li><a class="dropdown-item" href="master-tax.html"><i class="bi bi-percent"></i> Tax</a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">P4 Master</a>
+            <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="master-workflow.html"><i class="bi bi-diagram-2"></i> Workflow</a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle active" href="#" data-bs-toggle="dropdown">Operasi</a>
+            <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="datalist-fuel.html"><i class="bi bi-fuel"></i> Fuel List</a></li>
+                            <li><a class="dropdown-item" href="data-Upload-Fuel.html"><i class="bi bi-cloud-upload"></i> Fuel Upload</a></li>
+                            <li><a class="dropdown-item" href="rm.html"><i class="bi bi-wrench"></i> R&M</a></li>
+                            <li><a class="dropdown-item active-page" href="fleet.html"><i class="bi bi-truck"></i> Fleet</a></li>
+                            <li><a class="dropdown-item" href="datalist-%20tyre.html"><i class="bi bi-circle"></i> Tyre List</a></li>
+                            <li><a class="dropdown-item" href="data-Upload-Tyre.html"><i class="bi bi-cloud-upload"></i> Tyre Upload</a></li>
+                            <li class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="inventory.html"><i class="bi bi-box-seam"></i> Inventory</a></li>
+                            <li><a class="dropdown-item" href="haul-trip.html"><i class="bi bi-arrow-left-right"></i> Haul Trip</a></li>
+                            <li><a class="dropdown-item" href="weighbridge.html"><i class="bi bi-scale"></i> Weighbridge</a></li>
+                            <li><a class="dropdown-item" href="kpi-dashboard.html"><i class="bi bi-graph-up"></i> KPI Dashboard</a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Procurement</a>
+            <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="purchase-request.html"><i class="bi bi-file-earmark-text"></i> Purchase Request</a></li>
+                            <li><a class="dropdown-item" href="purchase-order.html"><i class="bi bi-receipt"></i> Purchase Order</a></li>
+                            <li><a class="dropdown-item" href="good-receipt.html"><i class="bi bi-clipboard-check"></i> Goods Receipt</a></li>
+                            <li><a class="dropdown-item" href="good-issue.html"><i class="bi bi-box-arrow-up"></i> Goods Issue</a></li>
+                            <li class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="vendor.html"><i class="bi bi-shop"></i> Vendor</a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Keuangan</a>
+            <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="finance.html"><i class="bi bi-cash-stack"></i> Finance</a></li>
+                            <li><a class="dropdown-item" href="hr.html"><i class="bi bi-person-lines-fill"></i> HR</a></li>
+            </ul>
+          </li>
                 </ul>
             </div>
-        </div>
+</div>
     </nav>
 
     <div class="container">
