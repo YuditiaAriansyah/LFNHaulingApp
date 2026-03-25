@@ -484,7 +484,30 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+    
+
+
+
+<script>
+// Demo seed: populate localStorage with sample data
+(function(){
+  var k="lfn_kpi";
+  var d=[
+      {"id": "kpi01", "kpiCode": "KPI-PROD", "kpiName": "Total Produksi Harian", "kpiType": "PRODUCTION", "unit": "TON", "targetValue": 500, "actualValue": 487, "achievement": 97.4, "period": "2024-03-20", "siteId": "s01", "status": "GREEN"},
+      {"id": "kpi02", "kpiCode": "KPI-FUEL", "kpiName": "Fuel Efficiency", "kpiType": "EFFICIENCY", "unit": "L/TON", "targetValue": 1.8, "actualValue": 1.95, "achievement": 92.3, "period": "2024-03-20", "siteId": "s01", "status": "YELLOW"},
+      {"id": "kpi03", "kpiCode": "KPI-AVAIL", "kpiName": "Fleet Availability", "kpiType": "MAINTENANCE", "unit": "PERCENT", "targetValue": 90, "actualValue": 85, "achievement": 94.4, "period": "2024-03-20", "siteId": "s01", "status": "GREEN"},
+      {"id": "kpi04", "kpiCode": "KPI-SAFETY", "kpiName": "Zero Incident Days", "kpiType": "SAFETY", "unit": "DAYS", "targetValue": 365, "actualValue": 287, "achievement": 78.6, "period": "2024-03-20", "siteId": "s01", "status": "RED"}
+    ];
+  try{
+    if(!localStorage.getItem(k)){
+      localStorage.setItem(k,JSON.stringify(d));
+    }
+  }catch(e){}
+})();
+</script>
+<script>
+
+
         const API = '/api';
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -514,119 +537,41 @@
             if (el) el.textContent = val;
         }
 
-        async function loadDashboard() {
-            showLoading();
+        async function loadDashboard() {            showLoading();
             try {
                 const fromDate = document.getElementById('fromDate').value;
                 const toDate = document.getElementById('toDate').value;
                 let url = `${API}/kpi/dashboard?`;
                 if (fromDate) url += `fromDate=${fromDate}&`;
                 if (toDate) url += `toDate=${toDate}&`;
-
                 document.getElementById('periodLabel').textContent =
                     `Periode: ${fromDate || 'All time'} s/d ${toDate || 'Now'}`;
-
                 const res = await fetch(url);
                 if (!res.ok) throw new Error('Failed to load KPI');
                 const d = await res.json();
-            // Demo: use localStorage seed if API returns empty
-            var _seedKey_ = "lfn_kpi";
-            var _apiData_ = d || [];
-            if (_apiData_.length === 0) {
-                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) d = _seed_; } catch(e) {}
-            }
-            
-
-                // Hauling
-                const h = d.hauling || {};
-                set('kpiTotalTrips', fmt(h.totalTrips));
-                set('kpiCompletedTrips', fmt(h.completedTrips) + ' completed');
-                set('kpiTotalMaterial', fmt(h.totalMaterial, 1));
-                set('kpiAvgFuelEff', fmt(h.avgFuelEfficiency, 2));
-                set('kpiVehicleUtil', fmt(h.vehicleUtilization, 1) + '%');
-                set('kpiActiveVehicles', fmt(h.activeVehicles) + ' active');
-                set('kpiActiveDrivers', fmt(h.activeDrivers));
-                set('kpiTotalFuel', fmt(h.totalFuel, 0));
-                const completionRate = h.totalTrips > 0 ? Math.round((h.completedTrips / h.totalTrips) * 100) : 0;
-                set('kpiCompletionRate', completionRate + '%');
-
-                // Maintenance
-                const m = d.maintenance || {};
-                set('kpiOpenWO', fmt(m.openWorkOrders));
-                set('kpiInProgressWO', fmt(m.inProgressWorkOrders));
-                set('kpiCompletedWO', fmt(m.completedWorkOrders));
-                set('kpiOverdueWO', fmt(m.overdueWorkOrders));
-                set('kpiScheduledPM', fmt(m.scheduledPM));
-                set('kpiCompletedPM', fmt(m.completedPM));
-                set('kpiOpenCM', fmt(m.openCM));
-
-                // Inventory
-                const inv = d.inventory || {};
-                set('kpiTotalItems', fmt(inv.totalItems));
-                set('kpiLowStock', fmt(inv.lowStock));
-                set('kpiReorderNeeded', fmt(inv.reorderNeeded));
-                set('kpiInventoryValue', fmtCurrency(inv.totalInventoryValue));
-
-                // Finance
-                const f = d.finance || {};
-                set('kpiTotalPayroll', fmtCurrency(f.totalPayroll));
-                set('kpiTotalBudget', fmtCurrency(f.totalBudget));
-                set('kpiTotalSpent', fmtCurrency(f.totalSpent));
-                set('kpiBudgetUtil', fmt(f.budgetUtilization, 1) + '%');
-                const budgetBar = document.getElementById('budgetProgressBar');
-                if (budgetBar) budgetBar.style.width = Math.min(100, f.budgetUtilization || 0) + '%';
-
-                // Fuel
-                const fuel = d.fuel;
-                if (fuel) {
-                    document.getElementById('fuelSection').style.display = 'block';
-                    set('kpiFuelConsumed', fmt(fuel.totalFuelConsumed, 0) + ' L');
-                    set('kpiFuelEff', fmt(fuel.avgFuelEfficiency, 2));
-                    set('kpiFuelCost', fmtCurrency(fuel.totalFuelCost));
-                    set('kpiFuelCostPerKm', fmt(fuel.avgFuelCostPerKm, 2));
-                } else {
-                    document.getElementById('fuelSection').style.display = 'none';
-                }
-
-                // Production
-                const prod = d.production;
-                if (prod) {
-                    document.getElementById('productionSection').style.display = 'block';
-                    set('kpiTotalProduction', fmt(prod.totalProduction, 1));
-                    set('kpiAvgDailyProduction', fmt(prod.avgDailyProduction, 1));
-                } else {
-                    document.getElementById('productionSection').style.display = 'none';
-                }
-
-                // Driver Performance
-                const dp = d.driverPerformance;
-                if (dp) {
-                    document.getElementById('driverPerfSection').style.display = 'block';
-                    set('kpiAvgTripsPerDriver', fmt(dp.avgTripsPerDriver, 1));
-                    set('kpiDriverFuelEff', fmt(dp.avgFuelEfficiency, 2));
-                    set('kpiTopDriver', dp.topDriver || '-');
-                } else {
-                    document.getElementById('driverPerfSection').style.display = 'none';
-                }
-
-            } catch (e) {
+ } catch (err) {
                 Swal.fire('Error', e.message, 'error');
-            } finally {
-                hideLoading();
-            }
-        }
+ }
+     if (!d || d.length === 0) {
+         try {
+             var _seed_ = JSON.parse(localStorage.getItem("lfn_kpi"));
+             if (_seed_ && _seed_.length) d = _seed_;
+         } catch(e) {}
+     }
+     if (typeof updateStats === "function") updateStats();
+     if (typeof renderTable === "function") renderTable();
+     if (!d || d.length === 0) {
+         try {
+             var _seed_ = JSON.parse(localStorage.getItem("lfn_kpi"));
+             if (_seed_ && _seed_.length) d = _seed_;
+         } catch(e) {}
+     }
+     if (typeof updateStats === "function") updateStats();
+     if (typeof renderTable === "function") renderTable();
+
+    
     </script>
-<script>
-        // ── DEMO SEED: auto-populate 4 sample records ──
-        (function() {
-            var key = "lfn_kpi";
-            try {
-                if (!localStorage.getItem(key)) {
-                    localStorage.setItem(key, JSON.stringify([{"id": "k01", "period": "Maret 2026", "siteCode": "TNG", "totalTrips": 1248, "totalMaterial": 24950, "avgCycleTime": 48.5, "avgPayload": 19.9, "fuelEfficiency": 0.38, "availability": 92.5, "utilization": 88.3, "oee": 81.2, "status": "PUBLISHED"}, {"id": "k02", "period": "Februari 2026", "siteCode": "TNG", "totalTrips": 1156, "totalMaterial": 23120, "avgCycleTime": 50.2, "avgPayload": 20.0, "fuelEfficiency": 0.39, "availability": 90.1, "utilization": 85.7, "oee": 77.3, "status": "PUBLISHED"}, {"id": "k03", "period": "Maret 2026", "siteCode": "KCM", "totalTrips": 892, "totalMaterial": 17840, "avgCycleTime": 52.0, "avgPayload": 20.0, "fuelEfficiency": 0.37, "availability": 88.0, "utilization": 82.5, "oee": 72.6, "status": "PUBLISHED"}, {"id": "k04", "period": "Maret 2026", "siteCode": "ALL", "totalTrips": 2140, "totalMaterial": 42790, "avgCycleTime": 49.8, "avgPayload": 19.99, "fuelEfficiency": 0.375, "availability": 90.8, "utilization": 86.1, "oee": 78.2, "status": "PENDING"}]));
-                }
-            } catch(e) {}
-        })();
-    </script>
+
     
     
     

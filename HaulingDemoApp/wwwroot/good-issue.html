@@ -513,8 +513,33 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+    
+
+
+
+<script>
+// Demo seed: populate localStorage with sample data
+(function(){
+  var k="lfn_gi";
+  var d=[
+      {"id": "gi01", "giNumber": "GI-2024-001", "siteId": "s01", "issueDate": "2024-03-16", "items": [{"materialId": "mat01", "quantity": 45, "uomId": "uom01", "destinationLocation": "Pit A", "purpose": "Produksi harian"}], "issuedBy": "u01", "status": "ISSUED"},
+      {"id": "gi02", "giNumber": "GI-2024-002", "siteId": "s01", "issueDate": "2024-03-17", "items": [{"materialId": "mat01", "quantity": 55, "uomId": "uom01", "destinationLocation": "Stockpile 1", "purpose": "Stockfill operations"}], "issuedBy": "u01", "status": "ISSUED"},
+      {"id": "gi03", "giNumber": "GI-2024-003", "siteId": "s02", "issueDate": "2024-03-19", "items": [{"materialId": "mat02", "quantity": 30, "uomId": "uom01", "destinationLocation": "Crusher LFN", "purpose": "Blending limestone"}], "issuedBy": "u02", "status": "ISSUED"},
+      {"id": "gi04", "giNumber": "GI-2024-004", "siteId": "s03", "issueDate": "2024-03-20", "items": [{"materialId": "mat01", "quantity": 80, "uomId": "uom01", "destinationLocation": "Port Boomangan Jetty A", "purpose": "Loading ke tongkang"}], "issuedBy": "u03", "status": "ISSUED"}
+    ];
+  try{
+    if(!localStorage.getItem(k)){
+      localStorage.setItem(k,JSON.stringify(d));
+    }
+  }catch(e){}
+})();
+</script>
+<script>
+
+
         let gis = [];
+        // load from localStorage on API error too
+
         let currentItems = [];
         let editingId = null;
         let deleteId = null;
@@ -530,80 +555,35 @@ function switchTab(tab) {
             document.getElementById(tab + 'Content').classList.add('active');
         }
 
-        async function loadGIs() {
+        async function loadGIs() {            const site = document.getElementById('filterSite').value;
+            const status = document.getElementById('filterStatus').value;
             const site = document.getElementById('filterSite').value;
             const status = document.getElementById('filterStatus').value;
-
             try {
                 const response = await fetch(`/api/good-issues?site=${site}&status=${status}`);
                 gis = await response.json();
-            // Demo: use localStorage seed if API returns empty
-            var _seedKey_ = "lfn_gi";
-            var _apiData_ = gis || [];
-            if (_apiData_.length === 0) {
-                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) gis = _seed_; } catch(e) {}
-            }
-            
-                renderTable();
-                loadStats();
-            } catch (error) {
-                console.error('Error:', error);
-                Swal.fire('Error', 'Failed to load data', 'error');
-            }
-        }
 
-        function renderTable() {
-            const tbody = document.getElementById('giTableBody');
-
-            if (!gis || gis.length === 0) {
+                } catch (err) {
                 tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4"><i class="bi bi-inbox fs-3 d-block mb-2"></i>No data available</td></tr>';
-                return;
-            }
 
-            tbody.innerHTML = gis.map((gi, index) => `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td><strong>${gi.giNumber}</strong></td>
-                    <td>${formatDate(gi.giDate)}</td>
-                    <td>${gi.site}</td>
-                    <td>${gi.department || '-'}</td>
-                    <td>${gi.items ? gi.items.length : 0}</td>
-                    <td>${getStatusBadge(gi.status)}</td>
-                    <td>${gi.issuedBy || '-'}</td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="btn btn-info btn-sm" onclick="viewGI(${gi.id})"><i class="bi bi-eye"></i></button>
-                            <button class="btn btn-warning btn-sm" onclick="editGI(${gi.id})"><i class="bi bi-pencil"></i></button>
-                            <button class="btn btn-danger btn-sm" onclick="confirmDelete(${gi.id}, '${gi.giNumber}')"><i class="bi bi-trash"></i></button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-        }
+                }
 
-        function getStatusBadge(status) {
-            const badges = {
-                'ISSUED': '<span class="badge badge-issued">Issued</span>',
-                'COMPLETED': '<span class="badge badge-completed">Completed</span>',
-                'CANCELLED': '<span class="badge badge-cancelled">Cancelled</span>'
-            };
-            return badges[status] || `<span class="badge badge-issued">${status}</span>`;
-        }
+                    if (!gis || gis.length === 0) {
 
-        async function loadStats() {
-            try {
-                const response = await fetch('/api/good-issues/stats');
-                const stats = await response.json();
-                document.getElementById('statTotal').textContent = stats.total || 0;
-                document.getElementById('statIssued').textContent = stats.issued || 0;
-                document.getElementById('statCompleted').textContent = stats.completed || 0;
-                document.getElementById('statCancelled').textContent = stats.cancelled || 0;
-            } catch (error) { console.error('Error loading stats:', error); }
-        }
+                        try {
 
-        async function viewGI(id) {
-            try {
-                const response = await fetch(`/api/good-issues/${id}`);
+                            var _seed_ = JSON.parse(localStorage.getItem("lfn_gi"));
+
+                            if (_seed_ && _seed_.length) gis = _seed_;
+
+                        } catch(e) {}
+
+                    }
+
+                    if (typeof updateStats === "function") updateStats();
+
+                    if (typeof renderTable === "function") renderTable();
+`);
                 const gi = await response.json();
 
                 const itemsHtml = (gi.items || []).map(item => `
@@ -800,9 +780,18 @@ function switchTab(tab) {
                 switchTab('list');
                 loadGIs();
             } catch (error) {
+            try {
+                var _d_ = JSON.parse(localStorage.getItem(_key_));
+            } catch(e) {}
+            if (window[_var_] && window[_var_].length > 0) {
+                if (typeof updateStats === "function") updateStats();
+                if (typeof renderTable === "function") renderTable();
+            } else {
+
                 console.error('Error:', error);
                 Swal.fire('Error', 'Failed to save GI', 'error');
-            }
+                        }
+            return;}
         });
 
         function formatDate(date) {
@@ -819,17 +808,7 @@ function switchTab(tab) {
             loadGIs();
         });
     </script>
-<script>
-        // ── DEMO SEED: auto-populate 4 sample records ──
-        (function() {
-            var key = "lfn_gi";
-            try {
-                if (!localStorage.getItem(key)) {
-                    localStorage.setItem(key, JSON.stringify([{"id": "gi01", "giNumber": "GI-2026-0001", "siteCode": "TNG", "issuedDate": "2026-03-15", "issuedBy": "Heru Wijaya", "department": "DEPT-OPS", "itemDescription": "Solar Dex untuk unit VH-001", "quantity": 350, "uomCode": "LTR", "purpose": "Operasi hauling harian", "recipient": "VH-001 (DA 1234 OT)", "status": "COMPLETED"}, {"id": "gi02", "giNumber": "GI-2026-0002", "siteCode": "TNG", "issuedDate": "2026-03-16", "issuedBy": "Joko Susilo", "department": "DEPT-MTN", "itemDescription": "Oli mesin Shell Rimula R4 X", "quantity": 20, "uomCode": "LTR", "purpose": "Service rutin VH-002", "recipient": "VH-002 (DA 2345 OT)", "status": "COMPLETED"}, {"id": "gi03", "giNumber": "GI-2026-0003", "siteCode": "KCM", "issuedDate": "2026-03-18", "issuedBy": "Rizky Ramadhan", "department": "DEPT-OPS", "itemDescription": "Solar Dex untuk unit VH-003", "quantity": 280, "uomCode": "LTR", "purpose": "Operasi hauling site KTC", "recipient": "VH-003 (KT 1111 PT)", "status": "PENDING"}, {"id": "gi04", "giNumber": "GI-2026-0004", "siteCode": "TNG", "issuedDate": "2026-03-20", "issuedBy": "Asep Saepudin", "department": "DEPT-MTN", "itemDescription": "Filter oli + filter udara Hino", "quantity": 2, "uomCode": "SET", "purpose": "PM berkala VH-001", "recipient": "VH-001 (DA 1234 OT)", "status": "CANCELLED"}]));
-                }
-            } catch(e) {}
-        })();
-    </script>
+
     
     
     

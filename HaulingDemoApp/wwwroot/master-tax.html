@@ -306,7 +306,30 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+    
+
+
+
+<script>
+// Demo seed: populate localStorage with sample data
+(function(){
+  var k="lfn_tax";
+  var d=[
+      {"id": "tx01", "taxCode": "PPN", "taxName": "Pajak Pertambahan Nilai", "taxRate": 11, "taxType": "OUTPUT", "accountCode": "2-1000", "description": "PPN 11% (sesuai PMK 2024)", "status": "ACTIVE"},
+      {"id": "tx02", "taxCode": "PPh21", "taxName": "Pajak Penghasilan Pasal 21", "taxRate": 5, "taxType": "INCOME_TAX", "accountCode": "2-2000", "description": "PPh 21 atas gaji karyawan", "status": "ACTIVE"},
+      {"id": "tx03", "taxCode": "PPh23", "taxName": "Pajak Penghasilan Pasal 23", "taxRate": 2, "taxType": "INCOME_TAX", "accountCode": "2-2000", "description": "PPh 23 atas jasa Freight", "status": "ACTIVE"},
+      {"id": "tx04", "taxCode": "PPh15", "taxName": "Pajak Penghasilan Pasal 15", "taxRate": 1.5, "taxType": "INCOME_TAX", "accountCode": "2-2000", "description": "PPh 15 atas usaha hauling", "status": "ACTIVE"}
+    ];
+  try{
+    if(!localStorage.getItem(k)){
+      localStorage.setItem(k,JSON.stringify(d));
+    }
+  }catch(e){}
+})();
+</script>
+<script>
+
+
         const API = "/api/tax/master";
         const MODAL = new bootstrap.Modal(document.getElementById("formModal"));
         let editingId = null;
@@ -329,22 +352,20 @@
                 const res = await fetch(API + (params.toString() ? "?" + params : ""));
                 if (!res.ok) throw new Error(await res.text());
                 const data = await res.json();
-            // Demo: use localStorage seed if API returns empty
-            var _seedKey_ = "lfn_tax";
-            var _apiData_ = data || [];
-            if (_apiData_.length === 0) {
-                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) data = _seed_; } catch(e) {}
-            }
-            
-                renderTable(data);
-                renderStats(data);
-            } catch (e) {
+ } catch (err) {
                 console.error(e);
                 Swal.fire("Gagal", "Tidak dapat memuat data dari server.", "error");
-            } finally {
-                showLoading(false);
-            }
-        }
+ }
+     if (!data || data.length === 0) {
+         try {
+             var _seed_ = JSON.parse(localStorage.getItem("lfn_tax"));
+             if (_seed_ && _seed_.length) data = _seed_;
+         } catch(e) {}
+     }
+     if (typeof updateStats === "function") updateStats();
+     if (typeof renderTable === "function") renderTable();
+
+        
 
         function renderTable(data) {
             const tbody = document.getElementById("tableBody");
@@ -424,17 +445,7 @@
 
         loadData();
     </script>
-<script>
-        // ── DEMO SEED: auto-populate 4 sample records ──
-        (function() {
-            var key = "lfn_tax";
-            try {
-                if (!localStorage.getItem(key)) {
-                    localStorage.setItem(key, JSON.stringify([{"id": "t01", "taxCode": "PPN", "taxName": "Pajak Pertambahan Nilai", "taxRate": 11, "taxType": "OUTPUT", "remarks": "PPN 11% sesuai PMK terbaru", "status": "ACTIVE"}, {"id": "t02", "taxCode": "PPh21", "taxName": "PPh Pasal 21", "taxRate": 5, "taxType": "OUTPUT", "remarks": "PPh 21 atas gaji karyawan", "status": "ACTIVE"}, {"id": "t03", "taxCode": "PPh23", "taxName": "PPh Pasal 23", "taxRate": 2, "taxType": "OUTPUT", "remarks": "PPh 23 atas jasa sebesar 2%", "status": "ACTIVE"}, {"id": "t04", "taxCode": "PPh26", "taxName": "PPh Pasal 26", "taxRate": 20, "taxType": "OUTPUT", "remarks": "PPh 26 atas penghasilan luar negeri", "status": "INACTIVE"}]));
-                }
-            } catch(e) {}
-        })();
-    </script>
+
     
     
     

@@ -1176,9 +1176,35 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+    
+
+
+
+<script>
+// Demo seed: populate localStorage with sample data
+(function(){
+  var k="lfn_finance";
+  var d=[
+      {"id": "fin01", "transactionDate": "2024-03-15", "accountCode": "4-1000", "accountName": "Pendapatan Batu Bara", "description": "Revenue HT-2024-001", "debit": 0, "credit": 17355000, "balance": 17355000, "transactionType": "REVENUE", "referenceModule": "HAUL_TRIP", "referenceId": "ht01", "siteId": "s01", "status": "POSTED"},
+      {"id": "fin02", "transactionDate": "2024-03-15", "accountCode": "5-1000", "accountName": "Beban Bahan Bakar", "description": "Fuel consumption VH-001 - 45L", "debit": 832500, "credit": 0, "balance": -832500, "transactionType": "EXPENSE", "referenceModule": "FUEL", "referenceId": "fuel01", "siteId": "s01", "status": "POSTED"},
+      {"id": "fin03", "transactionDate": "2024-03-16", "accountCode": "4-2000", "accountName": "Pendapatan Jasa Angkutan", "description": "Freight service fee HT-2024-002", "debit": 0, "credit": 18855000, "balance": 18855000, "transactionType": "REVENUE", "referenceModule": "HAUL_TRIP", "referenceId": "ht02", "siteId": "s01", "status": "POSTED"},
+      {"id": "fin04", "transactionDate": "2024-03-16", "accountCode": "5-2000", "accountName": "Beban Gaji Driver", "description": "Gaji drv01 period 1-15 Mar 2024", "debit": 12500000, "credit": 0, "balance": -12500000, "transactionType": "EXPENSE", "referenceModule": "HR", "referenceId": "pay01", "siteId": "s01", "status": "POSTED"}
+    ];
+  try{
+    if(!localStorage.getItem(k)){
+      localStorage.setItem(k,JSON.stringify(d));
+    }
+  }catch(e){}
+})();
+</script>
+<script>
+
+
         // ==================== GLOBAL STATE ====================
         let allCoaData = [];
+        // load from localStorage on API error too
+        // load from localStorage on API error too
+
         let journalLineCounter = 0;
         let currentJournalId = null;
 
@@ -1195,22 +1221,19 @@
             try {
                 const res = await fetch('/api/sites');
                 const sites = await res.json();
-            // Demo: use localStorage seed if API returns empty
-            var _seedKey_ = "lfn_finance";
-            var _apiData_ = sites || [];
-            if (_apiData_.length === 0) {
-                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) sites = _seed_; } catch(e) {}
-            }
-            
-                const select = document.getElementById('cptSiteFilter');
-                sites.forEach(site => {
-                    const opt = document.createElement('option');
-                    opt.value = site;
-                    opt.textContent = site;
-                    select.appendChild(opt);
-                });
-            } catch (e) { console.log('Sites load error:', e); }
-        }
+ } catch (err) {
+         console.error(err);
+ }
+     if (!sites || sites.length === 0) {
+         try {
+             var _seed_ = JSON.parse(localStorage.getItem("lfn_finance"));
+             if (_seed_ && _seed_.length) sites = _seed_;
+         } catch(e) {}
+     }
+     if (typeof updateStats === "function") updateStats();
+     if (typeof renderTable === "function") renderTable();
+
+        
 
         // ==================== CHART OF ACCOUNTS ====================
         async function loadCoaData() {
@@ -2027,17 +2050,7 @@
             return 'Rp ' + formatNumber(num);
         }
     </script>
-<script>
-        // ── DEMO SEED: auto-populate 4 sample records ──
-        (function() {
-            var key = "lfn_finance";
-            try {
-                if (!localStorage.getItem(key)) {
-                    localStorage.setItem(key, JSON.stringify([{"id": "fn01", "journalNo": "JN-2026-0001", "journalDate": "2026-03-10", "period": "2026-03", "description": "Pendapatan hauling HT-2026-0001", "accountCode": "4-110", "accountName": "Pendapatan Angkutan Batu Bara", "debit": 0, "credit": 157500000, "currency": "IDR", "status": "POSTED"}, {"id": "fn02", "journalNo": "JN-2026-0002", "journalDate": "2026-03-12", "period": "2026-03", "description": "Beban BBM Solar - VH-001, VH-002", "accountCode": "5-110", "accountName": "Beban BBM (Solar)", "debit": 10125000, "credit": 0, "currency": "IDR", "status": "POSTED"}, {"id": "fn03", "journalNo": "JN-2026-0003", "journalDate": "2026-03-15", "period": "2026-03", "description": "Beban maintenance VH-001 - service 5000km", "accountCode": "5-120", "accountName": "Beban Perawatan Kendaraan", "debit": 3500000, "credit": 0, "currency": "IDR", "status": "POSTED"}, {"id": "fn04", "journalNo": "JN-2026-0004", "journalDate": "2026-03-20", "period": "2026-03", "description": "Gaji Karyawan Operations Maret 2026", "accountCode": "6-100", "accountName": "Beban Gaji Karyawan", "debit": 185000000, "credit": 0, "currency": "IDR", "status": "PENDING"}]));
-                }
-            } catch(e) {}
-        })();
-    </script>
+
     
     
     

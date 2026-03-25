@@ -1018,7 +1018,30 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+    
+
+
+
+<script>
+// Demo seed: populate localStorage with sample data
+(function(){
+  var k="lfn_rm";
+  var d=[
+      {"id": "rm01", "woNumber": "WO-2024-001", "woType": "PREVENTIVE", "vehicleId": "v01", "siteId": "s01", "scheduledDate": "2024-03-25", "description": "Service rutin 5000 km - ganti oli, filter solar, cek rem", "assignedMechanicId": "u01", "status": "SCHEDULED", "priority": "MEDIUM", "estimatedHours": 4},
+      {"id": "rm02", "woNumber": "WO-2024-002", "woType": "CORRECTIVE", "vehicleId": "v04", "siteId": "s03", "scheduledDate": "2024-03-20", "description": "Perbaikan gearbox - bunyi tidak normal saat mundur", "assignedMechanicId": "u01", "status": "IN_PROGRESS", "priority": "HIGH", "estimatedHours": 16},
+      {"id": "rm03", "woNumber": "WO-2024-003", "woType": "PREVENTIVE", "vehicleId": "v03", "siteId": "s02", "scheduledDate": "2024-03-28", "description": "Inspeksi hydraulic system dan ganti filter", "assignedMechanicId": "u02", "status": "SCHEDULED", "priority": "LOW", "estimatedHours": 3},
+      {"id": "rm04", "woNumber": "WO-2024-004", "woType": "PREVENTIVE", "vehicleId": "v02", "siteId": "s01", "scheduledDate": "2024-03-30", "description": "Service rutin 5000 km - oli mesin, filter udaranya", "assignedMechanicId": "u01", "status": "SCHEDULED", "priority": "MEDIUM", "estimatedHours": 4}
+    ];
+  try{
+    if(!localStorage.getItem(k)){
+      localStorage.setItem(k,JSON.stringify(d));
+    }
+  }catch(e){}
+})();
+</script>
+<script>
+
+
         let currentTab = 'wo';
         let editingId = null;
         let deleteCallback = null;
@@ -1041,21 +1064,19 @@ function switchTab(tab) {
             try {
                 const response = await fetch('/api/rm/summary');
                 const data = await response.json();
-            // Demo: use localStorage seed if API returns empty
-            var _seedKey_ = "lfn_rm";
-            var _apiData_ = data || [];
-            if (_apiData_.length === 0) {
-                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) data = _seed_; } catch(e) {}
-            }
-            
-                document.getElementById('statTotalWO').textContent = data.totalWorkOrders || 0;
-                document.getElementById('statOpenWO').textContent = data.openWorkOrders || 0;
-                document.getElementById('statTotalPM').textContent = data.totalPM || 0;
-                document.getElementById('statOverduePM').textContent = data.overduePM || 0;
-                document.getElementById('statBreakdown').textContent = data.breakdownCount || 0;
-                document.getElementById('statDowntime').textContent = (data.totalDowntimeHours || 0) + 'h';
-            } catch (error) { console.error('Error loading stats:', error); }
-        }
+ } catch (err) {
+error) { console.error('Error loading stats:', error); 
+ }
+     if (!data || data.length === 0) {
+         try {
+             var _seed_ = JSON.parse(localStorage.getItem("lfn_rm"));
+             if (_seed_ && _seed_.length) data = _seed_;
+         } catch(e) {}
+     }
+     if (typeof updateStats === "function") updateStats();
+     if (typeof renderTable === "function") renderTable();
+
+        
 
         async function loadWorkOrders() {
             const site = document.getElementById('woFilterSite').value;
@@ -1640,17 +1661,7 @@ function switchTab(tab) {
             loadWorkOrders();
         });
     </script>
-<script>
-        // ── DEMO SEED: auto-populate 4 sample records ──
-        (function() {
-            var key = "lfn_rm";
-            try {
-                if (!localStorage.getItem(key)) {
-                    localStorage.setItem(key, JSON.stringify([{"id": "rm01", "workOrderNo": "WO-2026-0001", "siteCode": "TNG", "unitNo": "VH-001", "woType": "PREVENTIVE", "category": "PM", "description": "Service rutin 5000km - ganti oli, filter", "assignedTo": "Tim MTN-01", "woDate": "2026-03-10", "dueDate": "2026-03-12", "status": "COMPLETED"}, {"id": "rm02", "workOrderNo": "WO-2026-0002", "siteCode": "TNG", "unitNo": "VF-001", "woType": "CORRECTIVE", "category": "CORRECTIVE", "description": "Perbaikan sistem rem - kampas rem aus", "assignedTo": "Tim MTN-02", "woDate": "2026-03-18", "dueDate": "2026-03-20", "status": "IN_PROGRESS"}, {"id": "rm03", "workOrderNo": "WO-2026-0003", "siteCode": "KCM", "unitNo": "VH-003", "woType": "PREVENTIVE", "category": "PM", "description": "PM 10000km - inspeksi keseluruhan", "assignedTo": "Tim MTN-KCM", "woDate": "2026-03-15", "dueDate": "2026-03-17", "status": "COMPLETED"}, {"id": "rm04", "workOrderNo": "WO-2026-0004", "siteCode": "TNG", "unitNo": "VS-001", "woType": "CORRECTIVE", "category": "CORRECTIVE", "description": "Perbaikan AC - refrigerant habis", "assignedTo": "Tim MTN-01", "woDate": "2026-03-22", "dueDate": "2026-03-24", "status": "PENDING"}]));
-                }
-            } catch(e) {}
-        })();
-    </script>
+
     
     
     

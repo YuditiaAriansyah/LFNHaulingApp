@@ -399,9 +399,34 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+    
+
+
+
+<script>
+// Demo seed: populate localStorage with sample data
+(function(){
+  var k="lfn_wb";
+  var d=[
+      {"id": "wb01", "ticketNumber": "WB-2024-001", "weighbridgeType": "INBOUND", "vehicleId": "v01", "driverId": "drv01", "ticketDate": "2024-03-20", "weighingType": "FIRST_WEIGHING", "grossWeight": 45.2, "tareWeight": 0, "netWeight": 0, "weighingTime": "07:30", "operatorId": "u01", "status": "OPEN"},
+      {"id": "wb02", "ticketNumber": "WB-2024-002", "weighbridgeType": "OUTBOUND", "vehicleId": "v01", "driverId": "drv01", "ticketDate": "2024-03-20", "weighingType": "SECOND_WEIGHING", "grossWeight": 0, "tareWeight": 18.5, "netWeight": 26.7, "weighingTime": "08:05", "operatorId": "u01", "status": "CLOSED"},
+      {"id": "wb03", "ticketNumber": "WB-2024-003", "weighbridgeType": "INBOUND", "vehicleId": "v02", "driverId": "drv02", "ticketDate": "2024-03-20", "weighingType": "FIRST_WEIGHING", "grossWeight": 44.8, "tareWeight": 0, "netWeight": 0, "weighingTime": "08:15", "operatorId": "u01", "status": "OPEN"},
+      {"id": "wb04", "ticketNumber": "WB-2024-004", "weighbridgeType": "OUTBOUND", "vehicleId": "v02", "driverId": "drv02", "ticketDate": "2024-03-20", "weighingType": "SECOND_WEIGHING", "grossWeight": 0, "tareWeight": 18.5, "netWeight": 26.3, "weighingTime": "09:00", "operatorId": "u01", "status": "CLOSED"}
+    ];
+  try{
+    if(!localStorage.getItem(k)){
+      localStorage.setItem(k,JSON.stringify(d));
+    }
+  }catch(e){}
+})();
+</script>
+<script>
+
+
         const API = '/api';
         let tickets = [];
+        // load from localStorage on API error too
+
         let trips = [];
         let vehicles = [];
         let modal, linkModal;
@@ -435,22 +460,33 @@
         function showLoading() { document.getElementById('loadingOverlay').style.display = 'flex'; }
         function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
 
-        async function loadVehicles() {
-            try {
+        async function loadVehicles() {            try {
                 const res = await fetch(`${API}/vehicle/master`);
                 if (res.ok) {
                     vehicles = await res.json();
-            // Demo: use localStorage seed if API returns empty
-            var _seedKey_ = "lfn_wb";
-            var _apiData_ = vehicles || [];
-            if (_apiData_.length === 0) {
-                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) vehicles = _seed_; } catch(e) {}
-            }
-            
-                    populateSelect('ticketVehicle', vehicles, 'id', 'vehicleCode');
-                }
-            } catch (e) { console.error(e); }
-        }
+
+                    } catch (err) {
+ console.error(e); 
+
+                    }
+
+                        if (!vehicles || vehicles.length === 0) {
+
+                            try {
+
+                                var _seed_ = JSON.parse(localStorage.getItem("lfn_wb"));
+
+                                if (_seed_ && _seed_.length) vehicles = _seed_;
+
+                            } catch(e) {}
+
+                        }
+
+                        if (typeof updateStats === "function") updateStats();
+
+                        if (typeof renderTable === "function") renderTable();
+
+    }
 
         async function loadTrips() {
             try {
@@ -487,10 +523,19 @@
                 renderTickets();
                 renderSummary();
             } catch (e) {
+            try {
+                var _d_ = JSON.parse(localStorage.getItem(_key_));
+            } catch(e) {}
+            if (window[_var_] && window[_var_].length > 0) {
+                if (typeof updateStats === "function") updateStats();
+                if (typeof renderTable === "function") renderTable();
+            } else {
+
                 Swal.fire('Error', e.message, 'error');
             } finally {
                 hideLoading();
-            }
+                        }
+            return;}
         }
 
         function renderSummary() {
@@ -614,8 +659,17 @@
                 Swal.fire('Success', 'Ticket saved successfully', 'success');
                 loadTickets();
             } catch (e) {
+            try {
+                var _d_ = JSON.parse(localStorage.getItem(_key_));
+            } catch(e) {}
+            if (window[_var_] && window[_var_].length > 0) {
+                if (typeof updateStats === "function") updateStats();
+                if (typeof renderTable === "function") renderTable();
+            } else {
+
                 Swal.fire('Error', e.message, 'error');
-            }
+                        }
+            return;}
         }
 
         function viewTicket(id) {
@@ -665,8 +719,17 @@
                 Swal.fire('Success', 'Ticket linked to trip', 'success');
                 loadTickets();
             } catch (e) {
+            try {
+                var _d_ = JSON.parse(localStorage.getItem(_key_));
+            } catch(e) {}
+            if (window[_var_] && window[_var_].length > 0) {
+                if (typeof updateStats === "function") updateStats();
+                if (typeof renderTable === "function") renderTable();
+            } else {
+
                 Swal.fire('Error', e.message, 'error');
-            }
+                        }
+            return;}
         }
 
         async function deleteTicket(id) {
@@ -685,25 +748,24 @@
                 Swal.fire('Deleted', 'Ticket deleted successfully', 'success');
                 loadTickets();
             } catch (e) {
+            try {
+                var _d_ = JSON.parse(localStorage.getItem(_key_));
+            } catch(e) {}
+            if (window[_var_] && window[_var_].length > 0) {
+                if (typeof updateStats === "function") updateStats();
+                if (typeof renderTable === "function") renderTable();
+            } else {
+
                 Swal.fire('Error', e.message, 'error');
-            }
+                        }
+            return;}
         }
 
         function loadSummary() {
             loadTickets();
         }
     </script>
-<script>
-        // ── DEMO SEED: auto-populate 4 sample records ──
-        (function() {
-            var key = "lfn_wb";
-            try {
-                if (!localStorage.getItem(key)) {
-                    localStorage.setItem(key, JSON.stringify([{"id": "wb01", "ticketNo": "WB-2026-0001", "siteCode": "TNG", "weighbridgeId": "WB-01", "vehicleCode": "VH-001", "licensePlate": "DA 1234 OT", "weighingType": "LOADED", "firstWeight": 38.2, "secondWeight": 18.4, "netWeight": 19.8, "uom": "TON", "materialType": "COAL", "weighingDate": "2026-03-24T06:45:00Z", "weighingOfficer": "Siti Aminah", "remarks": "Berat bersih muatan batu bara", "status": "CONFIRMED"}, {"id": "wb02", "ticketNo": "WB-2026-0002", "siteCode": "TNG", "weighbridgeId": "WB-01", "vehicleCode": "VH-002", "licensePlate": "DA 2345 OT", "weighingType": "LOADED", "firstWeight": 38.6, "secondWeight": 18.5, "netWeight": 20.1, "uom": "TON", "materialType": "COAL", "weighingDate": "2026-03-24T07:10:00Z", "weighingOfficer": "Andi Pratama", "remarks": "Berat bersih muatan batu bara", "status": "CONFIRMED"}, {"id": "wb03", "ticketNo": "WB-2026-0003", "siteCode": "TNG", "weighbridgeId": "WB-02", "vehicleCode": "VF-001", "licensePlate": "DA 9999 OT", "weighingType": "EMPTY", "firstWeight": 18.4, "secondWeight": 0, "netWeight": 18.4, "uom": "TON", "materialType": "EMPTY", "weighingDate": "2026-03-24T07:30:00Z", "weighingOfficer": "Siti Aminah", "remarks": "Timbangan kosong setelah bongkar", "status": "CONFIRMED"}, {"id": "wb04", "ticketNo": "WB-2026-0004", "siteCode": "KCM", "weighbridgeId": "WB-KCM-01", "vehicleCode": "VH-003", "licensePlate": "KT 1111 PT", "weighingType": "LOADED", "firstWeight": 37.0, "secondWeight": 17.5, "netWeight": 19.5, "uom": "TON", "materialType": "COAL", "weighingDate": "2026-03-24T08:00:00Z", "weighingOfficer": "Hendra Gunawan", "remarks": "Weighing KTC site", "status": "PENDING"}]));
-                }
-            } catch(e) {}
-        })();
-    </script>
+
     
     
     

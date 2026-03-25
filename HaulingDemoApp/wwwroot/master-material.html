@@ -311,7 +311,30 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+    
+
+
+
+<script>
+// Demo seed: populate localStorage with sample data
+(function(){
+  var k="lfn_materials";
+  var d=[
+      {"id": "mat01", "materialCode": "MAT-COAL", "materialName": "Batubara", "materialType": "COAL", "uomId": "uom01", "density": 1.35, "hazardClass": "", "description": "Batubara kalori 4000-5500 GAR", "status": "ACTIVE"},
+      {"id": "mat02", "materialCode": "MAT-LIMESTONE", "materialName": "Batu Kapur", "materialType": "LIMESTONE", "uomId": "uom01", "density": 2.6, "hazardClass": "", "description": "Batu kapur untuk industri semen", "status": "ACTIVE"},
+      {"id": "mat03", "materialCode": "MAT-OVERBURDEN", "materialName": "Overburden", "materialType": "WASTE", "uomId": "uom01", "density": 2.1, "hazardClass": "", "description": "Tanah penutup lapisan batu bara", "status": "ACTIVE"},
+      {"id": "mat04", "materialCode": "MAT-SAND", "materialName": "Pasir", "materialType": "AGGREGATE", "uomId": "uom01", "density": 1.6, "hazardClass": "", "description": "Pasir galian untuk campuran material", "status": "ACTIVE"}
+    ];
+  try{
+    if(!localStorage.getItem(k)){
+      localStorage.setItem(k,JSON.stringify(d));
+    }
+  }catch(e){}
+})();
+</script>
+<script>
+
+
         const API = "/api/material/master";
         const MODAL = new bootstrap.Modal(document.getElementById("formModal"));
         let editingId = null;
@@ -334,22 +357,20 @@
                 const res = await fetch(API + (params.toString() ? "?" + params : ""));
                 if (!res.ok) throw new Error(await res.text());
                 const data = await res.json();
-            // Demo: use localStorage seed if API returns empty
-            var _seedKey_ = "lfn_materials";
-            var _apiData_ = data || [];
-            if (_apiData_.length === 0) {
-                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) data = _seed_; } catch(e) {}
-            }
-            
-                renderTable(data);
-                renderStats(data);
-            } catch (e) {
+ } catch (err) {
                 console.error(e);
                 Swal.fire("Gagal", "Tidak dapat memuat data dari server.", "error");
-            } finally {
-                showLoading(false);
-            }
-        }
+ }
+     if (!data || data.length === 0) {
+         try {
+             var _seed_ = JSON.parse(localStorage.getItem("lfn_materials"));
+             if (_seed_ && _seed_.length) data = _seed_;
+         } catch(e) {}
+     }
+     if (typeof updateStats === "function") updateStats();
+     if (typeof renderTable === "function") renderTable();
+
+        
 
         function renderTable(data) {
             const tbody = document.getElementById("tableBody");
@@ -439,17 +460,7 @@
 
         loadData();
     </script>
-<script>
-        // ── DEMO SEED: auto-populate 4 sample records ──
-        (function() {
-            var key = "lfn_materials";
-            try {
-                if (!localStorage.getItem(key)) {
-                    localStorage.setItem(key, JSON.stringify([{"id": "m01", "materialCode": "MAT-FUEL-001", "materialName": "Solar (Diesel)", "materialGroup": "FUEL", "materialType": "ITEM", "uomCode": "LTR", "brand": "Pertamina", "spec": "DEX 50 ppm", "unitPrice": 15150, "currency": "IDR", "siteCode": "TNG", "remarks": "Bahan bakar utama kendaraan hauling", "status": "ACTIVE"}, {"id": "m02", "materialCode": "MAT-TYRE-001", "materialName": "Ban Dump Truck 1200R20", "materialGroup": "TYRE", "materialType": "ITEM", "uomCode": "PCS", "brand": "Bridgestone", "spec": "1200R20 V-Steer", "unitPrice": 5800000, "currency": "IDR", "siteCode": "TNG", "remarks": "Ban untuk unit dump truck 20 ton", "status": "ACTIVE"}, {"id": "m03", "materialCode": "MAT-PART-001", "materialName": "Oli Mesin Heavy Duty 15W-40", "materialGroup": "PART", "materialType": "ITEM", "uomCode": "LTR", "brand": "Shell", "spec": "Rimula R4 X 15W-40", "unitPrice": 85000, "currency": "IDR", "siteCode": "TNG", "remarks": "Oli mesin untuk Hino 500 dan Mitsubishi Fuso", "status": "ACTIVE"}, {"id": "m04", "materialCode": "MAT-SVC-001", "materialName": "Jasa Service Periodik 5000km", "materialGroup": "SERVICE", "materialType": "SERVICE", "uomCode": "UNIT", "brand": "-", "spec": "Includes filter, oil, inspection", "unitPrice": 3500000, "currency": "IDR", "siteCode": "TNG", "remarks": "Service rutin setiap 5000 km", "status": "ACTIVE"}]));
-                }
-            } catch(e) {}
-        })();
-    </script>
+
     
     
     

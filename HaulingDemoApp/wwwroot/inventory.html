@@ -591,7 +591,30 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
+    
+
+
+
+<script>
+// Demo seed: populate localStorage with sample data
+(function(){
+  var k="lfn_inventory";
+  var d=[
+      {"id": "inv01", "itemCode": "INV-LIME-01", "itemName": "Batu Kapur Mentah", "category": "RAW_MATERIAL", "siteId": "s04", "location": "Stockpile A", "quantity": 2500, "uomId": "uom01", "minStock": 500, "maxStock": 5000, "unitCost": 85000, "totalValue": 212500000, "status": "ACTIVE"},
+      {"id": "inv02", "itemCode": "INV-COAL-01", "itemName": "Batubara Stockpile 1", "category": "PRODUCT", "siteId": "s01", "location": "Stockpile 1", "quantity": 12000, "uomId": "uom01", "minStock": 2000, "maxStock": 20000, "unitCost": 650000, "totalValue": 7800000000, "status": "ACTIVE"},
+      {"id": "inv03", "itemCode": "INV-OIL-01", "itemName": "Solar Industri", "category": "CONSUMABLE", "siteId": "s01", "location": "Tangki BBM Utama", "quantity": 15000, "uomId": "uom04", "minStock": 3000, "maxStock": 25000, "unitCost": 18500, "totalValue": 277500000, "status": "ACTIVE"},
+      {"id": "inv04", "itemCode": "INV-PART-01", "itemName": "Filter Solar Hino 500", "category": "SPARE_PART", "siteId": "s01", "location": "Gudang Suku Cadang", "quantity": 45, "uomId": "uom01", "minStock": 10, "maxStock": 100, "unitCost": 285000, "totalValue": 12825000, "status": "ACTIVE"}
+    ];
+  try{
+    if(!localStorage.getItem(k)){
+      localStorage.setItem(k,JSON.stringify(d));
+    }
+  }catch(e){}
+})();
+</script>
+<script>
+
+
         let deleteItemId = null;
         let uploadedFile = null;
 
@@ -609,52 +632,27 @@ function switchTab(tabName) {
         }
 
         // Load inventory data
-        async function loadInventory() {
+        async function loadInventory() {            const location = document.getElementById('filterLocation').value;
+            const alert = document.getElementById('filterAlert').value;
             const location = document.getElementById('filterLocation').value;
             const alert = document.getElementById('filterAlert').value;
-
             try {
                 const url = `/api/inventories?location=${location}&alert=${alert}`;
                 const response = await fetch(url);
-
                 if (!response.ok) throw new Error('Failed to load inventory');
-
                 const data = await response.json();
-            // Demo: use localStorage seed if API returns empty
-            var _seedKey_ = "lfn_inventory";
-            var _apiData_ = data || [];
-            if (_apiData_.length === 0) {
-                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) data = _seed_; } catch(e) {}
-            }
-            
-                renderTable(data);
-                updateStats(data);
-            } catch (error) {
-                console.error('Error loading inventory:', error);
-                Swal.fire('Error', 'Failed to load inventory data', 'error');
-            }
-        }
-
-        // Render table
-        function renderTable(data) {
-            const tbody = document.getElementById('inventoryTableBody');
-
-            if (!data || data.length === 0) {
+ } catch (err) {
                 tbody.innerHTML = `
-                    <tr>
-                        <td colspan="13" class="text-center text-muted py-4">
-                            <i class="bi bi-inbox fs-3 d-block mb-2"></i>
-                            No data available
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            tbody.innerHTML = data.map((item, index) => {
-                const stockStatus = getStockStatus(item);
-                return `
-                    <tr class="${stockStatus.class}">
+ }
+     if (!data || data.length === 0) {
+         try {
+             var _seed_ = JSON.parse(localStorage.getItem("lfn_inventory"));
+             if (_seed_ && _seed_.length) data = _seed_;
+         } catch(e) {}
+     }
+     if (typeof updateStats === "function") updateStats();
+     if (typeof renderTable === "function") renderTable();
+">
                         <td>${index + 1}</td>
                         <td><strong>${item.partNumber || '-'}</strong></td>
                         <td>${item.materialDescription || '-'}</td>
@@ -772,9 +770,18 @@ function switchTab(tabName) {
                 switchTab('stockCard');
                 loadInventory();
             } catch (error) {
+            try {
+                var _d_ = JSON.parse(localStorage.getItem(_key_));
+            } catch(e) {}
+            if (window[_var_] && window[_var_].length > 0) {
+                if (typeof updateStats === "function") updateStats();
+                if (typeof renderTable === "function") renderTable();
+            } else {
+
                 console.error('Error saving:', error);
                 Swal.fire('Error', 'Failed to save item', 'error');
-            }
+                        }
+            return;}
         });
 
         // Edit item
@@ -805,9 +812,18 @@ function switchTab(tabName) {
                 document.getElementById('formTitle').textContent = 'Edit Item';
                 switchTab('addItem');
             } catch (error) {
+            try {
+                var _d_ = JSON.parse(localStorage.getItem(_key_));
+            } catch(e) {}
+            if (window[_var_] && window[_var_].length > 0) {
+                if (typeof updateStats === "function") updateStats();
+                if (typeof renderTable === "function") renderTable();
+            } else {
+
                 console.error('Error loading item:', error);
                 Swal.fire('Error', 'Failed to load item data', 'error');
-            }
+                        }
+            return;}
         }
 
         // Confirm delete
@@ -833,9 +849,18 @@ function switchTab(tabName) {
                 bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
                 loadInventory();
             } catch (error) {
+            try {
+                var _d_ = JSON.parse(localStorage.getItem(_key_));
+            } catch(e) {}
+            if (window[_var_] && window[_var_].length > 0) {
+                if (typeof updateStats === "function") updateStats();
+                if (typeof renderTable === "function") renderTable();
+            } else {
+
                 console.error('Error deleting:', error);
                 Swal.fire('Error', 'Failed to delete item', 'error');
-            }
+                        }
+            return;}
         });
 
         // Reset form
@@ -936,12 +961,21 @@ function switchTab(tabName) {
                 switchTab('stockCard');
                 loadInventory();
             } catch (error) {
+            try {
+                var _d_ = JSON.parse(localStorage.getItem(_key_));
+            } catch(e) {}
+            if (window[_var_] && window[_var_].length > 0) {
+                if (typeof updateStats === "function") updateStats();
+                if (typeof renderTable === "function") renderTable();
+            } else {
+
                 console.error('Error uploading:', error);
                 Swal.fire('Error', error.message || 'Failed to upload file', 'error');
             } finally {
                 document.getElementById('btnUpload').disabled = false;
                 document.getElementById('btnUpload').innerHTML = '<i class="bi bi-cloud-upload"></i> Upload to Server';
-            }
+                        }
+            return;}
         }
 
         // Download template
@@ -988,17 +1022,7 @@ function switchTab(tabName) {
             loadInventory();
         });
     </script>
-<script>
-        // ── DEMO SEED: auto-populate 4 sample records ──
-        (function() {
-            var key = "lfn_inventory";
-            try {
-                if (!localStorage.getItem(key)) {
-                    localStorage.setItem(key, JSON.stringify([{"id": "i01", "itemCode": "MAT-FUEL-001", "itemName": "Solar (Diesel) Dex", "category": "FUEL", "siteCode": "TNG", "location": "Tangki BBM Utama", "uomCode": "LTR", "quantity": 8500, "minStock": 3000, "maxStock": 20000, "unitPrice": 15150, "remarks": "Stok aman untuk 2 minggu", "status": "ACTIVE"}, {"id": "i02", "itemCode": "MAT-TYRE-001", "itemName": "Ban Bridgestone 1200R20", "category": "TYRE", "siteCode": "TNG", "location": "Gudang Ban A", "uomCode": "PCS", "quantity": 24, "minStock": 10, "maxStock": 50, "unitPrice": 5800000, "remarks": "Terakhir restock 2026-03-16", "status": "ACTIVE"}, {"id": "i03", "itemCode": "MAT-PART-001", "itemName": "Oli Shell Rimula R4 X 15W-40", "category": "PART", "siteCode": "TNG", "location": "Gudang Sparepart", "uomCode": "LTR", "quantity": 45, "minStock": 20, "maxStock": 200, "unitPrice": 85000, "remarks": "Stok menipis - perlu reorder", "status": "LOW_STOCK"}, {"id": "i04", "itemCode": "MAT-SVC-001", "itemName": "Filter Oli Hino 500", "category": "PART", "siteCode": "TNG", "location": "Gudang Sparepart", "uomCode": "PCS", "quantity": 8, "minStock": 5, "maxStock": 30, "unitPrice": 225000, "remarks": "Set filter lengkap Hino", "status": "ACTIVE"}]));
-                }
-            } catch(e) {}
-        })();
-    </script>
+
     
     
     

@@ -394,9 +394,34 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+    
+
+
+
+<script>
+// Demo seed: populate localStorage with sample data
+(function(){
+  var k="lfn_costcenters";
+  var d=[
+      {"id": "cc01", "costCenterCode": "CC-MIN-001", "costCenterName": "Dept Pertambangan Site Tanjung", "siteId": "s01", "departmentId": "d01", "managerName": "Heri Susanto", "budget": 150000000, "spent": 87500000, "currency": "IDR", "status": "ACTIVE"},
+      {"id": "cc02", "costCenterCode": "CC-HRT-001", "costCenterName": "Dept Hauling Site KCM", "siteId": "s02", "departmentId": "d02", "managerName": "Surya Darma", "budget": 120000000, "spent": 45600000, "currency": "IDR", "status": "ACTIVE"},
+      {"id": "cc03", "costCenterCode": "CC-MNT-001", "costCenterName": "Dept Maintenance Port Boomangan", "siteId": "s03", "departmentId": "d03", "managerName": "Joko Pramono", "budget": 80000000, "spent": 23400000, "currency": "IDR", "status": "ACTIVE"},
+      {"id": "cc04", "costCenterCode": "CC-OFF-001", "costCenterName": "Kantor Pusat LFN", "siteId": "", "departmentId": "d04", "managerName": "Ratna Pertiwi", "budget": 500000000, "spent": 312000000, "currency": "IDR", "status": "ACTIVE"}
+    ];
+  try{
+    if(!localStorage.getItem(k)){
+      localStorage.setItem(k,JSON.stringify(d));
+    }
+  }catch(e){}
+})();
+</script>
+<script>
+
+
         let ccModal;
         let allCC = [];
+        // load from localStorage on API error too
+
         let allSites = [];
         let searchTimeout;
 
@@ -408,42 +433,40 @@
             loadCC();
         });
 
-        async function loadSitesForDropdown() {
-            try {
+        async function loadSitesForDropdown() {            try {
                 const res = await fetch('/api/sites/master?status=ACTIVE');
                 allSites = await res.json();
-            // Demo: use localStorage seed if API returns empty
-            var _seedKey_ = "lfn_costcenters";
-            var _apiData_ = allSites || [];
-            if (_apiData_.length === 0) {
-                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) allSites = _seed_; } catch(e) {}
-            }
-            
-                const opts = allSites.map(s => `<option value="${s.siteCode}">${s.siteCode} - ${s.siteName}</option>`).join('');
-                document.getElementById('ccSite').innerHTML = '<option value="">-- Pilih Site --</option>' + opts;
-                document.getElementById('filterSite').innerHTML = '<option value="">Semua Site</option>' + opts;
-            } catch {}
-        }
 
-        async function loadCC() {
-            const siteCode = document.getElementById('filterSite').value;
-            const status = document.getElementById('filterStatus').value;
-            const type = document.getElementById('filterType').value;
-            let url = '/api/cost-centers/master';
-            const params = [];
-            if (siteCode) params.push(`siteCode=${siteCode}`);
-            if (status) params.push(`status=${status}`);
-            if (type) params.push(`type=${type}`);
-            if (params.length) url += '?' + params.join('&');
+                } catch (err) {
 
-            try {
-                const res = await fetch(url);
-                allCC = await res.json();
-                updateStats();
-                renderTable();
-            } catch (err) {
+                        console.error(err);
+
+                }
+
+                    if (!allSites || allSites.length === 0) {
+
+                        try {
+
+                            var _seed_ = JSON.parse(localStorage.getItem("lfn_costcenters"));
+
+                            if (_seed_ && _seed_.length) allSites = _seed_;
+
+                        } catch(e) {}
+
+                    }
+
+                    if (typeof updateStats === "function") updateStats();
+
+                    if (typeof renderTable === "function") renderTable();
+ catch(e) {}
+            if (window[_var_] && window[_var_].length > 0) {
+                if (typeof updateStats === "function") updateStats();
+                if (typeof renderTable === "function") renderTable();
+            } else {
+
                 document.getElementById('ccTableBody').innerHTML = `<tr><td colspan="9" class="text-center text-danger py-4">Gagal memuat: ${err.message}</td></tr>`;
-            }
+                        }
+            return;}
         }
 
         function updateStats() {
@@ -584,17 +607,7 @@
             } catch (err) { Swal.fire({ icon: 'error', title: 'Gagal', text: err.message }); }
         }
     </script>
-<script>
-        // ── DEMO SEED: auto-populate 4 sample records ──
-        (function() {
-            var key = "lfn_costcenters";
-            try {
-                if (!localStorage.getItem(key)) {
-                    localStorage.setItem(key, JSON.stringify([{"id": "cc01", "costCenterCode": "CC-OPS-001", "costCenterName": "Operasi Hauling Site Tanjung", "siteCode": "TNG", "costCenterType": "OPERATIONAL", "allocationAmount": 15000000000, "currency": "IDR", "budgetUsagePercent": 68.5, "remarks": "Alokasi budget hauling bulanan", "status": "ACTIVE"}, {"id": "cc02", "costCenterCode": "CC-MTN-001", "costCenterName": "Maintenance Fleet Site Tanjung", "siteCode": "TNG", "costCenterType": "OPERATIONAL", "allocationAmount": 3500000000, "currency": "IDR", "budgetUsagePercent": 42.0, "remarks": "Perawatan rutin dan perbaikan unit", "status": "ACTIVE"}, {"id": "cc03", "costCenterCode": "CC-ADM-001", "costCenterName": "Administrasi Site KTC", "siteCode": "KCM", "costCenterType": "ADMIN", "allocationAmount": 1800000000, "currency": "IDR", "budgetUsagePercent": 31.2, "remarks": "Biaya admin dan umum site", "status": "ACTIVE"}, {"id": "cc04", "costCenterCode": "CC-PRJ-001", "costCenterName": "Proyek Ekspansi Port Boomangan", "siteCode": "PTB", "costCenterType": "PROJECT", "allocationAmount": 85000000000, "currency": "IDR", "budgetUsagePercent": 15.0, "remarks": "Pengembangan infrastruktur port", "status": "ACTIVE"}]));
-                }
-            } catch(e) {}
-        })();
-    </script>
+
     
     
     

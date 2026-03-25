@@ -499,8 +499,33 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+    
+
+
+
+<script>
+// Demo seed: populate localStorage with sample data
+(function(){
+  var k="lfn_gr";
+  var d=[
+      {"id": "gr01", "grNumber": "GR-2024-001", "poId": "po01", "grDate": "2024-03-15", "items": [{"poItemId": "po01-item1", "materialId": "mat01", "orderedQty": 100, "receivedQty": 50, "uomId": "uom01", "condition": "GOOD", "remarks": "Sesuai spec"}], "receivedBy": "u01", "status": "PARTIAL"},
+      {"id": "gr02", "grNumber": "GR-2024-002", "poId": "po01", "grDate": "2024-03-20", "items": [{"poItemId": "po01-item1", "materialId": "mat01", "orderedQty": 100, "receivedQty": 50, "uomId": "uom01", "condition": "GOOD", "remarks": "Sisa 50 ton"}], "receivedBy": "u01", "status": "PARTIAL"},
+      {"id": "gr03", "grNumber": "GR-2024-003", "poId": "po02", "grDate": "2024-03-18", "items": [{"poItemId": "po02-item1", "materialId": "mat01", "orderedQty": 200, "receivedQty": 200, "uomId": "uom01", "condition": "GOOD", "remarks": "Barang lengkap dan sesuai PO"}], "receivedBy": "u02", "status": "COMPLETE"},
+      {"id": "gr04", "grNumber": "GR-2024-004", "poId": "po03", "grDate": "2024-03-22", "items": [{"poItemId": "po03-item1", "materialId": "mat02", "orderedQty": 80, "receivedQty": 80, "uomId": "uom01", "condition": "GOOD", "remarks": "Limestone kualitas bagus"}], "receivedBy": "u03", "status": "COMPLETE"}
+    ];
+  try{
+    if(!localStorage.getItem(k)){
+      localStorage.setItem(k,JSON.stringify(d));
+    }
+  }catch(e){}
+})();
+</script>
+<script>
+
+
         let grs = [];
+        // load from localStorage on API error too
+
         let currentItems = [];
         let editingId = null;
         let deleteId = null;
@@ -516,81 +541,35 @@ function switchTab(tab) {
             document.getElementById(tab + 'Content').classList.add('active');
         }
 
-        async function loadGRs() {
+        async function loadGRs() {            const site = document.getElementById('filterSite').value;
+            const status = document.getElementById('filterStatus').value;
             const site = document.getElementById('filterSite').value;
             const status = document.getElementById('filterStatus').value;
-
             try {
                 const response = await fetch(`/api/good-receipts?site=${site}&status=${status}`);
                 grs = await response.json();
-            // Demo: use localStorage seed if API returns empty
-            var _seedKey_ = "lfn_gr";
-            var _apiData_ = grs || [];
-            if (_apiData_.length === 0) {
-                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) grs = _seed_; } catch(e) {}
-            }
-            
-                renderTable();
-                loadStats();
-            } catch (error) {
-                console.error('Error:', error);
-                Swal.fire('Error', 'Failed to load data', 'error');
-            }
-        }
 
-        function renderTable() {
-            const tbody = document.getElementById('grTableBody');
-
-            if (!grs || grs.length === 0) {
+                } catch (err) {
                 tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4"><i class="bi bi-inbox fs-3 d-block mb-2"></i>No data available</td></tr>';
-                return;
-            }
 
-            tbody.innerHTML = grs.map((gr, index) => `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td><strong>${gr.grNumber}</strong></td>
-                    <td>${formatDate(gr.grDate)}</td>
-                    <td>${gr.site}</td>
-                    <td>${gr.vendor}</td>
-                    <td>${gr.poNumber || '-'}</td>
-                    <td>${gr.items ? gr.items.length : 0}</td>
-                    <td>${getStatusBadge(gr.status)}</td>
-                    <td>${gr.receivedBy || '-'}</td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="btn btn-info btn-sm" onclick="viewGR(${gr.id})"><i class="bi bi-eye"></i></button>
-                            <button class="btn btn-warning btn-sm" onclick="editGR(${gr.id})"><i class="bi bi-pencil"></i></button>
-                            <button class="btn btn-danger btn-sm" onclick="confirmDelete(${gr.id}, '${gr.grNumber}')"><i class="bi bi-trash"></i></button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-        }
+                }
 
-        function getStatusBadge(status) {
-            const badges = {
-                'RECEIVED': '<span class="badge badge-received">Received</span>',
-                'INSPECTED': '<span class="badge badge-inspected">Inspected</span>',
-                'COMPLETED': '<span class="badge badge-completed">Completed</span>'
-            };
-            return badges[status] || `<span class="badge badge-received">${status}</span>`;
-        }
+                    if (!grs || grs.length === 0) {
 
-        async function loadStats() {
-            try {
-                const response = await fetch('/api/good-receipts/stats');
-                const stats = await response.json();
-                document.getElementById('statTotal').textContent = stats.total || 0;
-                document.getElementById('statReceived').textContent = stats.received || 0;
-                document.getElementById('statInspected').textContent = stats.inspected || 0;
-                document.getElementById('statCompleted').textContent = stats.completed || 0;
-            } catch (error) { console.error('Error loading stats:', error); }
-        }
+                        try {
 
-        async function viewGR(id) {
-            try {
-                const response = await fetch(`/api/good-receipts/${id}`);
+                            var _seed_ = JSON.parse(localStorage.getItem("lfn_gr"));
+
+                            if (_seed_ && _seed_.length) grs = _seed_;
+
+                        } catch(e) {}
+
+                    }
+
+                    if (typeof updateStats === "function") updateStats();
+
+                    if (typeof renderTable === "function") renderTable();
+`);
                 const gr = await response.json();
 
                 const itemsHtml = (gr.items || []).map(item => `
@@ -794,9 +773,18 @@ function switchTab(tab) {
                 switchTab('list');
                 loadGRs();
             } catch (error) {
+            try {
+                var _d_ = JSON.parse(localStorage.getItem(_key_));
+            } catch(e) {}
+            if (window[_var_] && window[_var_].length > 0) {
+                if (typeof updateStats === "function") updateStats();
+                if (typeof renderTable === "function") renderTable();
+            } else {
+
                 console.error('Error:', error);
                 Swal.fire('Error', 'Failed to save GR', 'error');
-            }
+                        }
+            return;}
         });
 
         function formatDate(date) {
@@ -813,17 +801,7 @@ function switchTab(tab) {
             loadGRs();
         });
     </script>
-<script>
-        // ── DEMO SEED: auto-populate 4 sample records ──
-        (function() {
-            var key = "lfn_gr";
-            try {
-                if (!localStorage.getItem(key)) {
-                    localStorage.setItem(key, JSON.stringify([{"id": "gr01", "grNumber": "GR-2026-0001", "poNumber": "PO-2026-0001", "vendorCode": "VND-001", "vendorName": "PT Pertamina", "siteCode": "TNG", "receivedDate": "2026-03-14", "receivedBy": "Joko Susilo", "itemDescription": "Solar Dex", "quantityReceived": 4980, "uomCode": "LTR", "condition": "GOOD", "warehouseLocation": "Tangki BBM Site Tanjung", "status": "COMPLETED"}, {"id": "gr02", "grNumber": "GR-2026-0002", "poNumber": "PO-2026-0002", "vendorCode": "VND-002", "vendorName": "CV Borneo Tyre Mart", "siteCode": "TNG", "receivedDate": "2026-03-23", "receivedBy": "Asep Saepudin", "itemDescription": "Ban Bridgestone 1200R20", "quantityReceived": 8, "uomCode": "PCS", "condition": "GOOD", "warehouseLocation": "Gudang Ban Site Tanjung", "status": "IN_TRANSIT"}, {"id": "gr03", "grNumber": "GR-2026-0003", "poNumber": "PO-2026-0003", "vendorCode": "VND-003", "vendorName": "PT Hino Motors Sales", "siteCode": "TNG", "receivedDate": "2026-03-25", "receivedBy": "Heru Wijaya", "itemDescription": "Filter oli Hino 500", "quantityReceived": 10, "uomCode": "SET", "condition": "GOOD", "warehouseLocation": "Gudang Sparepart", "status": "PENDING"}, {"id": "gr04", "grNumber": "GR-2026-0004", "poNumber": "PO-2026-0004", "vendorCode": "VND-001", "vendorName": "PT Pertamina", "siteCode": "KCM", "receivedDate": "2026-03-22", "receivedBy": "Rizky Ramadhan", "itemDescription": "Oli Shell Rimula R4 X", "quantityReceived": 95, "uomCode": "LTR", "condition": "PARTIAL", "warehouseLocation": "Tangki BBM KTC Camp", "status": "PARTIAL"}]));
-                }
-            } catch(e) {}
-        })();
-    </script>
+
     
     
     

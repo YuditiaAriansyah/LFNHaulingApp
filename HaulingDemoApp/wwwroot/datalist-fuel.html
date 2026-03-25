@@ -670,9 +670,35 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
+    
+
+
+
+<script>
+// Demo seed: populate localStorage with sample data
+(function(){
+  var k="lfn_fuel";
+  var d=[
+      {"id": "fuel01", "transactionDate": "2024-03-20", "vehicleId": "v01", "driverId": "drv01", "siteId": "s01", "fuelType": "DIESEL", "quantity": 45, "uomId": "uom04", "unitPrice": 18500, "totalPrice": 832500, "odometerReading": 45678, "pumpStationId": "PS-001", "operatorId": "u01", "status": "RECORDED"},
+      {"id": "fuel02", "transactionDate": "2024-03-20", "vehicleId": "v02", "driverId": "drv02", "siteId": "s01", "fuelType": "DIESEL", "quantity": 42, "uomId": "uom04", "unitPrice": 18500, "totalPrice": 777000, "odometerReading": 32100, "pumpStationId": "PS-001", "operatorId": "u01", "status": "RECORDED"},
+      {"id": "fuel03", "transactionDate": "2024-03-20", "vehicleId": "v03", "driverId": "drv03", "siteId": "s02", "fuelType": "DIESEL", "quantity": 38, "uomId": "uom04", "unitPrice": 18500, "totalPrice": 703000, "odometerReading": 12340, "pumpStationId": "PS-002", "operatorId": "u02", "status": "RECORDED"},
+      {"id": "fuel04", "transactionDate": "2024-03-21", "vehicleId": "v01", "driverId": "drv01", "siteId": "s01", "fuelType": "DIESEL", "quantity": 46, "uomId": "uom04", "unitPrice": 18500, "totalPrice": 851000, "odometerReading": 45723, "pumpStationId": "PS-001", "operatorId": "u01", "status": "RECORDED"}
+    ];
+  try{
+    if(!localStorage.getItem(k)){
+      localStorage.setItem(k,JSON.stringify(d));
+    }
+  }catch(e){}
+})();
+</script>
+<script>
+
+
         let currentDataSource = 'gcs'; // Force Cloud Storage only - database temporarily disabled
         let currentData = [];
+        // load from localStorage on API error too
+        // load from localStorage on API error too
+
         let allData = [];
 
         const API_BASE = window.location.origin;
@@ -779,57 +805,26 @@
             }
         }
 
-        async function loadSites() {
-            // SKIP API call to avoid database error - use default sites only
+        async function loadSites() {            // SKIP API call to avoid database error - use default sites only
             /* HIDDEN: API call to /api/sites - temporarily disabled to avoid database connection error
             try {
                 // Try to load sites from API
                 const response = await fetch(`${API_BASE}/api/sites`);
                 if (response.ok) {
                     const data = await response.json();
-            // Demo: use localStorage seed if API returns empty
-            var _seedKey_ = "lfn_fuel";
-            var _apiData_ = data || [];
-            if (_apiData_.length === 0) {
-                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) data = _seed_; } catch(e) {}
-            }
-            
-                    const sites = data.sites || [];
-                    const select = document.getElementById('filterSite');
+ } catch (err) {
+         console.error(err);
+ }
+     if (!data || data.length === 0) {
+         try {
+             var _seed_ = JSON.parse(localStorage.getItem("lfn_fuel"));
+             if (_seed_ && _seed_.length) data = _seed_;
+         } catch(e) {}
+     }
+     if (typeof updateStats === "function") updateStats();
+     if (typeof renderTable === "function") renderTable();
 
-                    // Add "All Sites" option first
-                    const allOption = document.createElement('option');
-                    allOption.value = '';
-                    allOption.textContent = 'All Sites';
-                    select.innerHTML = '';
-                    select.appendChild(allOption);
-
-                    sites.forEach(site => {
-                        const option = document.createElement('option');
-                        option.value = site;
-                        option.textContent = site;
-                        select.appendChild(option);
-                    });
-
-                    return;
-                }
-            } catch (error) {
-                console.log('Could not load sites from API, using defaults');
-            }
-            */
-
-            // Use default sites only - no database connection needed
-            const sites = ['Sungai Dua', 'Sebamban', 'Mandala', 'Tanjung'];
-            const select = document.getElementById('filterSite');
-            select.innerHTML = '<option value="">All Sites</option>';
-
-            sites.forEach(site => {
-                const option = document.createElement('option');
-                option.value = site;
-                option.textContent = site;
-                select.appendChild(option);
-            });
-        }
+    }
 
         async function loadInitialData() {
             showLoading(true);
@@ -1454,6 +1449,14 @@
                 showToast('Success', message, 'success');
 
             } catch (error) {
+            try {
+                var _d_ = JSON.parse(localStorage.getItem(_key_));
+            } catch(e) {}
+            if (window[_var_] && window[_var_].length > 0) {
+                if (typeof updateStats === "function") updateStats();
+                if (typeof renderTable === "function") renderTable();
+            } else {
+
                 console.error('Error in loadParsedPengeluaranData():', error);
                 showToast('Error', 'Failed to load data: ' + error.message, 'error');
                 document.getElementById('parsedPengeluaranTableBody').innerHTML = `
@@ -1468,7 +1471,8 @@
                 document.getElementById('summaryCardsPengeluaran').style.display = 'none';
             } finally {
                 showLoading(false);
-            }
+                        }
+            return;}
         }
 
         function displayPengeluaranData(data) {
@@ -2332,17 +2336,7 @@
             }
         }
     </script>
-<script>
-        // ── DEMO SEED: auto-populate 4 sample records ──
-        (function() {
-            var key = "lfn_fuel";
-            try {
-                if (!localStorage.getItem(key)) {
-                    localStorage.setItem(key, JSON.stringify([{"id": "fl01", "transactionDate": "2026-03-24", "siteCode": "TNG", "vehicleCode": "VH-001", "licensePlate": "DA 1234 OT", "driverName": "Joko Susilo", "fuelType": "Solar Dex", "quantity": 350, "uom": "LTR", "odometer": 124500, "hmValue": 8453, "fuelRate": 0.38, "transactionType": "USAGE", "remarks": "Trip Hauling 8x PP", "status": "POSTED"}, {"id": "fl02", "transactionDate": "2026-03-24", "siteCode": "TNG", "vehicleCode": "VH-002", "licensePlate": "DA 2345 OT", "driverName": "Asep Saepudin", "fuelType": "Solar Dex", "quantity": 320, "uom": "LTR", "odometer": 98200, "hmValue": 6123, "fuelRate": 0.38, "transactionType": "USAGE", "remarks": "Trip Hauling 7x PP", "status": "POSTED"}, {"id": "fl03", "transactionDate": "2026-03-24", "siteCode": "KCM", "vehicleCode": "VH-003", "licensePlate": "KT 1111 PT", "driverName": "Rizky Ramadhan", "fuelType": "Solar Dex", "quantity": 295, "uom": "LTR", "odometer": 45600, "hmValue": 3203, "fuelRate": 0.37, "transactionType": "USAGE", "remarks": "Trip Hauling site KTC", "status": "POSTED"}, {"id": "fl04", "transactionDate": "2026-03-24", "siteCode": "TNG", "vehicleCode": "VF-001", "licensePlate": "DA 9999 OT", "driverName": "Siti Aminah", "fuelType": "Solar Dex", "quantity": 180, "uom": "LTR", "odometer": 76000, "hmValue": 5601, "fuelRate": 0.45, "transactionType": "USAGE", "remarks": "Fuel tanker delivery", "status": "PENDING"}]));
-                }
-            } catch(e) {}
-        })();
-    </script>
+
     
     
     

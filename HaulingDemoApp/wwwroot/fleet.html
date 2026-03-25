@@ -615,8 +615,33 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+    
+
+
+
+<script>
+// Demo seed: populate localStorage with sample data
+(function(){
+  var k="lfn_fleet";
+  var d=[
+      {"id": "fl01", "vehicleId": "v01", "siteId": "s01", "assignedDriverId": "drv01", "currentLocation": "Pit A Km 3", "fuelLevel": 75, "odometerReading": 45678, "lastMaintenanceDate": "2024-02-15", "nextMaintenanceDate": "2024-05-15", "status": "ACTIVE"},
+      {"id": "fl02", "vehicleId": "v02", "siteId": "s01", "assignedDriverId": "drv02", "currentLocation": "Stockpile 1", "fuelLevel": 45, "odometerReading": 32100, "lastMaintenanceDate": "2024-01-20", "nextMaintenanceDate": "2024-04-20", "status": "ACTIVE"},
+      {"id": "fl03", "vehicleId": "v03", "siteId": "s02", "assignedDriverId": "drv03", "currentLocation": "Crusher Station", "fuelLevel": 88, "odometerReading": 12340, "lastMaintenanceDate": "2024-03-01", "nextMaintenanceDate": "2024-06-01", "status": "ACTIVE"},
+      {"id": "fl04", "vehicleId": "v04", "siteId": "s03", "assignedDriverId": "", "currentLocation": "Workshop", "fuelLevel": 20, "odometerReading": 8765, "lastMaintenanceDate": "2024-02-01", "nextMaintenanceDate": "2024-05-01", "status": "MAINTENANCE"}
+    ];
+  try{
+    if(!localStorage.getItem(k)){
+      localStorage.setItem(k,JSON.stringify(d));
+    }
+  }catch(e){}
+})();
+</script>
+<script>
+
+
         let vehicles = [];
+        // load from localStorage on API error too
+
         let editingId = null;
         let deleteId = null;
         let uploadedFile = null;
@@ -632,75 +657,37 @@ function switchTab(tab) {
             document.getElementById(tab + 'Content').classList.add('active');
         }
 
-        async function loadFleet() {
+        async function loadFleet() {            const site = document.getElementById('filterSite').value;
+            const status = document.getElementById('filterStatus').value;
+            const category = document.getElementById('filterCategory').value;
             const site = document.getElementById('filterSite').value;
             const status = document.getElementById('filterStatus').value;
             const category = document.getElementById('filterCategory').value;
-
             try {
                 const response = await fetch(`/api/fleet?site=${site}&status=${status}&category=${category}`);
                 vehicles = await response.json();
-            // Demo: use localStorage seed if API returns empty
-            var _seedKey_ = "lfn_fleet";
-            var _apiData_ = vehicles || [];
-            if (_apiData_.length === 0) {
-                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) vehicles = _seed_; } catch(e) {}
-            }
-            
-                renderTable();
-                loadStats();
-                loadSummary();
-            } catch (error) {
-                console.error('Error:', error);
-                Swal.fire('Error', 'Failed to load data', 'error');
-            }
-        }
 
-        function renderTable() {
-            const tbody = document.getElementById('fleetTableBody');
-
-            if (!vehicles || vehicles.length === 0) {
+                } catch (err) {
                 tbody.innerHTML = '<tr><td colspan="15" class="text-center text-muted py-4"><i class="bi bi-inbox fs-3 d-block mb-2"></i>No vehicles found</td></tr>';
-                return;
-            }
 
-            tbody.innerHTML = vehicles.map((v, index) => `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td><strong>${v.unitNo}</strong></td>
-                    <td>${v.unitDescription}</td>
-                    <td>${v.site}</td>
-                    <td>${v.merkType || '-'}</td>
-                    <td class="text-end">${formatNumber(v.hmAwal)}</td>
-                    <td class="text-end">${formatNumber(v.hmAkhir)}</td>
-                    <td class="text-end"><strong>${formatNumber(v.totalJam)}</strong></td>
-                    <td class="text-end">${formatNumber(v.kmAwal)}</td>
-                    <td class="text-end">${formatNumber(v.kmAkhir)}</td>
-                    <td class="text-end"><strong>${formatNumber(v.totalKM)}</strong></td>
-                    <td class="text-end">${formatNumber(v.fuelRatio)}</td>
-                    <td class="text-end">${formatNumber(v.avgHMHari)}</td>
-                    <td>${getStatusBadge(v.status)}</td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="btn btn-info btn-sm" onclick="viewVehicle(${v.id})"><i class="bi bi-eye"></i></button>
-                            <button class="btn btn-warning btn-sm" onclick="editVehicle(${v.id})"><i class="bi bi-pencil"></i></button>
-                            <button class="btn btn-danger btn-sm" onclick="confirmDelete(${v.id}, '${v.unitNo}')"><i class="bi bi-trash"></i></button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-        }
+                }
 
-        function getStatusBadge(status) {
-            return status === 'ACTIVE'
-                ? '<span class="badge badge-active">Active</span>'
-                : '<span class="badge badge-inactive">Inactive</span>';
-        }
+                    if (!vehicles || vehicles.length === 0) {
 
-        async function loadStats() {
-            try {
-                const site = document.getElementById('filterSite').value;
-                const response = await fetch(`/api/fleet/stats?site=${site}`);
+                        try {
+
+                            var _seed_ = JSON.parse(localStorage.getItem("lfn_fleet"));
+
+                            if (_seed_ && _seed_.length) vehicles = _seed_;
+
+                        } catch(e) {}
+
+                    }
+
+                    if (typeof updateStats === "function") updateStats();
+
+                    if (typeof renderTable === "function") renderTable();
+`);
                 const stats = await response.json();
                 document.getElementById('statTotalUnit').textContent = stats.totalUnit || 0;
                 document.getElementById('statTotalHM').textContent = formatNumber(stats.totalHM);
@@ -910,12 +897,21 @@ function switchTab(tab) {
                 switchTab('list');
                 loadFleet();
             } catch (error) {
+            try {
+                var _d_ = JSON.parse(localStorage.getItem(_key_));
+            } catch(e) {}
+            if (window[_var_] && window[_var_].length > 0) {
+                if (typeof updateStats === "function") updateStats();
+                if (typeof renderTable === "function") renderTable();
+            } else {
+
                 console.error('Error:', error);
                 Swal.fire('Error', error.message || 'Upload failed', 'error');
             } finally {
                 document.getElementById('btnUpload').disabled = false;
                 document.getElementById('btnUpload').innerHTML = '<i class="bi bi-cloud-upload"></i> Upload to Server';
-            }
+                        }
+            return;}
         }
 
         function downloadTemplate() {
@@ -968,9 +964,18 @@ function switchTab(tab) {
                 loadFleet();
                 loadCategories();
             } catch (error) {
+            try {
+                var _d_ = JSON.parse(localStorage.getItem(_key_));
+            } catch(e) {}
+            if (window[_var_] && window[_var_].length > 0) {
+                if (typeof updateStats === "function") updateStats();
+                if (typeof renderTable === "function") renderTable();
+            } else {
+
                 console.error('Error:', error);
                 Swal.fire('Error', 'Failed to save vehicle', 'error');
-            }
+                        }
+            return;}
         });
 
         function formatDate(date) {
@@ -988,17 +993,7 @@ function switchTab(tab) {
             loadCategories();
         });
     </script>
-<script>
-        // ── DEMO SEED: auto-populate 4 sample records ──
-        (function() {
-            var key = "lfn_fleet";
-            try {
-                if (!localStorage.getItem(key)) {
-                    localStorage.setItem(key, JSON.stringify([{"id": "f01", "unitNo": "VH-001", "licensePlate": "DA 1234 OT", "vehicleType": "HAULING", "siteCode": "TNG", "driverName": "Joko Susilo", "status": "ACTIVE", "category": "HAULING", "hmValue": 8450, "fuelLevel": 78.5, "odometer": 124500, "remarks": "Unit primary hauling Tanjung"}, {"id": "f02", "unitNo": "VH-002", "licensePlate": "DA 2345 OT", "vehicleType": "HAULING", "siteCode": "TNG", "driverName": "Asep Saepudin", "status": "ACTIVE", "category": "HAULING", "hmValue": 6120, "fuelLevel": 45.2, "odometer": 98200, "remarks": "Unit secondary hauling Tanjung"}, {"id": "f03", "unitNo": "VS-001", "licensePlate": "DA 8888 OT", "vehicleType": "SUPPORT", "siteCode": "TNG", "driverName": "Belum Ditugaskan", "status": "IDLE", "category": "SUPPORT", "hmValue": 3200, "fuelLevel": 92.0, "odometer": 45000, "remarks": "Kendaraan support supervisor"}, {"id": "f04", "unitNo": "VF-001", "licensePlate": "DA 9999 OT", "vehicleType": "FUEL_TANKER", "siteCode": "TNG", "driverName": "Siti Aminah", "status": "MAINTENANCE", "category": "FUEL_TANKER", "hmValue": 5600, "fuelLevel": 20.0, "odometer": 76000, "remarks": "Tangki BBM - sedang service rem"}]));
-                }
-            } catch(e) {}
-        })();
-    </script>
+
     
     
     

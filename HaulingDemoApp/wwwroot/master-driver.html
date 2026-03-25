@@ -313,7 +313,30 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+    
+
+
+
+<script>
+// Demo seed: populate localStorage with sample data
+(function(){
+  var k="lfn_drivers";
+  var d=[
+      {"id": "drv01", "driverCode": "DRV-001", "driverName": "Agus Salim", "licenseNumber": "SIM B1 Jakarta 123456", "phone": "0812-1111-2222", "siteId": "s01", "status": "ACTIVE"},
+      {"id": "drv02", "driverCode": "DRV-002", "driverName": "Basuki Rahmat", "licenseNumber": "SIM B1 Bandung 789012", "phone": "0813-3333-4444", "siteId": "s01", "status": "ACTIVE"},
+      {"id": "drv03", "driverCode": "DRV-003", "driverName": "Citra Dewi", "licenseNumber": "SIM B2 Jakarta 345678", "phone": "0814-5555-6666", "siteId": "s02", "status": "ACTIVE"},
+      {"id": "drv04", "driverCode": "DRV-004", "driverName": "Dedy Irawan", "licenseNumber": "SIM B1 Surabaya 901234", "phone": "0815-7777-8888", "siteId": "s03", "status": "INACTIVE"}
+    ];
+  try{
+    if(!localStorage.getItem(k)){
+      localStorage.setItem(k,JSON.stringify(d));
+    }
+  }catch(e){}
+})();
+</script>
+<script>
+
+
         const API = "/api/driver/master";
         const MODAL = new bootstrap.Modal(document.getElementById("formModal"));
         let editingId = null;
@@ -348,22 +371,20 @@
                 const res = await fetch(API + (params.toString() ? "?" + params : ""));
                 if (!res.ok) throw new Error(await res.text());
                 const data = await res.json();
-            // Demo: use localStorage seed if API returns empty
-            var _seedKey_ = "lfn_drivers";
-            var _apiData_ = data || [];
-            if (_apiData_.length === 0) {
-                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) data = _seed_; } catch(e) {}
-            }
-            
-                renderTable(data);
-                renderStats(data);
-            } catch (e) {
+ } catch (err) {
                 console.error(e);
                 Swal.fire("Gagal", "Tidak dapat memuat data dari server.", "error");
-            } finally {
-                showLoading(false);
-            }
-        }
+ }
+     if (!data || data.length === 0) {
+         try {
+             var _seed_ = JSON.parse(localStorage.getItem("lfn_drivers"));
+             if (_seed_ && _seed_.length) data = _seed_;
+         } catch(e) {}
+     }
+     if (typeof updateStats === "function") updateStats();
+     if (typeof renderTable === "function") renderTable();
+
+        
 
         function renderTable(data) {
             const tbody = document.getElementById("tableBody");
@@ -449,17 +470,7 @@
 
         loadData();
     </script>
-<script>
-        // ── DEMO SEED: auto-populate 4 sample records ──
-        (function() {
-            var key = "lfn_drivers";
-            try {
-                if (!localStorage.getItem(key)) {
-                    localStorage.setItem(key, JSON.stringify([{"id": "dr01", "driverCode": "DRV-001", "nik": "3174051208900001", "fullName": "Joko Susilo", "birthDate": "1990-08-12", "gender": "Male", "phone": "0856-1234-5678", "email": "joko.susilo@email.com", "simType": "B2", "simExpiry": "2027-05-15", "siteCode": "TNG", "deptCode": "DEPT-OPS", "licensePlate": "DA 1234 OT", "status": "ACTIVE"}, {"id": "dr02", "driverCode": "DRV-002", "nik": "3174052307910002", "fullName": "Asep Saepudin", "birthDate": "1991-07-23", "gender": "Male", "phone": "0856-2345-6789", "email": "asep.saepudin@email.com", "simType": "B2", "simExpiry": "2026-11-20", "siteCode": "TNG", "deptCode": "DEPT-OPS", "licensePlate": "DA 2345 OT", "status": "ACTIVE"}, {"id": "dr03", "driverCode": "DRV-003", "nik": "6271050808890003", "fullName": "Rizky Ramadhan", "birthDate": "1989-08-08", "gender": "Male", "phone": "0857-3456-7890", "email": "rizky.ramadhan@email.com", "simType": "B1", "simExpiry": "2028-03-10", "siteCode": "KCM", "deptCode": "DEPT-OPS", "licensePlate": "KT 1111 PT", "status": "ACTIVE"}, {"id": "dr04", "driverCode": "DRV-004", "nik": "3271051505920004", "fullName": "Siti Aminah", "birthDate": "1992-05-15", "gender": "Female", "phone": "0858-4567-8901", "email": "siti.aminah@email.com", "simType": "B2", "simExpiry": "2026-08-25", "siteCode": "TNG", "deptCode": "DEPT-OPS", "licensePlate": "DA 3456 OT", "status": "INACTIVE"}]));
-                }
-            } catch(e) {}
-        })();
-    </script>
+
     
     
     

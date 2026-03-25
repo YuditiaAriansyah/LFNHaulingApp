@@ -309,7 +309,30 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+    
+
+
+
+<script>
+// Demo seed: populate localStorage with sample data
+(function(){
+  var k="lfn_coa";
+  var d=[
+      {"id": "coa01", "accountCode": "4-1000", "accountName": "Pendapatan Batu Bara", "accountType": "REVENUE", "parentCode": "", "balanceType": "CREDIT", "status": "ACTIVE"},
+      {"id": "coa02", "accountCode": "4-2000", "accountName": "Pendapatan Jasa Angkutan", "accountType": "REVENUE", "parentCode": "", "balanceType": "CREDIT", "status": "ACTIVE"},
+      {"id": "coa03", "accountCode": "5-1000", "accountName": "Beban Bahan Bakar", "accountType": "EXPENSE", "parentCode": "", "balanceType": "DEBIT", "status": "ACTIVE"},
+      {"id": "coa04", "accountCode": "5-2000", "accountName": "Beban Gaji Driver", "accountType": "EXPENSE", "parentCode": "", "balanceType": "DEBIT", "status": "ACTIVE"}
+    ];
+  try{
+    if(!localStorage.getItem(k)){
+      localStorage.setItem(k,JSON.stringify(d));
+    }
+  }catch(e){}
+})();
+</script>
+<script>
+
+
         const API = "/api/coa/master";
         const MODAL = new bootstrap.Modal(document.getElementById("formModal"));
         let editingId = null;
@@ -332,22 +355,20 @@
                 const res = await fetch(API + (params.toString() ? "?" + params : ""));
                 if (!res.ok) throw new Error(await res.text());
                 const data = await res.json();
-            // Demo: use localStorage seed if API returns empty
-            var _seedKey_ = "lfn_coa";
-            var _apiData_ = data || [];
-            if (_apiData_.length === 0) {
-                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) data = _seed_; } catch(e) {}
-            }
-            
-                renderTable(data);
-                renderStats(data);
-            } catch (e) {
+ } catch (err) {
                 console.error(e);
                 Swal.fire("Gagal", "Tidak dapat memuat data dari server.", "error");
-            } finally {
-                showLoading(false);
-            }
-        }
+ }
+     if (!data || data.length === 0) {
+         try {
+             var _seed_ = JSON.parse(localStorage.getItem("lfn_coa"));
+             if (_seed_ && _seed_.length) data = _seed_;
+         } catch(e) {}
+     }
+     if (typeof updateStats === "function") updateStats();
+     if (typeof renderTable === "function") renderTable();
+
+        
 
         function renderTable(data) {
             const tbody = document.getElementById("tableBody");
@@ -433,17 +454,7 @@
 
         loadData();
     </script>
-<script>
-        // ── DEMO SEED: auto-populate 4 sample records ──
-        (function() {
-            var key = "lfn_coa";
-            try {
-                if (!localStorage.getItem(key)) {
-                    localStorage.setItem(key, JSON.stringify([{"id": "c01", "coaCode": "4-100", "coaName": "Pendapatan Hauling", "coaLevel": "HEADER", "parentCode": "4", "coaType": "REVENUE", "remarks": "Akun pendapatan utama operasi hauling", "status": "ACTIVE"}, {"id": "c02", "coaCode": "4-110", "coaName": "Pendapatan Angkutan Batu Bara", "coaLevel": "DETAIL", "parentCode": "4-100", "coaType": "REVENUE", "remarks": "Pendapatan dari jasa angkut batu bara", "status": "ACTIVE"}, {"id": "c03", "coaCode": "5-100", "coaName": "Beban Operasional Hauling", "coaLevel": "HEADER", "parentCode": "5", "coaType": "EXPENSE", "remarks": "Akun beban operasi utama", "status": "ACTIVE"}, {"id": "c04", "coaCode": "5-110", "coaName": "Beban BBM (Solar)", "coaLevel": "DETAIL", "parentCode": "5-100", "coaType": "EXPENSE", "remarks": "Bahan bakar dump truck dan kendaraan", "status": "ACTIVE"}]));
-                }
-            } catch(e) {}
-        })();
-    </script>
+
     
     
     

@@ -1068,7 +1068,30 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+    
+
+
+
+<script>
+// Demo seed: populate localStorage with sample data
+(function(){
+  var k="lfn_hr";
+  var d=[
+      {"id": "emp01", "employeeCode": "EMP-001", "fullName": "Heri Susanto", "nik": "3301-45678-0001", "position": "Site Manager", "departmentId": "d01", "siteId": "s01", "joinDate": "2018-03-15", "salary": 35000000, "status": "ACTIVE", "phone": "0812-9876-5432", "email": "heri.s@lfn.co.id"},
+      {"id": "emp02", "employeeCode": "EMP-002", "fullName": "Surya Darma", "nik": "3302-34567-0002", "position": "Fleet Supervisor", "departmentId": "d02", "siteId": "s02", "joinDate": "2019-06-01", "salary": 25000000, "status": "ACTIVE", "phone": "0813-2345-6789", "email": "surya.d@lfn.co.id"},
+      {"id": "emp03", "employeeCode": "EMP-003", "fullName": "Agus Salim", "nik": "3301-23456-0003", "position": "Driver", "departmentId": "d01", "siteId": "s01", "joinDate": "2020-01-10", "salary": 12000000, "status": "ACTIVE", "phone": "0812-1111-2222", "email": "agus.s@lfn.co.id"},
+      {"id": "emp04", "employeeCode": "EMP-004", "fullName": "Dewi Rahayu", "nik": "3303-56789-0004", "position": "HR Manager", "departmentId": "d04", "siteId": "", "joinDate": "2017-08-20", "salary": 40000000, "status": "ACTIVE", "phone": "0814-5555-6666", "email": "dewi.r@lfn.co.id"}
+    ];
+  try{
+    if(!localStorage.getItem(k)){
+      localStorage.setItem(k,JSON.stringify(d));
+    }
+  }catch(e){}
+})();
+</script>
+<script>
+
+
         let currentTab = 'employee';
         let deleteCallback = null;
 
@@ -1090,21 +1113,19 @@ function switchTab(tab) {
             try {
                 const response = await fetch('/api/hr/summary');
                 const data = await response.json();
-            // Demo: use localStorage seed if API returns empty
-            var _seedKey_ = "lfn_hr";
-            var _apiData_ = data || [];
-            if (_apiData_.length === 0) {
-                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) data = _seed_; } catch(e) {}
-            }
-            
-                document.getElementById('statTotalEmp').textContent = data.totalEmployees || 0;
-                document.getElementById('statActive').textContent = data.activeEmployees || 0;
-                document.getElementById('statPresent').textContent = data.presentToday || 0;
-                document.getElementById('statAbsent').textContent = data.absentToday || 0;
-                document.getElementById('statLate').textContent = data.lateToday || 0;
-                document.getElementById('statPayroll').textContent = '$' + formatNumber(data.totalPayroll || 0);
-            } catch (error) { console.error('Error loading stats:', error); }
-        }
+ } catch (err) {
+error) { console.error('Error loading stats:', error); 
+ }
+     if (!data || data.length === 0) {
+         try {
+             var _seed_ = JSON.parse(localStorage.getItem("lfn_hr"));
+             if (_seed_ && _seed_.length) data = _seed_;
+         } catch(e) {}
+     }
+     if (typeof updateStats === "function") updateStats();
+     if (typeof renderTable === "function") renderTable();
+
+        
 
         async function loadEmployees() {
             const site = document.getElementById('empFilterSite').value;
@@ -1490,8 +1511,17 @@ function switchTab(tab) {
                 loadAttendance();
                 loadStats();
             } catch (error) {
+            try {
+                var _d_ = JSON.parse(localStorage.getItem(_key_));
+            } catch(e) {}
+            if (window[_var_] && window[_var_].length > 0) {
+                if (typeof updateStats === "function") updateStats();
+                if (typeof renderTable === "function") renderTable();
+            } else {
+
                 Swal.fire('Error', error.message || 'Upload failed', 'error');
-            }
+                        }
+            return;}
             input.value = '';
         }
 
@@ -1742,17 +1772,7 @@ function switchTab(tab) {
             loadEmployees();
         });
     </script>
-<script>
-        // ── DEMO SEED: auto-populate 4 sample records ──
-        (function() {
-            var key = "lfn_hr";
-            try {
-                if (!localStorage.getItem(key)) {
-                    localStorage.setItem(key, JSON.stringify([{"id": "hr01", "employeeId": "EMP-001", "nik": "3174051208900001", "fullName": "Joko Susilo", "position": "Driver Hauling", "department": "DEPT-OPS", "siteCode": "TNG", "joinDate": "2021-03-15", "employmentType": "PKWT", "status": "ACTIVE", "basicSalary": 8500000, "allowance": 2500000, "phone": "0856-1234-5678", "remarks": "Driver utama site Tanjung"}, {"id": "hr02", "employeeId": "EMP-002", "nik": "3174052307910002", "fullName": "Asep Saepudin", "position": "Driver Hauling", "department": "DEPT-OPS", "siteCode": "TNG", "joinDate": "2022-01-10", "employmentType": "PKWT", "status": "ACTIVE", "basicSalary": 8500000, "allowance": 2000000, "phone": "0856-2345-6789", "remarks": "Driver secondary site Tanjung"}, {"id": "hr03", "employeeId": "EMP-003", "nik": "6271050808890003", "fullName": "Rizky Ramadhan", "position": "Driver Hauling", "department": "DEPT-OPS", "siteCode": "KCM", "joinDate": "2022-06-20", "employmentType": "PKWT", "status": "ACTIVE", "basicSalary": 9000000, "allowance": 3000000, "phone": "0857-3456-7890", "remarks": "Driver site KTC"}, {"id": "hr04", "employeeId": "EMP-004", "nik": "3271051505920004", "fullName": "Siti Aminah", "position": "Weighbridge Officer", "department": "DEPT-OPS", "siteCode": "TNG", "joinDate": "2023-02-01", "employmentType": "PKWT", "status": "ACTIVE", "basicSalary": 7500000, "allowance": 1500000, "phone": "0858-4567-8901", "remarks": "Weighbridge officer shift pagi"}]));
-                }
-            } catch(e) {}
-        })();
-    </script>
+
     
     
     

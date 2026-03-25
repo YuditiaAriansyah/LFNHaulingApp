@@ -495,8 +495,33 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+    
+
+
+
+<script>
+// Demo seed: populate localStorage with sample data
+(function(){
+  var k="lfn_vendors";
+  var d=[
+      {"id": "vnd01", "vendorCode": "VND-001", "vendorName": "PT Caterpillar Indonesia", "vendorType": "EQUIPMENT", "contactPerson": "Hendro Wibowo", "phone": "021-5790-1234", "email": "sales@caterpillar.co.id", "address": "Jl. TB Simatupang No.17, Jakarta Selatan", "taxId": "01.234.567.8-012.000", "bankAccount": "BCA 123-456-7890", "status": "ACTIVE"},
+      {"id": "vnd02", "vendorCode": "VND-002", "vendorName": "CV Sumber Bangunan", "vendorType": "MATERIAL", "contactPerson": "Asep Saepudin", "phone": "022-720-1234", "email": "sumberbangunan@email.com", "address": "Jl. Braga No.45, Bandung", "taxId": "02.345.678.9-034.000", "bankAccount": "Mandiri 111-222-333", "status": "ACTIVE"},
+      {"id": "vnd03", "vendorCode": "VND-003", "vendorName": "PT Hino Motors Sales Indonesia", "vendorType": "VEHICLE", "contactPerson": "Bayu Aji", "phone": "021-857-1234", "email": "bayu.aji@hino.co.id", "address": "Jl. Gaya Motor No.8, Jakarta Utara", "taxId": "03.456.789.0-045.000", "bankAccount": "BNI 777-888-999", "status": "ACTIVE"},
+      {"id": "vnd04", "vendorCode": "VND-004", "vendorName": "Toko Oli Nusantara", "vendorType": "SERVICE", "contactPerson": "Siti Aminah", "phone": "031-123-4567", "email": "oli.nusantara@email.com", "address": "Jl. Kenjeran No.88, Surabaya", "taxId": "04.567.890.1-056.000", "bankAccount": "BTN 555-666-777", "status": "ACTIVE"}
+    ];
+  try{
+    if(!localStorage.getItem(k)){
+      localStorage.setItem(k,JSON.stringify(d));
+    }
+  }catch(e){}
+})();
+</script>
+<script>
+
+
         let vendors = [];
+        // load from localStorage on API error too
+
         let editingId = null;
         let deleteId = null;
 
@@ -511,85 +536,35 @@ function switchTab(tab) {
             document.getElementById(tab + 'Content').classList.add('active');
         }
 
-        async function loadVendors() {
+        async function loadVendors() {            const category = document.getElementById('filterCategory').value;
+            const status = document.getElementById('filterStatus').value;
             const category = document.getElementById('filterCategory').value;
             const status = document.getElementById('filterStatus').value;
-
             try {
                 const response = await fetch(`/api/vendors?category=${category}&status=${status}`);
                 vendors = await response.json();
-            // Demo: use localStorage seed if API returns empty
-            var _seedKey_ = "lfn_vendors";
-            var _apiData_ = vendors || [];
-            if (_apiData_.length === 0) {
-                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) vendors = _seed_; } catch(e) {}
-            }
-            
-                renderTable();
-                loadStats();
-            } catch (error) {
-                console.error('Error:', error);
-                Swal.fire('Error', 'Failed to load data', 'error');
-            }
-        }
 
-        function renderTable() {
-            const tbody = document.getElementById('vendorTableBody');
-
-            if (!vendors || vendors.length === 0) {
+                } catch (err) {
                 tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4"><i class="bi bi-inbox fs-3 d-block mb-2"></i>No vendors found</td></tr>';
-                return;
-            }
 
-            tbody.innerHTML = vendors.map((v, index) => `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td><span class="vendor-code">${v.vendorCode}</span></td>
-                    <td><strong>${v.vendorName}</strong></td>
-                    <td>${v.city || '-'}</td>
-                    <td>${v.phone || '-'}</td>
-                    <td>${v.email || '-'}</td>
-                    <td>${v.category}</td>
-                    <td>${getStatusBadge(v.status)}</td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="btn btn-info btn-sm" onclick="viewVendor(${v.id})"><i class="bi bi-eye"></i></button>
-                            <button class="btn btn-warning btn-sm" onclick="editVendor(${v.id})"><i class="bi bi-pencil"></i></button>
-                            <button class="btn btn-danger btn-sm" onclick="confirmDelete(${v.id}, '${v.vendorName}')"><i class="bi bi-trash"></i></button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-        }
+                }
 
-        function getStatusBadge(status) {
-            return status === 'ACTIVE'
-                ? '<span class="badge badge-active">Active</span>'
-                : '<span class="badge badge-inactive">Inactive</span>';
-        }
+                    if (!vendors || vendors.length === 0) {
 
-        async function loadStats() {
-            try {
-                const response = await fetch('/api/vendors/stats');
-                const stats = await response.json();
-                document.getElementById('statTotal').textContent = stats.total || 0;
-                document.getElementById('statActive').textContent = stats.active || 0;
-                document.getElementById('statInactive').textContent = stats.inactive || 0;
-                document.getElementById('statPurchases').textContent = formatCurrency(stats.totalPurchases || 0);
-            } catch (error) { console.error('Error loading stats:', error); }
-        }
+                        try {
 
-        async function loadCategories() {
-            try {
-                const response = await fetch('/api/vendors/categories');
-                const categories = await response.json();
-                const select = document.getElementById('filterCategory');
-                categories.forEach(cat => {
-                    const option = document.createElement('option');
-                    option.value = cat;
-                    option.textContent = cat;
-                    select.appendChild(option);
-                });
+                            var _seed_ = JSON.parse(localStorage.getItem("lfn_vendors"));
+
+                            if (_seed_ && _seed_.length) vendors = _seed_;
+
+                        } catch(e) {}
+
+                    }
+
+                    if (typeof updateStats === "function") updateStats();
+
+                    if (typeof renderTable === "function") renderTable();
+);
             } catch (error) { console.error('Error loading categories:', error); }
         }
 
@@ -733,9 +708,18 @@ function switchTab(tab) {
                 loadVendors();
                 loadCategories();
             } catch (error) {
+            try {
+                var _d_ = JSON.parse(localStorage.getItem(_key_));
+            } catch(e) {}
+            if (window[_var_] && window[_var_].length > 0) {
+                if (typeof updateStats === "function") updateStats();
+                if (typeof renderTable === "function") renderTable();
+            } else {
+
                 console.error('Error:', error);
                 Swal.fire('Error', 'Failed to save vendor', 'error');
-            }
+                        }
+            return;}
         });
 
         function formatCurrency(num) {
@@ -748,17 +732,7 @@ function switchTab(tab) {
             loadCategories();
         });
     </script>
-<script>
-        // ── DEMO SEED: auto-populate 4 sample records ──
-        (function() {
-            var key = "lfn_vendors";
-            try {
-                if (!localStorage.getItem(key)) {
-                    localStorage.setItem(key, JSON.stringify([{"id": "v01", "vendorCode": "VND-001", "vendorName": "PT Pertamina (persero) Lubricants", "category": "FUEL", "contactPerson": "Dian Pratama", "phone": "021-5789-1234", "email": "sales.lube@pertamina.co.id", "address": "Jl. Medan Merdeka Timur No.1A, Jakarta", "npwp": "01.001.001.2-001.000", "bankAccount": "130001234567", "bankName": "Bank BRI", "remarks": "Supplier oli dan pelumas resmi", "status": "ACTIVE"}, {"id": "v02", "vendorCode": "VND-002", "vendorName": "CV Borneo Tyre Mart", "category": "TYRE", "contactPerson": "Hendra Gunawan", "phone": "0511-3344-5566", "email": "borneo.tyre@gmail.com", "address": "Jl. A. Yani Km 6, Banjarmasin", "npwp": "02.002.002.3-002.000", "bankAccount": "0011223344", "bankName": "Bank Kalteng", "remarks": "Supplier ban segala ukuran", "status": "ACTIVE"}, {"id": "v03", "vendorCode": "VND-003", "vendorName": "PT Hino Motors Sales Indonesia", "category": "PART", "contactPerson": "Ferry Tanoto", "phone": "021-3456-7890", "email": "hino.sales@hino.co.id", "address": "Jl. Gaya Motor III No.5, Jakarta Utara", "npwp": "03.003.003.4-003.000", "bankAccount": "8812345678", "bankName": "Bank BCA", "remarks": "Sparepart resmi Hino", "status": "ACTIVE"}, {"id": "v04", "vendorCode": "VND-004", "vendorName": "PT Vale Indonesia TBK", "category": "MINING", "contactPerson": "Ahmad Dahlan", "phone": "021-5678-9012", "email": "procurement@vale.com", "address": "Menara Vale, Jl. Jend. Sudirman Kav.52-53", "npwp": "04.004.004.5-004.000", "bankAccount": "1199008877", "bankName": "Bank CIMB", "remarks": "Rekanan mining operation", "status": "INACTIVE"}]));
-                }
-            } catch(e) {}
-        })();
-    </script>
+
     
     
     

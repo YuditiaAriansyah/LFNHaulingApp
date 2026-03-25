@@ -669,8 +669,33 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
+    
+
+
+
+<script>
+// Demo seed: populate localStorage with sample data
+(function(){
+  var k="lfn_pr";
+  var d=[
+      {"id": "pr01", "prNumber": "PR-2024-001", "requestorId": "u01", "departmentId": "d01", "siteId": "s01", "requestDate": "2024-03-01", "items": [{"materialId": "mat01", "quantity": 100, "uomId": "uom01", "estimatedPrice": 250000, "remarks": "Kebutuhan produksi Q1"}], "totalEstimated": 25000000, "status": "APPROVED", "currentWorkflowStep": 2},
+      {"id": "pr02", "prNumber": "PR-2024-002", "requestorId": "u02", "departmentId": "d02", "siteId": "s02", "requestDate": "2024-03-05", "items": [{"materialId": "mat01", "quantity": 200, "uomId": "uom01", "estimatedPrice": 250000, "remarks": "Kebutuhan Q1 Site KCM"}], "totalEstimated": 50000000, "status": "PENDING", "currentWorkflowStep": 1},
+      {"id": "pr03", "prNumber": "PR-2024-003", "requestorId": "u03", "departmentId": "d04", "siteId": "", "requestDate": "2024-03-08", "items": [{"materialId": "mat04", "quantity": 50, "uomId": "uom01", "estimatedPrice": 180000, "remarks": "Pasir untuk proyek expansion"}], "totalEstimated": 9000000, "status": "DRAFT", "currentWorkflowStep": 0},
+      {"id": "pr04", "prNumber": "PR-2024-004", "requestorId": "u01", "departmentId": "d01", "siteId": "s01", "requestDate": "2024-03-10", "items": [{"materialId": "mat02", "quantity": 150, "uomId": "uom01", "estimatedPrice": 95000, "remarks": "Limestone untuk blending"}], "totalEstimated": 14250000, "status": "REJECTED", "currentWorkflowStep": 1}
+    ];
+  try{
+    if(!localStorage.getItem(k)){
+      localStorage.setItem(k,JSON.stringify(d));
+    }
+  }catch(e){}
+})();
+</script>
+<script>
+
+
         let prs = [];
+        // load from localStorage on API error too
+
         let currentItems = [];
         let editingId = null;
         let deleteId = null;
@@ -690,104 +715,35 @@ function switchTab(tabName) {
         }
 
         // Load PRs
-        async function loadPRs() {
+        async function loadPRs() {            const site = document.getElementById('filterSite').value;
+            const status = document.getElementById('filterStatus').value;
             const site = document.getElementById('filterSite').value;
             const status = document.getElementById('filterStatus').value;
-
             try {
                 const response = await fetch(`/api/purchase-requests?site=${site}&status=${status}`);
                 prs = await response.json();
-            // Demo: use localStorage seed if API returns empty
-            var _seedKey_ = "lfn_pr";
-            var _apiData_ = prs || [];
-            if (_apiData_.length === 0) {
-                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) prs = _seed_; } catch(e) {}
-            }
-            
-                renderTable();
-                loadStats();
-            } catch (error) {
-                console.error('Error loading PRs:', error);
-                Swal.fire('Error', 'Failed to load data', 'error');
-            }
-        }
 
-        // Render table
-        function renderTable() {
-            const tbody = document.getElementById('prTableBody');
-
-            if (!prs || prs.length === 0) {
+                } catch (err) {
                 tbody.innerHTML = `
-                    <tr>
-                        <td colspan="10" class="text-center text-muted py-4">
-                            <i class="bi bi-inbox fs-3 d-block mb-2"></i>
-                            No data available
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
 
-            tbody.innerHTML = prs.map((pr, index) => `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td><strong>${pr.prNumber}</strong></td>
-                    <td>${formatDate(pr.prDate)}</td>
-                    <td>${pr.site}</td>
-                    <td>${pr.department}</td>
-                    <td>${pr.items ? pr.items.length : 0} items</td>
-                    <td class="text-end"><strong>${formatCurrency(pr.totalAmount)}</strong></td>
-                    <td>${getStatusBadge(pr.status)}</td>
-                    <td>${pr.requestedBy || '-'}</td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="btn btn-info btn-sm" onclick="viewPR(${pr.id})">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                            <button class="btn btn-warning btn-sm" onclick="editPR(${pr.id})">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="btn btn-danger btn-sm" onclick="confirmDelete(${pr.id}, '${pr.prNumber}')">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-        }
+                }
 
-        // Get status badge
-        function getStatusBadge(status) {
-            const badges = {
-                'DRAFT': '<span class="badge badge-draft">Draft</span>',
-                'PENDING': '<span class="badge badge-pending">Pending</span>',
-                'APPROVED': '<span class="badge badge-approved">Approved</span>',
-                'REJECTED': '<span class="badge badge-rejected">Rejected</span>'
-            };
-            return badges[status] || `<span class="badge badge-draft">${status}</span>`;
-        }
+                    if (!prs || prs.length === 0) {
 
-        // Load stats
-        async function loadStats() {
-            try {
-                const response = await fetch('/api/purchase-requests/stats');
-                const stats = await response.json();
+                        try {
 
-                document.getElementById('statTotal').textContent = stats.total || 0;
-                document.getElementById('statDraft').textContent = stats.draft || 0;
-                document.getElementById('statPending').textContent = stats.pending || 0;
-                document.getElementById('statApproved').textContent = stats.approved || 0;
-                document.getElementById('statRejected').textContent = stats.rejected || 0;
-                document.getElementById('statValue').textContent = formatCurrency(stats.totalAmount || 0);
-            } catch (error) {
-                console.error('Error loading stats:', error);
-            }
-        }
+                            var _seed_ = JSON.parse(localStorage.getItem("lfn_pr"));
 
-        // View PR
-        async function viewPR(id) {
-            try {
-                const response = await fetch(`/api/purchase-requests/${id}`);
+                            if (_seed_ && _seed_.length) prs = _seed_;
+
+                        } catch(e) {}
+
+                    }
+
+                    if (typeof updateStats === "function") updateStats();
+
+                    if (typeof renderTable === "function") renderTable();
+`);
                 const pr = await response.json();
 
                 const itemsHtml = (pr.items || []).map(item => `
@@ -848,9 +804,18 @@ function switchTab(tabName) {
 
                 new bootstrap.Modal(document.getElementById('viewModal')).show();
             } catch (error) {
+            try {
+                var _d_ = JSON.parse(localStorage.getItem(_key_));
+            } catch(e) {}
+            if (window[_var_] && window[_var_].length > 0) {
+                if (typeof updateStats === "function") updateStats();
+                if (typeof renderTable === "function") renderTable();
+            } else {
+
                 console.error('Error viewing PR:', error);
                 Swal.fire('Error', 'Failed to load PR details', 'error');
-            }
+                        }
+            return;}
         }
 
         // Edit PR
@@ -876,9 +841,18 @@ function switchTab(tabName) {
 
                 switchTab('create');
             } catch (error) {
+            try {
+                var _d_ = JSON.parse(localStorage.getItem(_key_));
+            } catch(e) {}
+            if (window[_var_] && window[_var_].length > 0) {
+                if (typeof updateStats === "function") updateStats();
+                if (typeof renderTable === "function") renderTable();
+            } else {
+
                 console.error('Error editing PR:', error);
                 Swal.fire('Error', 'Failed to load PR data', 'error');
-            }
+                        }
+            return;}
         }
 
         // Confirm delete
@@ -898,9 +872,18 @@ function switchTab(tabName) {
                 bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
                 loadPRs();
             } catch (error) {
+            try {
+                var _d_ = JSON.parse(localStorage.getItem(_key_));
+            } catch(e) {}
+            if (window[_var_] && window[_var_].length > 0) {
+                if (typeof updateStats === "function") updateStats();
+                if (typeof renderTable === "function") renderTable();
+            } else {
+
                 console.error('Error deleting:', error);
                 Swal.fire('Error', 'Failed to delete PR', 'error');
-            }
+                        }
+            return;}
         }
 
         // Reset filter
@@ -1055,9 +1038,18 @@ function switchTab(tabName) {
                 switchTab('list');
                 loadPRs();
             } catch (error) {
+            try {
+                var _d_ = JSON.parse(localStorage.getItem(_key_));
+            } catch(e) {}
+            if (window[_var_] && window[_var_].length > 0) {
+                if (typeof updateStats === "function") updateStats();
+                if (typeof renderTable === "function") renderTable();
+            } else {
+
                 console.error('Error saving:', error);
                 Swal.fire('Error', 'Failed to save PR', 'error');
-            }
+                        }
+            return;}
         });
 
         // File upload
@@ -1115,12 +1107,21 @@ function switchTab(tabName) {
                 switchTab('list');
                 loadPRs();
             } catch (error) {
+            try {
+                var _d_ = JSON.parse(localStorage.getItem(_key_));
+            } catch(e) {}
+            if (window[_var_] && window[_var_].length > 0) {
+                if (typeof updateStats === "function") updateStats();
+                if (typeof renderTable === "function") renderTable();
+            } else {
+
                 console.error('Error uploading:', error);
                 Swal.fire('Error', error.message || 'Upload failed', 'error');
             } finally {
                 document.getElementById('btnUpload').disabled = false;
                 document.getElementById('btnUpload').innerHTML = '<i class="bi bi-cloud-upload"></i> Upload';
-            }
+                        }
+            return;}
         }
 
         // Download template
@@ -1156,17 +1157,7 @@ function switchTab(tabName) {
             loadPRs();
         });
     </script>
-<script>
-        // ── DEMO SEED: auto-populate 4 sample records ──
-        (function() {
-            var key = "lfn_pr";
-            try {
-                if (!localStorage.getItem(key)) {
-                    localStorage.setItem(key, JSON.stringify([{"id": "pr01", "prNumber": "PR-2026-0001", "siteCode": "TNG", "department": "DEPT-OPS", "requestedBy": "Heru Wijaya", "requestDate": "2026-03-10", "itemDescription": "Solar Dex 5000 Liter untuk unit hauling", "quantity": 5000, "uomCode": "LTR", "estimatedPrice": 75750000, "currency": "IDR", "status": "APPROVED", "remarks": "Stok BBM hampir habis, urgent"}, {"id": "pr02", "prNumber": "PR-2026-0002", "siteCode": "TNG", "department": "DEPT-MTN", "requestedBy": "Joko Susilo", "requestDate": "2026-03-15", "itemDescription": "Ban Bridgestone 1200R20 V-Steer - 8 pcs", "quantity": 8, "uomCode": "PCS", "estimatedPrice": 46400000, "currency": "IDR", "status": "PENDING", "remarks": ""}, {"id": "pr03", "prNumber": "PR-2026-0003", "siteCode": "KCM", "department": "DEPT-OPS", "requestedBy": "Rizky Ramadhan", "requestDate": "2026-03-18", "itemDescription": "Jasa service periodik 5000km Hino 500", "quantity": 2, "uomCode": "UNIT", "estimatedPrice": 7000000, "currency": "IDR", "status": "APPROVED", "remarks": ""}, {"id": "pr04", "prNumber": "PR-2026-0004", "siteCode": "TNG", "department": "DEPT-HRD", "requestedBy": "Siti Nurhaliza", "requestDate": "2026-03-20", "itemDescription": "Alat tulis kantor (ATK) bulanan", "quantity": 1, "uomCode": "PACK", "estimatedPrice": 2500000, "currency": "IDR", "status": "REJECTED", "remarks": "Budget tidak tersedia"}]));
-                }
-            } catch(e) {}
-        })();
-    </script>
+
     
     
     

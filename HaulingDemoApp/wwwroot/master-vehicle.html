@@ -324,7 +324,30 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+    
+
+
+
+<script>
+// Demo seed: populate localStorage with sample data
+(function(){
+  var k="lfn_vehicles";
+  var d=[
+      {"id": "v01", "vehicleCode": "VH-001", "vehicleType": "DUMP TRUCK", "brand": "Hino", "model": "Hino 500 FM 260JI", "plateNumber": "B 1234 XYZ", "siteId": "s01", "year": 2021, "odometer": 45678, "status": "ACTIVE"},
+      {"id": "v02", "vehicleCode": "VH-002", "vehicleType": "DUMP TRUCK", "brand": "Hino", "model": "Hino 500 FM 260JI", "plateNumber": "B 5678 ABC", "siteId": "s01", "year": 2022, "odometer": 32100, "status": "ACTIVE"},
+      {"id": "v03", "vehicleCode": "VH-003", "vehicleType": "EXCAVATOR", "brand": "Komatsu", "model": "PC200-8", "plateNumber": "H 9012 DEF", "siteId": "s02", "year": 2020, "odometer": 12340, "status": "ACTIVE"},
+      {"id": "v04", "vehicleCode": "VH-004", "vehicleType": "BULLDOZER", "brand": "Caterpillar", "model": "D6R", "plateNumber": "K 3456 GHI", "siteId": "s03", "year": 2019, "odometer": 8765, "status": "MAINTENANCE"}
+    ];
+  try{
+    if(!localStorage.getItem(k)){
+      localStorage.setItem(k,JSON.stringify(d));
+    }
+  }catch(e){}
+})();
+</script>
+<script>
+
+
         const API = "/api/vehicle/master";
         const MODAL = new bootstrap.Modal(document.getElementById("formModal"));
         let editingId = null;
@@ -359,22 +382,20 @@
                 const res = await fetch(API + (params.toString() ? "?" + params : ""));
                 if (!res.ok) throw new Error(await res.text());
                 const data = await res.json();
-            // Demo: use localStorage seed if API returns empty
-            var _seedKey_ = "lfn_vehicles";
-            var _apiData_ = data || [];
-            if (_apiData_.length === 0) {
-                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) data = _seed_; } catch(e) {}
-            }
-            
-                renderTable(data);
-                renderStats(data);
-            } catch (e) {
+ } catch (err) {
                 console.error(e);
                 Swal.fire("Gagal", "Tidak dapat memuat data dari server.", "error");
-            } finally {
-                showLoading(false);
-            }
-        }
+ }
+     if (!data || data.length === 0) {
+         try {
+             var _seed_ = JSON.parse(localStorage.getItem("lfn_vehicles"));
+             if (_seed_ && _seed_.length) data = _seed_;
+         } catch(e) {}
+     }
+     if (typeof updateStats === "function") updateStats();
+     if (typeof renderTable === "function") renderTable();
+
+        
 
         function renderTable(data) {
             const tbody = document.getElementById("tableBody");
@@ -464,17 +485,7 @@
 
         loadData();
     </script>
-<script>
-        // ── DEMO SEED: auto-populate 4 sample records ──
-        (function() {
-            var key = "lfn_vehicles";
-            try {
-                if (!localStorage.getItem(key)) {
-                    localStorage.setItem(key, JSON.stringify([{"id": "v01", "vehicleCode": "VH-001", "licensePlate": "DA 1234 OT", "vehicleType": "HAULING", "brand": "Hino", "model": "Hino 500 FM 260 JD", "engineNumber": "E001-HM500-2023", "chassisNumber": "CH001-HM500-2023", "manufactureYear": 2023, "siteCode": "TNG", "costCenterCode": "CC-OPS-001", "capacityTon": 20, "fuelType": "Diesel", "status": "ACTIVE", "remarks": "Unit primary hauling Tanjung"}, {"id": "v02", "vehicleCode": "VH-002", "licensePlate": "DA 2345 OT", "vehicleType": "HAULING", "brand": "Hino", "model": "Hino 500 FM 260 JD", "engineNumber": "E002-HM500-2023", "chassisNumber": "CH002-HM500-2023", "manufactureYear": 2023, "siteCode": "TNG", "costCenterCode": "CC-OPS-001", "capacityTon": 20, "fuelType": "Diesel", "status": "ACTIVE", "remarks": "Unit secondary hauling Tanjung"}, {"id": "v03", "vehicleCode": "VS-001", "licensePlate": "DA 8888 OT", "vehicleType": "SUPPORT", "brand": "Toyota", "model": "Hilux DPL 2.4", "engineNumber": "E003-HLX-2022", "chassisNumber": "CH003-HLX-2022", "manufactureYear": 2022, "siteCode": "TNG", "costCenterCode": "CC-OPS-001", "capacityTon": 1.5, "fuelType": "Diesel", "status": "ACTIVE", "remarks": "Unit support lapangan"}, {"id": "v04", "vehicleCode": "VF-001", "licensePlate": "DA 9999 OT", "vehicleType": "FUEL_TANKER", "brand": "Mitsubishi", "model": "Mitsubishi Fuso 120 PS", "engineNumber": "E004-FSO-2021", "chassisNumber": "CH004-FSO-2021", "manufactureYear": 2021, "siteCode": "TNG", "costCenterCode": "CC-MTN-001", "capacityTon": 5, "fuelType": "Diesel", "status": "MAINTENANCE", "remarks": "Tangki BBM kapasitas 5000 liter"}]));
-                }
-            } catch(e) {}
-        })();
-    </script>
+
     
     
     

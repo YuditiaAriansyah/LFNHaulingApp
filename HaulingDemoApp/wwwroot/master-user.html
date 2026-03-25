@@ -469,9 +469,34 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+    
+
+
+
+<script>
+// Demo seed: populate localStorage with sample data
+(function(){
+  var k="lfn_users";
+  var d=[
+      {"id": "u01", "username": "heri.s", "fullName": "Heri Susanto", "email": "heri.s@lfn.co.id", "role": "ADMIN", "departmentId": "d01", "siteId": "s01", "isActive": true},
+      {"id": "u02", "username": "surya.d", "fullName": "Surya Darma", "email": "surya.d@lfn.co.id", "role": "MANAGER", "departmentId": "d02", "siteId": "s02", "isActive": true},
+      {"id": "u03", "username": "ratna.p", "fullName": "Ratna Pertiwi", "email": "ratna.p@lfn.co.id", "role": "SUPER_ADMIN", "departmentId": "d04", "siteId": "", "isActive": true},
+      {"id": "u04", "username": "dewi.r", "fullName": "Dewi Rahayu", "email": "dewi.r@lfn.co.id", "role": "OPERATOR", "departmentId": "d03", "siteId": "s03", "isActive": false}
+    ];
+  try{
+    if(!localStorage.getItem(k)){
+      localStorage.setItem(k,JSON.stringify(d));
+    }
+  }catch(e){}
+})();
+</script>
+<script>
+
+
         let userModal, auditModal;
         let allUsers = [];
+        // load from localStorage on API error too
+
         let allSites = [];
         let searchTimeout;
 
@@ -482,39 +507,40 @@
             loadUsers();
         });
 
-        async function loadSitesForDropdown() {
-            try {
+        async function loadSitesForDropdown() {            try {
                 const res = await fetch('/api/sites/master?status=ACTIVE');
                 allSites = await res.json();
-            // Demo: use localStorage seed if API returns empty
-            var _seedKey_ = "lfn_users";
-            var _apiData_ = allSites || [];
-            if (_apiData_.length === 0) {
-                try { var _seed_ = JSON.parse(localStorage.getItem(_seedKey_)); if (_seed_) allSites = _seed_; } catch(e) {}
-            }
-            
-                const opts = allSites.map(s => `<option value="${s.siteCode}">${s.siteCode} - ${s.siteName}</option>`).join('');
-                document.getElementById('userSite').innerHTML = '<option value="">-- Semua Site --</option>' + opts;
-            } catch {}
-        }
 
-        async function loadUsers() {
-            const role = document.getElementById('filterRole').value;
-            const status = document.getElementById('filterStatus').value;
-            let url = '/api/users';
-            const params = [];
-            if (role) params.push(`role=${role}`);
-            if (status) params.push(`status=${status}`);
-            if (params.length) url += '?' + params.join('&');
+                } catch (err) {
 
-            try {
-                const res = await fetch(url);
-                allUsers = await res.json();
-                updateStats();
-                renderTable();
-            } catch (err) {
+                        console.error(err);
+
+                }
+
+                    if (!allSites || allSites.length === 0) {
+
+                        try {
+
+                            var _seed_ = JSON.parse(localStorage.getItem("lfn_users"));
+
+                            if (_seed_ && _seed_.length) allSites = _seed_;
+
+                        } catch(e) {}
+
+                    }
+
+                    if (typeof updateStats === "function") updateStats();
+
+                    if (typeof renderTable === "function") renderTable();
+ catch(e) {}
+            if (window[_var_] && window[_var_].length > 0) {
+                if (typeof updateStats === "function") updateStats();
+                if (typeof renderTable === "function") renderTable();
+            } else {
+
                 document.getElementById('usersTableBody').innerHTML = `<tr><td colspan="9" class="text-center text-danger py-4">Gagal memuat: ${err.message}</td></tr>`;
-            }
+                        }
+            return;}
         }
 
         function updateStats() {
@@ -720,21 +746,20 @@
                 `).join('');
                 document.getElementById('auditTableBody').innerHTML = html;
             } catch (err) {
+            try {
+                var _d_ = JSON.parse(localStorage.getItem(_key_));
+            } catch(e) {}
+            if (window[_var_] && window[_var_].length > 0) {
+                if (typeof updateStats === "function") updateStats();
+                if (typeof renderTable === "function") renderTable();
+            } else {
+
                 document.getElementById('auditTableBody').innerHTML = `<tr><td colspan="7" class="text-center text-danger py-3">Gagal memuat: ${err.message}</td></tr>`;
-            }
+                        }
+            return;}
         }
     </script>
-<script>
-        // ── DEMO SEED: auto-populate 4 sample records ──
-        (function() {
-            var key = "lfn_users";
-            try {
-                if (!localStorage.getItem(key)) {
-                    localStorage.setItem(key, JSON.stringify([{"id": "u01", "username": "yuditia.ariansyah", "fullName": "Yuditia Ariansyah", "email": "yuditia@lfmining.co.id", "role": "ADMIN", "department": "IT", "site": "HO", "phone": "0811-2233-4455", "lastLogin": "2026-03-24T08:15:00Z", "status": "ACTIVE"}, {"id": "u02", "username": "heru.wijaya", "fullName": "Heru Wijaya", "email": "heru.wijaya@lfmining.co.id", "role": "MANAGER", "department": "Operations", "site": "TNG", "phone": "0812-3344-5566", "lastLogin": "2026-03-23T17:45:00Z", "status": "ACTIVE"}, {"id": "u03", "username": "siti.nurhaliza", "fullName": "Siti Nurhaliza", "email": "siti.nurhaliza@lfmining.co.id", "role": "USER", "department": "Finance", "site": "HO", "phone": "0813-4455-6677", "lastLogin": "2026-03-22T10:30:00Z", "status": "ACTIVE"}, {"id": "u04", "username": "andi.pratama", "fullName": "Andi Pratama", "email": "andi.pratama@lfmining.co.id", "role": "VIEWER", "department": "Procurement", "site": "KCM", "phone": "0814-5566-7788", "lastLogin": "2026-03-21T14:00:00Z", "status": "INACTIVE"}]));
-                }
-            } catch(e) {}
-        })();
-    </script>
+
     
     
     
