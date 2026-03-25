@@ -80,8 +80,11 @@
         .filter-bar { background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); padding: 16px 20px; margin-bottom: 20px; }
         .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    /* ===== NEW DROPDOWN NAVBAR STYLES ===== */
+    <style>    /* NAVBAR */
+    .navbar { background: var(--navy) !important; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+    /* NAVBAR NAV */
     .nav-item.dropdown { position: relative; }
     .nav-item.dropdown .nav-link {
         color: rgba(255, 255, 255, 0.6) !important;
@@ -107,7 +110,6 @@
         border-bottom: 0;
         border-left: 4px solid transparent;
         vertical-align: middle;
-        transition: transform 0.2s;
     }
     .nav-item.dropdown:hover .nav-link.dropdown-toggle::after { border-top-color: rgba(255,255,255,0.7); }
     .dropdown-menu {
@@ -145,18 +147,19 @@
     .dropdown-item:hover i { opacity: 1; }
     .dropdown-item .bi { font-size: 0.9rem; }
 
-    </head>
+    </style>
+</head>
 <body>
     <div id="loadingOverlay" class="loading-overlay" style="display:none">
         <div class="spinner"></div>
         <span style="color:var(--text-secondary);font-weight:500">Memuat...</span>
     </div>
 
-    <nav class="navbar navbar-expand-lg sticky-top">
+    <nav class="navbar navbar-expand-lg sticky-top navbar-dark">
         <div class="container">
             <a class="navbar-brand" href="index.html"><i class="bi bi-truck"></i> LFN Hauling</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent"><span class="navbar-toggler-icon"></span></button>
-                                                            <div class="collapse navbar-collapse" id="navbarNav">
+                                                                        <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
           <li class="nav-item"><a class="nav-link" href="index.html"><i class="bi bi-house"></i> Home</a></li>
 
