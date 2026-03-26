@@ -430,33 +430,23 @@
             if (type) params.push(`siteType=${type}`);
             if (status) params.push(`status=${status}`);
             if (params.length) url += '?' + params.join('&');
-
             try {
                 const res = await fetch(url);
                 allSites = await res.json();
+            } catch (err) {
+                console.error('Error loading sites:', err);
+            }
 
-                } catch (err) {
-                document.getElementById('sitesTableBody').innerHTML =
+            if (!allSites || allSites.length === 0) {
+                try {
+                    var _seed_ = JSON.parse(localStorage.getItem("lfn_sites"));
+                    if (_seed_ && _seed_.length) allSites = _seed_;
+                } catch(e) {}
+            }
 
-                }
-
-                    if (!allSites || allSites.length === 0) {
-
-                        try {
-
-                            var _seed_ = JSON.parse(localStorage.getItem("lfn_sites"));
-
-                            if (_seed_ && _seed_.length) allSites = _seed_;
-
-                        } catch(e) {}
-
-                    }
-
-                    if (typeof updateStats === "function") updateStats();
-
-                    if (typeof renderTable === "function") renderTable();
-
-        
+            if (typeof updateStats === "function") updateStats();
+            if (typeof renderTable === "function") renderTable();
+        }
 
         function updateStats() {
             const active = allSites.filter(s => s.status === 'ACTIVE').length;

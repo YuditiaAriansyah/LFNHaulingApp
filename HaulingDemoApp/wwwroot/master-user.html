@@ -507,40 +507,23 @@
             loadUsers();
         });
 
-        async function loadSitesForDropdown() {            try {
+        async function loadSitesForDropdown() {
+            try {
                 const res = await fetch('/api/sites/master?status=ACTIVE');
                 allSites = await res.json();
+            } catch (err) {
+                console.error('Error loading sites:', err);
+            }
 
-                } catch (err) {
+            if (!allSites || allSites.length === 0) {
+                try {
+                    var _seed_ = JSON.parse(localStorage.getItem("lfn_users"));
+                    if (_seed_ && _seed_.length) allSites = _seed_;
+                } catch(e) {}
+            }
 
-                        console.error(err);
-
-                }
-
-                    if (!allSites || allSites.length === 0) {
-
-                        try {
-
-                            var _seed_ = JSON.parse(localStorage.getItem("lfn_users"));
-
-                            if (_seed_ && _seed_.length) allSites = _seed_;
-
-                        } catch(e) {}
-
-                    }
-
-                    if (typeof updateStats === "function") updateStats();
-
-                    if (typeof renderTable === "function") renderTable();
- catch(e) {}
-            if (window[_var_] && window[_var_].length > 0) {
-                if (typeof updateStats === "function") updateStats();
-                if (typeof renderTable === "function") renderTable();
-            } else {
-
-                document.getElementById('usersTableBody').innerHTML = `<tr><td colspan="9" class="text-center text-danger py-4">Gagal memuat: ${err.message}</td></tr>`;
-                        }
-            return;}
+            if (typeof updateStats === "function") updateStats();
+            if (typeof renderTable === "function") renderTable();
         }
 
         function updateStats() {

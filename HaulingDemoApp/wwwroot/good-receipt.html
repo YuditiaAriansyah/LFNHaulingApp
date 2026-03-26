@@ -541,37 +541,32 @@ function switchTab(tab) {
             document.getElementById(tab + 'Content').classList.add('active');
         }
 
-        async function loadGRs() {            const site = document.getElementById('filterSite').value;
-            const status = document.getElementById('filterStatus').value;
+        async function loadGRs() {
             const site = document.getElementById('filterSite').value;
             const status = document.getElementById('filterStatus').value;
             try {
                 const response = await fetch(`/api/good-receipts?site=${site}&status=${status}`);
                 grs = await response.json();
+            } catch (err) {
+                console.error('Error loading GRs:', err);
+            }
 
-                } catch (err) {
-                tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4"><i class="bi bi-inbox fs-3 d-block mb-2"></i>No data available</td></tr>';
+            // Fallback: use localStorage if API returned nothing
+            if (!grs || grs.length === 0) {
+                try {
+                    var _seed_ = JSON.parse(localStorage.getItem("lfn_gr"));
+                    if (_seed_ && _seed_.length) grs = _seed_;
+                } catch(e) {}
+            }
 
-                }
+            if (typeof updateStats === "function") updateStats();
+            if (typeof renderTable === "function") renderTable();
+        }
 
-                    if (!grs || grs.length === 0) {
-
-                        try {
-
-                            var _seed_ = JSON.parse(localStorage.getItem("lfn_gr"));
-
-                            if (_seed_ && _seed_.length) grs = _seed_;
-
-                        } catch(e) {}
-
-                    }
-
-                    if (typeof updateStats === "function") updateStats();
-
-                    if (typeof renderTable === "function") renderTable();
-`);
+        async function viewGR(id) {
+            try {
+                const response = await fetch(`/api/good-receipts/${id}`);
                 const gr = await response.json();
-
                 const itemsHtml = (gr.items || []).map(item => `
                     <tr>
                         <td>${item.partNumber}</td>
@@ -584,7 +579,6 @@ function switchTab(tab) {
                         <td>${item.location || '-'}</td>
                     </tr>
                 `).join('');
-
                 document.getElementById('viewModalBody').innerHTML = `
                     <div class="row mb-3">
                         <div class="col-md-4"><strong>GR Number:</strong> ${gr.grNumber}</div>

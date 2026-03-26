@@ -583,37 +583,33 @@ function switchTab(tab) {
             document.getElementById(tab + 'Content').classList.add('active');
         }
 
-        async function loadPOs() {            const site = document.getElementById('filterSite').value;
-            const status = document.getElementById('filterStatus').value;
+        async function loadPOs() {
             const site = document.getElementById('filterSite').value;
             const status = document.getElementById('filterStatus').value;
             try {
                 const response = await fetch(`/api/purchase-orders?site=${site}&status=${status}`);
                 pos = await response.json();
+            } catch (err) {
+                console.error('Error loading POs:', err);
+            }
 
-                } catch (err) {
-                tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4"><i class="bi bi-inbox fs-3 d-block mb-2"></i>No data available</td></tr>';
+            // Fallback: use localStorage if API returned nothing
+            if (!pos || pos.length === 0) {
+                try {
+                    var _seed_ = JSON.parse(localStorage.getItem("lfn_po"));
+                    if (_seed_ && _seed_.length) pos = _seed_;
+                } catch(e) {}
+            }
 
-                }
+            if (typeof updateStats === "function") updateStats();
+            if (typeof renderTable === "function") renderTable();
+        }
 
-                    if (!pos || pos.length === 0) {
-
-                        try {
-
-                            var _seed_ = JSON.parse(localStorage.getItem("lfn_po"));
-
-                            if (_seed_ && _seed_.length) pos = _seed_;
-
-                        } catch(e) {}
-
-                    }
-
-                    if (typeof updateStats === "function") updateStats();
-
-                    if (typeof renderTable === "function") renderTable();
-`);
+        async function viewPO(id) {
+            try {
+                const response = await fetch(`/api/purchase-orders/${id}`);
+                if (!response.ok) throw new Error(await response.text());
                 const po = await response.json();
-
                 const itemsHtml = (po.items || []).map(item => `
                     <tr>
                         <td>${item.partNumber}</td>
@@ -624,7 +620,6 @@ function switchTab(tab) {
                         <td class="text-end">${formatCurrency(item.totalPrice)}</td>
                     </tr>
                 `).join('');
-
                 document.getElementById('viewModalBody').innerHTML = `
                     <div class="row mb-3">
                         <div class="col-md-4"><strong>PO Number:</strong> ${po.poNumber}</div>

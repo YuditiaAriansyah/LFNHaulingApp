@@ -715,37 +715,33 @@ function switchTab(tabName) {
         }
 
         // Load PRs
-        async function loadPRs() {            const site = document.getElementById('filterSite').value;
-            const status = document.getElementById('filterStatus').value;
+        async function loadPRs() {
             const site = document.getElementById('filterSite').value;
             const status = document.getElementById('filterStatus').value;
             try {
                 const response = await fetch(`/api/purchase-requests?site=${site}&status=${status}`);
                 prs = await response.json();
+            } catch (err) {
+                console.error('Error loading PRs:', err);
+            }
 
-                } catch (err) {
-                tbody.innerHTML = `
+            // Fallback: use localStorage if API returned nothing
+            if (!prs || prs.length === 0) {
+                try {
+                    var _seed_ = JSON.parse(localStorage.getItem("lfn_pr"));
+                    if (_seed_ && _seed_.length) prs = _seed_;
+                } catch(e) {}
+            }
 
-                }
+            if (typeof updateStats === "function") updateStats();
+            if (typeof renderTable === "function") renderTable();
+        }
 
-                    if (!prs || prs.length === 0) {
-
-                        try {
-
-                            var _seed_ = JSON.parse(localStorage.getItem("lfn_pr"));
-
-                            if (_seed_ && _seed_.length) prs = _seed_;
-
-                        } catch(e) {}
-
-                    }
-
-                    if (typeof updateStats === "function") updateStats();
-
-                    if (typeof renderTable === "function") renderTable();
-`);
+        async function viewPR(id) {
+            try {
+                const response = await fetch(`/api/purchase-requests/${id}`);
+                if (!response.ok) throw new Error(await response.text());
                 const pr = await response.json();
-
                 const itemsHtml = (pr.items || []).map(item => `
                     <tr>
                         <td>${item.partNumber}</td>
@@ -757,7 +753,6 @@ function switchTab(tabName) {
                         <td><span class="badge badge-${item.priority.toLowerCase()}">${item.priority}</span></td>
                     </tr>
                 `).join('');
-
                 document.getElementById('viewModalBody').innerHTML = `
                     <div class="detail-card">
                         <div class="row">
@@ -777,18 +772,13 @@ function switchTab(tabName) {
                             </div>
                         </div>
                     </div>
-
                     <h6 class="mt-3">Items (${pr.items ? pr.items.length : 0})</h6>
                     <table class="table table-sm">
                         <thead>
                             <tr>
-                                <th>Part Number</th>
-                                <th>Description</th>
-                                <th>Unit</th>
-                                <th class="text-end">Qty</th>
-                                <th class="text-end">Est. Price</th>
-                                <th class="text-end">Total</th>
-                                <th>Priority</th>
+                                <th>Part Number</th><th>Description</th><th>Unit</th>
+                                <th class="text-end">Qty</th><th class="text-end">Est. Price</th>
+                                <th class="text-end">Total</th><th>Priority</th>
                             </tr>
                         </thead>
                         <tbody>${itemsHtml || '<tr><td colspan="7" class="text-center">No items</td></tr>'}</tbody>
@@ -801,21 +791,11 @@ function switchTab(tabName) {
                         </tfoot>
                     </table>
                 `;
-
                 new bootstrap.Modal(document.getElementById('viewModal')).show();
             } catch (error) {
-            try {
-                var _d_ = JSON.parse(localStorage.getItem(_key_));
-            } catch(e) {}
-            if (window[_var_] && window[_var_].length > 0) {
-                if (typeof updateStats === "function") updateStats();
-                if (typeof renderTable === "function") renderTable();
-            } else {
-
                 console.error('Error viewing PR:', error);
                 Swal.fire('Error', 'Failed to load PR details', 'error');
-                        }
-            return;}
+            }
         }
 
         // Edit PR

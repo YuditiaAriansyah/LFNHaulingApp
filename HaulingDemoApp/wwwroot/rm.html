@@ -1061,22 +1061,25 @@ function switchTab(tab) {
 
         // ==================== LOAD DATA ====================
         async function loadStats() {
+            var data;
             try {
                 const response = await fetch('/api/rm/summary');
-                const data = await response.json();
- } catch (err) {
-error) { console.error('Error loading stats:', error); 
- }
-     if (!data || data.length === 0) {
-         try {
-             var _seed_ = JSON.parse(localStorage.getItem("lfn_rm"));
-             if (_seed_ && _seed_.length) data = _seed_;
-         } catch(e) {}
-     }
-     if (typeof updateStats === "function") updateStats();
-     if (typeof renderTable === "function") renderTable();
+                const _raw = await response.json();
+                data = _raw;
+            } catch (err) {
+                console.error('Error loading stats:', err);
+            }
 
-        
+            // Fallback: use localStorage if API returned nothing
+            if (!data || data.length === 0) {
+                try {
+                    var _seed_ = JSON.parse(localStorage.getItem("lfn_rm"));
+                    if (_seed_ && _seed_.length) data = _seed_;
+                } catch(e) {}
+            }
+            if (typeof updateStats === "function") updateStats();
+            if (typeof renderTable === "function") renderTable(data);
+        }
 
         async function loadWorkOrders() {
             const site = document.getElementById('woFilterSite').value;

@@ -1221,19 +1221,19 @@
             try {
                 const res = await fetch('/api/sites');
                 const sites = await res.json();
- } catch (err) {
-         console.error(err);
- }
-     if (!sites || sites.length === 0) {
-         try {
-             var _seed_ = JSON.parse(localStorage.getItem("lfn_finance"));
-             if (_seed_ && _seed_.length) sites = _seed_;
-         } catch(e) {}
-     }
-     if (typeof updateStats === "function") updateStats();
-     if (typeof renderTable === "function") renderTable();
+            } catch (err) {
+                console.error('Error loading sites:', err);
+            }
 
-        
+            if (!sites || sites.length === 0) {
+                try {
+                    var _seed_ = JSON.parse(localStorage.getItem("lfn_finance"));
+                    if (_seed_ && _seed_.length) sites = _seed_;
+                } catch(e) {}
+            }
+            if (typeof updateStats === "function") updateStats();
+            if (typeof renderTable === "function") renderTable();
+        }
 
         // ==================== CHART OF ACCOUNTS ====================
         async function loadCoaData() {

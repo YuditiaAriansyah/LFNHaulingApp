@@ -358,35 +358,35 @@
         }
 
         async function loadData() {
-            showLoading(true);
-            try {
-                const params = new URLSearchParams();
-                const status = document.getElementById("filterStatus").value;
-                if (status) params.append("status", status);
-                const ft = document.getElementById("filterType");
-                if (ft && ft.value) {
-                    const typeParam = "master-driver.html" === "master-vehicle.html" ? "vehicleType" : ("master-driver.html" === "master-route.html" ? "routeType" : "");
-                    if (typeParam) params.append(typeParam, ft.value);
-                }
-                const res = await fetch(API + (params.toString() ? "?" + params : ""));
-                if (!res.ok) throw new Error(await res.text());
-                const data = await res.json();
- } catch (err) {
-                console.error(e);
-                Swal.fire("Gagal", "Tidak dapat memuat data dari server.", "error");
- }
-     if (!data || data.length === 0) {
-         try {
-             var _seed_ = JSON.parse(localStorage.getItem("lfn_drivers"));
-             if (_seed_ && _seed_.length) data = _seed_;
-         } catch(e) {}
-     }
-     if (typeof updateStats === "function") updateStats();
-     if (typeof renderTable === "function") renderTable();
+    showLoading(true);
+    var data;
+    try {
+        const params = new URLSearchParams();
+        const status = document.getElementById("filterStatus").value;
+        if (status) params.append("status", status);
+        const ft = document.getElementById("filterType");
+        if (ft && ft.value) params.append("driverType", ft.value);
+        const res = await fetch(API + (params.toString() ? "?" + params.toString() : ""));
+        if (!res.ok) throw new Error(await res.text());
+        data = await res.json();
+    } catch (err) {
+        console.error(err);
+        Swal.fire("Gagal", "Tidak dapat memuat data dari server.", "error");
+    }
 
-        
+    // Fallback: use localStorage if API returned nothing
+    if (!data || data.length === 0) {
+        try {
+            var _seed_ = JSON.parse(localStorage.getItem("lfn_drivers"));
+            if (_seed_ && _seed_.length) data = _seed_;
+        } catch(e) {}
+    }
+    showLoading(false);
+    if (typeof updateStats === "function") updateStats();
+    if (typeof renderTable === "function") renderTable(data);
+}
 
-        function renderTable(data) {
+function renderTable(data) {
             const tbody = document.getElementById("tableBody");
             const noData = document.getElementById("noData");
             if (!data || data.length === 0) {

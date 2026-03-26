@@ -713,13 +713,13 @@ namespace HaulingDemoApp.Data
             {
                 entity.ToTable("haul_trips");
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.TripNumber).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.TripNumber).HasMaxLength(50);
                 entity.Property(e => e.TripDate).HasColumnType("timestamp");
-                entity.Property(e => e.Site).IsRequired().HasMaxLength(100);
-                entity.Property(e => e.UnitNo).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.Site).HasMaxLength(100);
+                entity.Property(e => e.UnitNo).HasMaxLength(50);
                 entity.Property(e => e.DriverId).HasMaxLength(50);
                 entity.Property(e => e.DriverName).HasMaxLength(100);
-                entity.Property(e => e.RouteCode).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.RouteCode).HasMaxLength(50);
                 entity.Property(e => e.RouteName).HasMaxLength(100);
                 entity.Property(e => e.Shift).HasMaxLength(20);
                 entity.Property(e => e.MaterialType).HasMaxLength(50);

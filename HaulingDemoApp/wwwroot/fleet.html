@@ -657,38 +657,28 @@ function switchTab(tab) {
             document.getElementById(tab + 'Content').classList.add('active');
         }
 
-        async function loadFleet() {            const site = document.getElementById('filterSite').value;
-            const status = document.getElementById('filterStatus').value;
-            const category = document.getElementById('filterCategory').value;
+        async function loadFleet() {
             const site = document.getElementById('filterSite').value;
             const status = document.getElementById('filterStatus').value;
             const category = document.getElementById('filterCategory').value;
             try {
                 const response = await fetch(`/api/fleet?site=${site}&status=${status}&category=${category}`);
                 vehicles = await response.json();
+            } catch (err) {
+                console.error('Error loading fleet:', err);
+            }
 
-                } catch (err) {
-                tbody.innerHTML = '<tr><td colspan="15" class="text-center text-muted py-4"><i class="bi bi-inbox fs-3 d-block mb-2"></i>No vehicles found</td></tr>';
+            // Fallback: use localStorage if API returned nothing
+            if (!vehicles || vehicles.length === 0) {
+                try {
+                    var _seed_ = JSON.parse(localStorage.getItem("lfn_fleet"));
+                    if (_seed_ && _seed_.length) vehicles = _seed_;
+                } catch(e) {}
+            }
 
-                }
-
-                    if (!vehicles || vehicles.length === 0) {
-
-                        try {
-
-                            var _seed_ = JSON.parse(localStorage.getItem("lfn_fleet"));
-
-                            if (_seed_ && _seed_.length) vehicles = _seed_;
-
-                        } catch(e) {}
-
-                    }
-
-                    if (typeof updateStats === "function") updateStats();
-
-                    if (typeof renderTable === "function") renderTable();
-`);
-                const stats = await response.json();
+            if (typeof updateStats === "function") updateStats();
+            if (typeof renderTable === "function") renderTable();
+        }
                 document.getElementById('statTotalUnit').textContent = stats.totalUnit || 0;
                 document.getElementById('statTotalHM').textContent = formatNumber(stats.totalHM);
                 document.getElementById('statTotalKM').textContent = formatNumber(stats.totalKM);

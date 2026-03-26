@@ -1110,22 +1110,24 @@ function switchTab(tab) {
 
         // ==================== LOAD DATA ====================
         async function loadStats() {
+            var data;
             try {
                 const response = await fetch('/api/hr/summary');
-                const data = await response.json();
- } catch (err) {
-error) { console.error('Error loading stats:', error); 
- }
-     if (!data || data.length === 0) {
-         try {
-             var _seed_ = JSON.parse(localStorage.getItem("lfn_hr"));
-             if (_seed_ && _seed_.length) data = _seed_;
-         } catch(e) {}
-     }
-     if (typeof updateStats === "function") updateStats();
-     if (typeof renderTable === "function") renderTable();
+                data = await response.json();
+            } catch (err) {
+                console.error('Error loading stats:', err);
+            }
 
-        
+            // Fallback: use localStorage if API returned nothing
+            if (!data || data.length === 0) {
+                try {
+                    var _seed_ = JSON.parse(localStorage.getItem("lfn_hr"));
+                    if (_seed_ && _seed_.length) data = _seed_;
+                } catch(e) {}
+            }
+            if (typeof updateStats === "function") updateStats(data);
+            if (typeof renderTable === "function") renderTable(data);
+        }
 
         async function loadEmployees() {
             const site = document.getElementById('empFilterSite').value;

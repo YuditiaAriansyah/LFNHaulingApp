@@ -805,26 +805,18 @@
             }
         }
 
-        async function loadSites() {            // SKIP API call to avoid database error - use default sites only
-            /* HIDDEN: API call to /api/sites - temporarily disabled to avoid database connection error
-            try {
-                // Try to load sites from API
-                const response = await fetch(`${API_BASE}/api/sites`);
-                if (response.ok) {
-                    const data = await response.json();
- } catch (err) {
-         console.error(err);
- }
-     if (!data || data.length === 0) {
-         try {
-             var _seed_ = JSON.parse(localStorage.getItem("lfn_fuel"));
-             if (_seed_ && _seed_.length) data = _seed_;
-         } catch(e) {}
-     }
-     if (typeof updateStats === "function") updateStats();
-     if (typeof renderTable === "function") renderTable();
-
-    }
+        async function loadSites() {
+            // SKIP API call - sites loaded via loadInitialData
+            var sites = [];
+            if (!sites || sites.length === 0) {
+                try {
+                    var _seed_ = JSON.parse(localStorage.getItem("lfn_fuel"));
+                    if (_seed_ && _seed_.length) sites = _seed_;
+                } catch(e) {}
+            }
+            if (typeof updateStats === "function") updateStats();
+            if (typeof renderTable === "function") renderTable(sites);
+        }
 
         async function loadInitialData() {
             showLoading(true);

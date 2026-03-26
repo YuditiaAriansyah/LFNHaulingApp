@@ -555,37 +555,33 @@ function switchTab(tab) {
             document.getElementById(tab + 'Content').classList.add('active');
         }
 
-        async function loadGIs() {            const site = document.getElementById('filterSite').value;
-            const status = document.getElementById('filterStatus').value;
+        async function loadGIs() {
             const site = document.getElementById('filterSite').value;
             const status = document.getElementById('filterStatus').value;
             try {
                 const response = await fetch(`/api/good-issues?site=${site}&status=${status}`);
                 gis = await response.json();
+            } catch (err) {
+                console.error('Error loading GIs:', err);
+            }
 
-                } catch (err) {
-                tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4"><i class="bi bi-inbox fs-3 d-block mb-2"></i>No data available</td></tr>';
+            // Fallback: use localStorage if API returned nothing
+            if (!gis || gis.length === 0) {
+                try {
+                    var _seed_ = JSON.parse(localStorage.getItem("lfn_gi"));
+                    if (_seed_ && _seed_.length) gis = _seed_;
+                } catch(e) {}
+            }
 
-                }
+            if (typeof updateStats === "function") updateStats();
+            if (typeof renderTable === "function") renderTable();
+        }
 
-                    if (!gis || gis.length === 0) {
-
-                        try {
-
-                            var _seed_ = JSON.parse(localStorage.getItem("lfn_gi"));
-
-                            if (_seed_ && _seed_.length) gis = _seed_;
-
-                        } catch(e) {}
-
-                    }
-
-                    if (typeof updateStats === "function") updateStats();
-
-                    if (typeof renderTable === "function") renderTable();
-`);
+        async function viewGI(id) {
+            try {
+                const response = await fetch(`/api/good-issues/${id}`);
+                if (!response.ok) throw new Error(await response.text());
                 const gi = await response.json();
-
                 const itemsHtml = (gi.items || []).map(item => `
                     <tr>
                         <td>${item.partNumber}</td>
@@ -597,7 +593,6 @@ function switchTab(tab) {
                         <td>${item.purpose || '-'}</td>
                     </tr>
                 `).join('');
-
                 document.getElementById('viewModalBody').innerHTML = `
                     <div class="row mb-3">
                         <div class="col-md-4"><strong>GI Number:</strong> ${gi.giNumber}</div>

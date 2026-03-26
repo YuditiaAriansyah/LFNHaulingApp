@@ -537,7 +537,9 @@
             if (el) el.textContent = val;
         }
 
-        async function loadDashboard() {            showLoading();
+        async function loadDashboard() {
+            showLoading();
+            var d;
             try {
                 const fromDate = document.getElementById('fromDate').value;
                 const toDate = document.getElementById('toDate').value;
@@ -548,28 +550,22 @@
                     `Periode: ${fromDate || 'All time'} s/d ${toDate || 'Now'}`;
                 const res = await fetch(url);
                 if (!res.ok) throw new Error('Failed to load KPI');
-                const d = await res.json();
- } catch (err) {
-                Swal.fire('Error', e.message, 'error');
- }
-     if (!d || d.length === 0) {
-         try {
-             var _seed_ = JSON.parse(localStorage.getItem("lfn_kpi"));
-             if (_seed_ && _seed_.length) d = _seed_;
-         } catch(e) {}
-     }
-     if (typeof updateStats === "function") updateStats();
-     if (typeof renderTable === "function") renderTable();
-     if (!d || d.length === 0) {
-         try {
-             var _seed_ = JSON.parse(localStorage.getItem("lfn_kpi"));
-             if (_seed_ && _seed_.length) d = _seed_;
-         } catch(e) {}
-     }
-     if (typeof updateStats === "function") updateStats();
-     if (typeof renderTable === "function") renderTable();
+                d = await res.json();
+            } catch (err) {
+                console.error('Error loading KPI:', err);
+            }
 
-    
+            // Fallback: use localStorage if API returned nothing
+            if (!d || d.length === 0) {
+                try {
+                    var _seed_ = JSON.parse(localStorage.getItem("lfn_kpi"));
+                    if (_seed_ && _seed_.length) d = _seed_;
+                } catch(e) {}
+            }
+            if (typeof updateStats === "function") updateStats(d);
+            if (typeof renderTable === "function") renderTable(d);
+        }
+
     </script>
 
     

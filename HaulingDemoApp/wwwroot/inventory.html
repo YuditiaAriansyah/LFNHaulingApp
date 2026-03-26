@@ -632,52 +632,29 @@ function switchTab(tabName) {
         }
 
         // Load inventory data
-        async function loadInventory() {            const location = document.getElementById('filterLocation').value;
-            const alert = document.getElementById('filterAlert').value;
+        async function loadInventory() {
             const location = document.getElementById('filterLocation').value;
             const alert = document.getElementById('filterAlert').value;
+            var data;
             try {
                 const url = `/api/inventories?location=${location}&alert=${alert}`;
                 const response = await fetch(url);
                 if (!response.ok) throw new Error('Failed to load inventory');
-                const data = await response.json();
- } catch (err) {
-                tbody.innerHTML = `
- }
-     if (!data || data.length === 0) {
-         try {
-             var _seed_ = JSON.parse(localStorage.getItem("lfn_inventory"));
-             if (_seed_ && _seed_.length) data = _seed_;
-         } catch(e) {}
-     }
-     if (typeof updateStats === "function") updateStats();
-     if (typeof renderTable === "function") renderTable();
-">
-                        <td>${index + 1}</td>
-                        <td><strong>${item.partNumber || '-'}</strong></td>
-                        <td>${item.materialDescription || '-'}</td>
-                        <td>${item.unit || '-'}</td>
-                        <td>${item.location || '-'}</td>
-                        <td class="text-end">${formatNumber(item.minStock)}</td>
-                        <td class="text-end">${formatNumber(item.maxStock)}</td>
-                        <td class="text-end"><strong>${formatNumber(item.stock)}</strong></td>
-                        <td>${stockStatus.badge}</td>
-                        <td class="text-end">${formatCurrency(item.stockValue)}</td>
-                        <td class="text-end">${formatCurrency(item.unitPrice)}</td>
-                        <td class="text-end">${formatCurrency(item.lastPOPrice)}</td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="btn btn-warning btn-sm" onclick="editItem(${item.id})">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="btn btn-danger btn-sm" onclick="confirmDelete(${item.id}, '${item.partNumber}')">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
+                data = await response.json();
+            } catch (err) {
+                console.error('Error loading inventory:', err);
+            }
+
+            // Fallback: use localStorage if API returned nothing
+            if (!data || data.length === 0) {
+                try {
+                    var _seed_ = JSON.parse(localStorage.getItem("lfn_inventory"));
+                    if (_seed_ && _seed_.length) data = _seed_;
+                } catch(e) {}
+            }
+
+            if (typeof updateStats === "function") updateStats(data);
+            if (typeof renderTable === "function") renderTable(data);
         }
 
         // Get stock status
@@ -692,6 +669,7 @@ function switchTab(tabName) {
 
         // Update stats
         function updateStats(data) {
+            if (!data) return;
             const total = data.length;
             const minAlert = data.filter(i => i.stock <= i.minStock).length;
             const maxAlert = data.filter(i => i.stock >= i.maxStock).length;

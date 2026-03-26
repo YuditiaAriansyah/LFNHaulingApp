@@ -460,33 +460,26 @@
         function showLoading() { document.getElementById('loadingOverlay').style.display = 'flex'; }
         function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
 
-        async function loadVehicles() {            try {
+        async function loadVehicles() {
+            try {
                 const res = await fetch(`${API}/vehicle/master`);
                 if (res.ok) {
                     vehicles = await res.json();
+                }
+            } catch (err) {
+                console.error('Error loading vehicles:', err);
+            }
 
-                    } catch (err) {
- console.error(e); 
+            if (!vehicles || vehicles.length === 0) {
+                try {
+                    var _seed_ = JSON.parse(localStorage.getItem("lfn_wb"));
+                    if (_seed_ && _seed_.length) vehicles = _seed_;
+                } catch(e) {}
+            }
 
-                    }
-
-                        if (!vehicles || vehicles.length === 0) {
-
-                            try {
-
-                                var _seed_ = JSON.parse(localStorage.getItem("lfn_wb"));
-
-                                if (_seed_ && _seed_.length) vehicles = _seed_;
-
-                            } catch(e) {}
-
-                        }
-
-                        if (typeof updateStats === "function") updateStats();
-
-                        if (typeof renderTable === "function") renderTable();
-
-    }
+            if (typeof updateStats === "function") updateStats();
+            if (typeof renderTable === "function") renderTable(vehicles);
+        }
 
         async function loadTrips() {
             try {
