@@ -2629,6 +2629,17 @@ app.MapPost("/api/tyres/po", async (TyrePO tyrePO, AppDbContext db) =>
     return Results.Created($"/api/tyres/po/{tyrePO.Id}", tyrePO);
 });
 
+// DEBUG: test EF Core duplicate check directly
+app.MapGet("/api/debug/tyrepo/check", async (string noPO, string site, AppDbContext db) =>
+{
+    if (string.IsNullOrWhiteSpace(noPO) || string.IsNullOrWhiteSpace(site))
+        return Results.BadRequest(new { error = "noPO and site required" });
+    var existing = await db.TyrePOs
+        .Where(t => t.NoPO == noPO && t.Site == site)
+        .ToListAsync();
+    return Results.Ok(new { noPO, site, found = existing.Count, records = existing });
+});
+
 app.MapPut("/api/tyres/po/{id}", async (int id, TyrePO updated, AppDbContext db) =>
 {
     var tyrePO = await db.TyrePOs.FindAsync(id);
@@ -2686,6 +2697,18 @@ app.MapPost("/api/tyres/problems", async (TyreProblem tyreProblem, AppDbContext 
     db.TyreProblems.Add(tyreProblem);
     await db.SaveChangesAsync();
     return Results.Created($"/api/tyres/problems/{tyreProblem.Id}", tyreProblem);
+});
+
+// DEBUG: test EF Core duplicate check for TyreProblem
+app.MapGet("/api/debug/tyreproblem/check", async (string serialNumber, string tanggal, AppDbContext db) =>
+{
+    if (string.IsNullOrWhiteSpace(serialNumber) || string.IsNullOrWhiteSpace(tanggal))
+        return Results.BadRequest(new { error = "serialNumber and tanggal required" });
+    var dt = DateTime.Parse(tanggal);
+    var existing = await db.TyreProblems
+        .Where(t => t.SerialNumber == serialNumber && t.Tanggal.Date == dt.Date)
+        .ToListAsync();
+    return Results.Ok(new { serialNumber, tanggal, found = existing.Count, records = existing });
 });
 
 app.MapPut("/api/tyres/problems/{id}", async (int id, TyreProblem updated, AppDbContext db) =>
