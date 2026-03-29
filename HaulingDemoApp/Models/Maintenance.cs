@@ -14,7 +14,7 @@ public class WorkOrder
     [MaxLength(50)]
     public string WONumber { get; set; } = string.Empty;
 
-    public DateTime WODate { get; set; } = DateTime.UtcNow;
+    public DateTime WODate { get; set; } = DateTime.Now;
 
     [Required]
     [MaxLength(100)]
@@ -83,7 +83,7 @@ public class PreventiveMaintenance
     [MaxLength(50)]
     public string PMNumber { get; set; } = string.Empty;
 
-    public DateTime PMDate { get; set; } = DateTime.UtcNow;
+    public DateTime PMDate { get; set; } = DateTime.Now;
 
     [Required]
     [MaxLength(100)]

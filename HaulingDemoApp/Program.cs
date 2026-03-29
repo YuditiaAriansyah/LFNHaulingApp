@@ -1961,6 +1961,10 @@ app.UseStaticFiles();
 // API ENDPOINTS
 // =====================================================
 
+// Helper: returns DateTime with Unspecified kind (compatible with PostgreSQL timestamp columns)
+static DateTime LocalDate(DateTime? dt) =>
+    dt.HasValue ? DateTime.SpecifyKind(dt.Value, DateTimeKind.Unspecified) : DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+
 // Health Check
 app.MapGet("/health", () => new
 {
@@ -4261,7 +4265,7 @@ app.MapPost("/api/workorders", async (WorkOrderInput input, AppDbContext db) =>
     var wo = new WorkOrder
     {
         WONumber = input.WONumber ?? $"WO-{DateTime.Now:yyyyMMdd}-{new Random().Next(1000, 9999)}",
-        WODate = input.WODate ?? DateTime.UtcNow,
+        WODate = LocalDate(input.WODate),
         Site = input.Site,
         UnitNo = input.UnitNo,
         MerkType = input.MerkType,
@@ -4373,7 +4377,7 @@ app.MapPost("/api/pm", async (PMInput input, AppDbContext db) =>
     var pm = new PreventiveMaintenance
     {
         PMNumber = input.PMNumber ?? $"PM-{DateTime.Now:yyyyMMdd}-{new Random().Next(1000, 9999)}",
-        PMDate = input.PMDate ?? DateTime.UtcNow,
+        PMDate = LocalDate(input.PMDate),
         Site = input.Site,
         UnitNo = input.UnitNo,
         MerkType = input.MerkType,
@@ -4492,7 +4496,7 @@ app.MapPost("/api/corrective", async (CMInput input, AppDbContext db) =>
     var cm = new CorrectiveMaintenance
     {
         CMNumber = input.CMNumber ?? $"CM-{DateTime.Now:yyyyMMdd}-{new Random().Next(1000, 9999)}",
-        CMDate = input.CMDate ?? DateTime.UtcNow,
+        CMDate = LocalDate(input.CMDate),
         Site = input.Site,
         UnitNo = input.UnitNo,
         MerkType = input.MerkType,
@@ -5034,7 +5038,7 @@ app.MapPost("/api/gl", async (JournalEntryInput input, AppDbContext db) =>
     if (Math.Abs(totalDebit - totalCredit) > 0.01m)
         return Results.BadRequest(new { error = $"Debit ({totalDebit}) must equal Credit ({totalCredit})" });
 
-    var entryDate = input.EntryDate ?? DateTime.UtcNow;
+    var entryDate = LocalDate(input.EntryDate);
     var entry = new JournalEntry
     {
         EntryNumber = input.EntryNumber ?? $"JE-{entryDate:yyyyMMdd}-{new Random().Next(1000, 9999)}",
@@ -7782,7 +7786,7 @@ app.MapGet("/api/journal/{id}/lines", async (AppDbContext db, int id) =>
 
 app.MapPost("/api/journal", async (AppDbContext db, JournalEntryCreateRequest req) =>
 {
-    var entryDate = req.EntryDate ?? DateTime.UtcNow;
+    var entryDate = LocalDate(req.EntryDate);
     var entry = new JournalEntry
     {
         EntryNumber = req.EntryNumber ?? $"JE-{DateTime.UtcNow:yyyyMMddHHmmss}",
