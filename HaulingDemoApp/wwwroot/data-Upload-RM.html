@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload R&M Data - LFN</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; box-sizing: border-box; }
+        :root {
+            --navy: #0f172a;
+            --accent: #0f766e;
+            --accent-dim: rgba(15,118,110,0.15);
+            --accent-light: rgba(15,118,110,0.08);
+            --bg-page: #F8FAFC;
+            --border-color: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+        }
+        body { background: var(--bg-page); min-height: 100vh; color: var(--text-primary); }
+
+        .navbar { background: var(--navy) !important; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+        .navbar-brand { font-weight: 700; font-size: 1.3rem; color: #fff !important; }
+        .nav-link { color: rgba(255,255,255,0.65) !important; font-weight: 500; font-size: 0.82rem; padding: 0.45rem 0.7rem !important; border-radius: 8px; }
+        .nav-link:hover { color: #fff !important; background: rgba(255,255,255,0.08); }
+
+        .main-container { max-width: 900px; margin: 32px auto; padding: 0 16px; }
+
+        /* Tab Navigation */
+        .nav-tabs-custom {
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            gap: 0;
+            margin-bottom: 0;
+        }
+        .nav-tabs-custom .nav-item {
+            flex: 1;
+        }
+        .nav-tabs-custom .nav-link {
+            border-radius: 12px 12px 0 0 !important;
+            border: 1.5px solid #e2e8f0 !important;
+            border-bottom: none !important;
+            margin-right: -1.5px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 12px 16px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .nav-tabs-custom .nav-tabs-custom .nav-link.active {
+            border-bottom: 2px solid #fff !important;
+        }
+        .tab-content-custom { border: 1.5px solid #e2e8f0; border-top: none; border-radius: 0 0 12px 12px; padding: 24px; background: #fff; }
+
+        .card { border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 1px 4px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.04); overflow: hidden; margin-bottom: 24px; }
+        .card-header { background: #fff; border-bottom: 1px solid var(--border-color); font-weight: 600; padding: 16px 24px; font-size: 0.95rem; border-left: 4px solid var(--accent); }
+        .card-header.wo { border-left-color: #0f766e; }
+        .card-header.pm { border-left-color: #10b981; }
+        .card-header.cm { border-left-color: #ef4444; }
+        .card-body { padding: 24px; }
+
+        .upload-zone { border: 2px dashed var(--border-color); border-radius: 12px; padding: 40px 32px; text-align: center; transition: all 0.3s; cursor: pointer; background: var(--bg-page); }
+        .upload-zone:hover { border-color: var(--accent); background: var(--accent-light); }
+        .upload-zone.dragover { border-color: var(--accent); background: var(--accent-dim); }
+        .upload-icon { font-size: 2.5rem; color: var(--text-secondary); margin-bottom: 12px; }
+        .upload-zone p { color: var(--text-secondary); font-size: 0.875rem; margin: 0; }
+
+        .form-label { font-weight: 500; color: var(--text-primary); font-size: 0.85rem; }
+        .form-select, .form-control { border-radius: 10px; border: 1.5px solid var(--border-color); padding: 10px 14px; font-size: 0.9rem; }
+        .form-select:focus, .form-control:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); outline: none; }
+
+        .btn-upload { background: var(--accent); border: none; border-radius: 10px; padding: 11px 28px; font-weight: 600; font-size: 0.9rem; color: #fff; }
+        .btn-upload:hover { background: #0d5e56; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15,118,110,0.3); }
+
+        .file-info { background: #f0fdfa; border: 1.5px solid #99f6e4; border-radius: 10px; padding: 16px; display: flex; align-items: center; gap: 12px; }
+        .file-info i { font-size: 1.8rem; color: #0f766e; }
+
+        .template-link { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; border-radius: 10px; border: 1.5px solid var(--border-color); color: var(--text-primary); text-decoration: none; font-weight: 500; font-size: 0.85rem; transition: all 0.2s; }
+        .template-link:hover { border-color: var(--accent); background: var(--accent-light); color: var(--accent); }
+
+        .info-box { background: #f8fafc; border-radius: 10px; padding: 16px 20px; border: 1px solid var(--border-color); }
+        .info-box h6 { font-weight: 600; font-size: 0.85rem; margin-bottom: 8px; color: var(--text-primary); }
+        .info-box code { font-size: 0.8rem; color: var(--accent); background: rgba(15,118,110,0.08); padding: 2px 6px; border-radius: 4px; }
+
+        @media (max-width: 768px) {
+            .main-container { padding: 0 8px; }
+        }
+    </style>
+
+    <style>
+    /* NAVBAR */
+    .navbar { background: var(--navy) !important; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+
+    /* NAVBAR NAV */
+    .nav-item.dropdown { position: relative; }
+    .nav-item.dropdown .nav-link {
+        color: rgba(255, 255, 255, 0.6) !important;
+        font-weight: 500;
+        font-size: 0.82rem;
+        padding: 0.45rem 0.7rem !important;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        white-space: nowrap;
+        text-decoration: none;
+    }
+    .nav-item.dropdown .nav-link:hover { color: rgba(255,255,255,0.9) !important; background: rgba(255,255,255,0.08); }
+    .nav-item.dropdown .nav-link.dropdown-toggle::after {
+        display: inline-block;
+        margin-left: 4px;
+        content: '';
+        border: 0;
+        border-top: 4px solid rgba(255,255,255,0.4);
+        border-right: 4px solid transparent;
+        border-bottom: 0;
+        border-left: 4px solid transparent;
+        vertical-align: middle;
+    }
+    .nav-item.dropdown:hover .nav-link.dropdown-toggle::after { border-top-color: rgba(255,255,255,0.7); }
+    .dropdown-menu {
+        background: rgba(15, 23, 42, 0.98) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 12px !important;
+        padding: 6px !important;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+        min-width: 220px !important;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        animation: dropdownFade 0.15s ease;
+        margin-top: 4px !important;
+    }
+    @keyframes dropdownFade {
+        from { opacity: 0; transform: translateY(-6px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .dropdown-divider { border-color: rgba(255,255,255,0.08) !important; margin: 4px 0; }
+    .dropdown-item {
+        color: rgba(255, 255, 255, 0.7) !important;
+        font-size: 0.82rem;
+        font-weight: 500;
+        padding: 8px 12px !important;
+        border-radius: 8px !important;
+        transition: all 0.15s ease;
+        display: flex !important;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
+    .dropdown-item:hover { color: #fff !important; background: rgba(59, 130, 246, 0.25) !important; }
+    .dropdown-item.active-page { color: #fff !important; background: rgba(59, 130, 246, 0.4) !important; }
+    .dropdown-item i { font-size: 0.9rem; width: 16px; text-align: center; opacity: 0.7; }
+    .dropdown-item:hover i { opacity: 1; }
+    .dropdown-item .bi { font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg sticky-top navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="bi bi-tools me-2"></i>LFN R&M Upload</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html"><i class="bi bi-house"></i> Home</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">P1 Master</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="master-site.html"><i class="bi bi-geo-alt"></i> Site</a></li>
+                            <li><a class="dropdown-item" href="master-cost-center.html"><i class="bi bi-diagram-3"></i> Cost Center</a></li>
+                            <li><a class="dropdown-item" href="master-user.html"><i class="bi bi-people"></i> User</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">P2 Master</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="master-department.html"><i class="bi bi-building"></i> Department</a></li>
+                            <li><a class="dropdown-item" href="master-driver.html"><i class="bi bi-person-badge"></i> Driver</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">P3 Master</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="master-vehicle.html"><i class="bi bi-truck"></i> Vehicle</a></li>
+                            <li><a class="dropdown-item" href="master-route.html"><i class="bi bi-signpost-split"></i> Route</a></li>
+                            <li><a class="dropdown-item" href="master-material.html"><i class="bi bi-box-seam"></i> Material</a></li>
+                            <li><a class="dropdown-item" href="master-uom.html"><i class="bi bi-rulers"></i> UOM</a></li>
+                            <li><a class="dropdown-item" href="master-coa.html"><i class="bi bi-book"></i> COA</a></li>
+                            <li><a class="dropdown-item" href="master-tax.html"><i class="bi bi-percent"></i> Tax</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Operasi</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="datalist-fuel.html"><i class="bi bi-fuel"></i> Fuel List</a></li>
+                            <li><a class="dropdown-item" href="data-Upload-Fuel.html"><i class="bi bi-cloud-upload"></i> Fuel Upload</a></li>
+                            <li><a class="dropdown-item" href="datalist-tyre.html"><i class="bi bi-circle"></i> Tyre List</a></li>
+                            <li><a class="dropdown-item" href="data-Upload-Tyre.html"><i class="bi bi-cloud-upload"></i> Tyre Upload</a></li>
+                            <li class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="rm.html"><i class="bi bi-wrench"></i> R&M</a></li>
+                            <li><a class="dropdown-item active-page" href="data-Upload-RM.html"><i class="bi bi-cloud-upload"></i> R&M Upload</a></li>
+                            <li><a class="dropdown-item" href="fleet.html"><i class="bi bi-truck"></i> Fleet</a></li>
+                            <li class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="inventory.html"><i class="bi bi-box-seam"></i> Inventory</a></li>
+                            <li><a class="dropdown-item" href="haul-trip.html"><i class="bi bi-arrow-left-right"></i> Haul Trip</a></li>
+                            <li><a class="dropdown-item" href="weighbridge.html"><i class="bi bi-scale"></i> Weighbridge</a></li>
+                            <li><a class="dropdown-item" href="kpi-dashboard.html"><i class="bi bi-graph-up"></i> KPI Dashboard</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Procurement</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="purchase-request.html"><i class="bi bi-file-earmark-text"></i> Purchase Request</a></li>
+                            <li><a class="dropdown-item" href="purchase-order.html"><i class="bi bi-receipt"></i> Purchase Order</a></li>
+                            <li><a class="dropdown-item" href="good-receipt.html"><i class="bi bi-clipboard-check"></i> Goods Receipt</a></li>
+                            <li><a class="dropdown-item" href="good-issue.html"><i class="bi bi-box-arrow-up"></i> Goods Issue</a></li>
+                            <li class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="vendor.html"><i class="bi bi-shop"></i> Vendor</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Keuangan</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="finance.html"><i class="bi bi-cash-stack"></i> Finance</a></li>
+                            <li><a class="dropdown-item" href="hr.html"><i class="bi bi-person-lines-fill"></i> HR</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <div class="text-center mb-4">
+            <h4 class="fw-bold" style="color: var(--navy);"><i class="bi bi-cloud-upload me-2"></i>Upload Repair & Maintenance Data</h4>
+            <p class="text-muted" style="font-size: 0.9rem;">Upload data Work Order, Preventive Maintenance, dan Corrective Maintenance dari file Excel/CSV</p>
+        </div>
+
+        <!-- Tab Navigation -->
+        <ul class="nav nav-tabs mb-0" id="rmUploadTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="woTab" data-bs-toggle="tab" data-bs-target="#tabWo" type="button" role="tab" style="background:#0f766e!important;color:#fff!important;border:1.5px solid #0f766e!important;border-bottom:none!important;border-radius:12px 12px 0 0!important;">
+                    <i class="bi bi-clipboard-check me-1"></i>Upload Work Order
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="pmTab" data-bs-toggle="tab" data-bs-target="#tabPm" type="button" role="tab" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;border-radius:12px 12px 0 0!important;margin-left:6px;">
+                    <i class="bi bi-calendar-check me-1"></i>Upload Preventive Maintenance
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="cmTab" data-bs-toggle="tab" data-bs-target="#tabCm" type="button" role="tab" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;border-radius:12px 12px 0 0!important;margin-left:6px;">
+                    <i class="bi bi-wrench me-1"></i>Upload Corrective / Breakdown
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="rmTabContent">
+
+            <!-- Tab 1: Work Order -->
+            <div class="tab-pane fade show active" id="tabWo" role="tabpanel">
+                <div class="tab-content-custom">
+                    <form id="woUploadForm">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Site <span class="text-danger">*</span></label>
+                                <select class="form-select" id="woSiteSelect" required>
+                                    <option value="">-- Pilih Site --</option>
+                                    <option value="Sungai Dua">Sungai Dua</option>
+                                    <option value="Sebamban">Sebamban</option>
+                                    <option value="Mandala">Mandala</option>
+                                    <option value="Tanjung">Tanjung</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Tipe</label>
+                                <select class="form-select" id="woTypeSelect">
+                                    <option value="">Semua</option>
+                                    <option value="PREVENTIVE">Preventive</option>
+                                    <option value="CORRECTIVE">Corrective</option>
+                                    <option value="BREAKDOWN">Breakdown</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">File Excel/CSV <span class="text-danger">*</span></label>
+                            <div class="upload-zone" id="woDropZone">
+                                <i class="bi bi-cloud-arrow-up upload-icon"></i>
+                                <p class="mb-1 fw-medium">Drag & drop file di sini atau klik untuk memilih</p>
+                                <small class="text-muted">Format: .xlsx, .xls, .csv</small>
+                                <input type="file" id="woFileInput" accept=".xlsx,.xls,.csv" style="display:none">
+                            </div>
+                            <div class="file-info mt-2 d-none" id="woFileInfo">
+                                <i class="bi bi-file-earmark-excel"></i>
+                                <div>
+                                    <strong id="woFileName">filename.xlsx</strong><br>
+                                    <small class="text-muted" id="woFileSize">0 KB</small>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-danger ms-auto" id="woRemoveFile">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-upload">
+                                <i class="bi bi-cloud-upload me-2"></i>Upload Work Order
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tab 2: Preventive Maintenance -->
+            <div class="tab-pane fade" id="tabPm" role="tabpanel">
+                <div class="tab-content-custom">
+                    <form id="pmUploadForm">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Site <span class="text-danger">*</span></label>
+                                <select class="form-select" id="pmSiteSelect" required>
+                                    <option value="">-- Pilih Site --</option>
+                                    <option value="Sungai Dua">Sungai Dua</option>
+                                    <option value="Sebamban">Sebamban</option>
+                                    <option value="Mandala">Mandala</option>
+                                    <option value="Tanjung">Tanjung</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Tipe PM</label>
+                                <select class="form-select" id="pmTypeSelect">
+                                    <option value="">Semua</option>
+                                    <option value="DAILY">Daily</option>
+                                    <option value="WEEKLY">Weekly</option>
+                                    <option value="MONTHLY">Monthly</option>
+                                    <option value="QUARTERLY">Quarterly</option>
+                                    <option value="YEARLY">Yearly</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">File Excel/CSV <span class="text-danger">*</span></label>
+                            <div class="upload-zone" id="pmDropZone">
+                                <i class="bi bi-cloud-arrow-up upload-icon"></i>
+                                <p class="mb-1 fw-medium">Drag & drop file di sini atau klik untuk memilih</p>
+                                <small class="text-muted">Format: .xlsx, .xls, .csv</small>
+                                <input type="file" id="pmFileInput" accept=".xlsx,.xls,.csv" style="display:none">
+                            </div>
+                            <div class="file-info mt-2 d-none" id="pmFileInfo">
+                                <i class="bi bi-file-earmark-excel"></i>
+                                <div>
+                                    <strong id="pmFileName">filename.xlsx</strong><br>
+                                    <small class="text-muted" id="pmFileSize">0 KB</small>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-danger ms-auto" id="pmRemoveFile">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-upload" style="background:#10b981;">
+                                <i class="bi bi-cloud-upload me-2"></i>Upload Preventive Maintenance
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tab 3: Corrective / Breakdown -->
+            <div class="tab-pane fade" id="tabCm" role="tabpanel">
+                <div class="tab-content-custom">
+                    <form id="cmUploadForm">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Site <span class="text-danger">*</span></label>
+                                <select class="form-select" id="cmSiteSelect" required>
+                                    <option value="">-- Pilih Site --</option>
+                                    <option value="Sungai Dua">Sungai Dua</option>
+                                    <option value="Sebamban">Sebamban</option>
+                                    <option value="Mandala">Mandala</option>
+                                    <option value="Tanjung">Tanjung</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Tipe</label>
+                                <select class="form-select" id="cmTypeSelect">
+                                    <option value="">Semua</option>
+                                    <option value="CORRECTIVE">Corrective</option>
+                                    <option value="BREAKDOWN">Breakdown</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">File Excel/CSV <span class="text-danger">*</span></label>
+                            <div class="upload-zone" id="cmDropZone">
+                                <i class="bi bi-cloud-arrow-up upload-icon"></i>
+                                <p class="mb-1 fw-medium">Drag & drop file di sini atau klik untuk memilih</p>
+                                <small class="text-muted">Format: .xlsx, .xls, .csv</small>
+                                <input type="file" id="cmFileInput" accept=".xlsx,.xls,.csv" style="display:none">
+                            </div>
+                            <div class="file-info mt-2 d-none" id="cmFileInfo">
+                                <i class="bi bi-file-earmark-excel"></i>
+                                <div>
+                                    <strong id="cmFileName">filename.xlsx</strong><br>
+                                    <small class="text-muted" id="cmFileSize">0 KB</small>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-danger ms-auto" id="cmRemoveFile">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-upload" style="background:#ef4444;">
+                                <i class="bi bi-cloud-upload me-2"></i>Upload Corrective / Breakdown
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== TEMPLATES ==================== -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-download me-2"></i>Download Template
+            </div>
+            <div class="card-body">
+                <div class="d-flex gap-3 flex-wrap">
+                    <a href="/download-template/rm-workorder" class="template-link">
+                        <i class="bi bi-file-earmark-arrow-down"></i>Template Work Order
+                    </a>
+                    <a href="/download-template/rm-pm" class="template-link">
+                        <i class="bi bi-file-earmark-arrow-down"></i>Template Preventive Maintenance
+                    </a>
+                    <a href="/download-template/rm-cm" class="template-link">
+                        <i class="bi bi-file-earmark-arrow-down"></i>Template Corrective / Breakdown
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== PETUNJUK ==================== -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-info-circle me-2"></i>Petunjuk Format
+            </div>
+            <div class="card-body">
+                <div class="info-box mb-3">
+                    <h6><i class="bi bi-clipboard-check me-1"></i>Format Work Order:</h6>
+                    <code>No;Tanggal;Site;UnitNo;MerkType;WOType;Priority;Problem;Status;ScheduledDate;EstimatedCost;AssignedTo</code>
+                </div>
+                <div class="info-box mb-3">
+                    <h6><i class="bi bi-calendar-check me-1"></i>Format Preventive Maintenance:</h6>
+                    <code>No;Tanggal;Site;UnitNo;MerkType;PMType;Description;ScheduledDate;HMValue</code>
+                </div>
+                <div class="info-box">
+                    <h6><i class="bi bi-wrench me-1"></i>Format Corrective / Breakdown:</h6>
+                    <code>No;Tanggal;Site;UnitNo;MerkType;Category;WOType;Priority;Problem;RootCause;Solution;BreakdownStart;BreakdownEnd;DowntimeHours;ReportedBy;AssignedTo</code>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        const API_BASE = '';
+
+        function setupUpload(type) {
+            const dropZone = document.getElementById(type + 'DropZone');
+            const fileInput = document.getElementById(type + 'FileInput');
+            const fileInfo = document.getElementById(type + 'FileInfo');
+            const fileName = document.getElementById(type + 'FileName');
+            const fileSize = document.getElementById(type + 'FileSize');
+            const removeBtn = document.getElementById(type + 'RemoveFile');
+            let selectedFile = null;
+
+            dropZone.addEventListener('click', () => fileInput.click());
+            dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+            });
+            fileInput.addEventListener('change', () => { if (fileInput.files.length) handleFile(fileInput.files[0]); });
+            removeBtn.addEventListener('click', () => {
+                selectedFile = null;
+                fileInput.value = '';
+                fileInfo.classList.add('d-none');
+                dropZone.classList.remove('d-none');
+            });
+
+            function handleFile(file) {
+                selectedFile = file;
+                fileName.textContent = file.name;
+                fileSize.textContent = (file.size / 1024).toFixed(1) + ' KB';
+                fileInfo.classList.remove('d-none');
+                dropZone.classList.add('d-none');
+            }
+
+            document.getElementById(type + 'UploadForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const site = document.getElementById(type + 'SiteSelect').value;
+                if (!site) { Swal.fire('Peringatan', 'Pilih site terlebih dahulu', 'warning'); return; }
+                if (!selectedFile) { Swal.fire('Peringatan', 'Pilih file terlebih dahulu', 'warning'); return; }
+
+                Swal.fire({ title: 'Mengupload...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                formData.append('site', site);
+
+                let endpoint = '';
+                if (type === 'wo') endpoint = '/api/workorders/upload';
+                else if (type === 'pm') endpoint = '/api/pm/upload';
+                else if (type === 'cm') endpoint = '/api/cm/upload';
+
+                try {
+                    const response = await fetch(API_BASE + endpoint, { method: 'POST', body: formData });
+                    const result = await response.json();
+                    if (response.ok) {
+                        Swal.fire({ icon: 'success', title: 'Berhasil!', text: result.message || 'Data berhasil diupload' }).then(() => {
+                            window.location.href = 'rm.html';
+                        });
+                    } else {
+                        Swal.fire('Error', result.error || 'Upload gagal', 'error');
+                    }
+                } catch (err) {
+                    Swal.fire('Error', 'Terjadi kesalahan: ' + err.message, 'error');
+                }
+            });
+        }
+
+        setupUpload('wo');
+        setupUpload('pm');
+        setupUpload('cm');
+    </script>
+</body>
+</html>

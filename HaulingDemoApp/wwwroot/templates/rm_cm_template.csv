@@ -1,0 +1,4 @@
+No;Tanggal;Site;UnitNo;MerkType;Category;WOType;Priority;Problem;RootCause;Solution;BreakdownStart;BreakdownEnd;DowntimeHours;ReportedBy;AssignedTo
+1;18/02/2026;Sungai Dua;HINO-001;Hino 500 FM;DUMP TRUCK;CORRECTIVE;HIGH;Engine overheating - temperature warning activated;Coolant leak from lower radiator hose;Radiator hose replacement + coolant flush;18/02/2026 08:00;18/02/2026 12:00;4;Charlie Mechanic;Charlie Mechanic
+2;20/02/2026;Sebamban;HINO-002;Hino 500 FM;DUMP TRUCK;BREAKDOWN;CRITICAL;Total engine breakdown - unable to start;battery failure + starter motor issue;Battery replacement + starter motor repair;20/02/2026 07:00;20/02/2026 14:00;7;Dedi Mechanic;Dedi Mechanic
+3;22/02/2026;Mandala;HINO-003;Isuzu Giga;DUMP TRUCK;CORRECTIVE;MEDIUM;Brake system failure - brakes not responding;Air in brake lines + worn brake pads;Bleed brakes + replace brake pads;22/02/2026 10:00;22/02/2026 13:00;3;Cecep Rahmat;Cecep Rahmat

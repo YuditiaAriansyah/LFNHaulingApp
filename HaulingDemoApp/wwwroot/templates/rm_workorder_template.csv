@@ -1,0 +1,4 @@
+No;Tanggal;Site;UnitNo;MerkType;WOType;Priority;Problem;Status;ScheduledDate;EstimatedCost;AssignedTo
+1;10/02/2026;Sungai Dua;HINO-001;Hino 500 FM;PREVENTIVE;LOW;Scheduled 250-hour service - oil change, filter check, brake inspection;OPEN;20/02/2026;2000000;Charlie Mechanic
+2;12/02/2026;Sebamban;HINO-002;Hino 500 FM;CORRECTIVE;HIGH;Engine overheating - coolant leak suspected;OPEN;15/02/2026;5000000;Dedi Mechanic
+3;15/02/2026;Mandala;HINO-003;Isuzu Giga;BREAKDOWN;CRITICAL;Transmission failure - unable to shift gears;OPEN;15/02/2026;15000000;Cecep Rahmat

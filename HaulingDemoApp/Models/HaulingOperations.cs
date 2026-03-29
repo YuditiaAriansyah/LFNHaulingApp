@@ -303,7 +303,7 @@ public class WeighbridgeTicket
 }
 
 // ============ FUEL CONSUMPTION ANALYSIS ============
-[Table("fuel_analysis")]
+[Table("fuel_analyses")]
 public class FuelAnalysis
 {
     [Key]
@@ -375,7 +375,7 @@ public class FuelAnalysis
 }
 
 // ============ UNIT COST TRACKING ============
-[Table("unit_cost_tracking")]
+[Table("unit_cost_trackings")]
 public class UnitCostTracking
 {
     [Key]
@@ -398,9 +398,11 @@ public class UnitCostTracking
     public string UnitNo { get; set; } = string.Empty;
 
     [MaxLength(50)]
+    [NotMapped]
     public string? CostCenter { get; set; }
 
     [MaxLength(50)]
+    [NotMapped]
     public string? Category { get; set; }
 
     [Column(TypeName = "decimal(18,4)")]
@@ -452,7 +454,7 @@ public class UnitCostTracking
 }
 
 // ============ DRIVER PRODUCTIVITY ============
-[Table("driver_productivity")]
+[Table("driver_productivities")]
 public class DriverProductivity
 {
     [Key]

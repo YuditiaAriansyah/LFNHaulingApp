@@ -1,0 +1,28 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - --tag
+      - asia-southeast1-docker.pkg.dev/lfn-data-platform/cloud-run-source-deploy/lfn-hauling:latest
+      - --no-cache
+      - .
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - lfn-hauling
+      - --region=asia-southeast1
+      - --image=asia-southeast1-docker.pkg.dev/lfn-data-platform/cloud-run-source-deploy/lfn-hauling:latest
+      - --no-traffic
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - run
+      - services
+      - update-traffic
+      - lfn-hauling
+      - --region=asia-southeast1
+      - --to-latest
+images:
+  - asia-southeast1-docker.pkg.dev/lfn-data-platform/cloud-run-source-deploy/lfn-hauling:latest

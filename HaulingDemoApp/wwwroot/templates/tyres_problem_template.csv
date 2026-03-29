@@ -1,3 +1,4 @@
-No;Tanggal;Site;UnitNo;NoSeriTyre;ProblemDescription;ActionTaken;Cost
-1;15/01/2026;Sungai Dua;LFN-001;TYR-2026-001;Tear/ Cut;Replace;1500000
-2;16/01/2026;Sebamban;LFN-002;TYR-2026-002;Penetration;Repair;250000
+No;Tanggal;Site;UnitNo;Pos;HM;MerkBan;NoSeriTyre;ProblemDescription;ActionTaken;Cost
+1;15/01/2026;Sungai Dua;LFN-001;POST 01;12450;Michelin;TYR-2026-001;Tear/Cut - ban sobek akibat benda tajam;Replace tyre;1500000
+2;16/01/2026;Sebamban;LFN-002;POST 02;9850;Bridgestone;TYR-2026-002;Penetration - ban bocor karena paku;Repair + inflate;250000
+3;20/01/2026;Mandala;LFN-003;POST 01;15200;Goodyear;TYR-2026-003;Uneven wear - tapak aus tidak rata;Rotation;0

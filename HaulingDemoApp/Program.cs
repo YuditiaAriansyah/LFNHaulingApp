@@ -427,12 +427,27 @@ app.MapPost("/api/migrate/create-missing-tables", async (AppDbContext db) =>
                 ""Status"" VARCHAR(50),
                 ""CreatedAt"" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 ""UpdatedAt"" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );");
+            );
+            ALTER TABLE ""fuel_analyses"" ADD COLUMN IF NOT EXISTS ""FuelCost"" DECIMAL(18,4);
+            ALTER TABLE ""fuel_analyses"" ADD COLUMN IF NOT EXISTS ""FuelCostPerTon"" DECIMAL(18,4);
+            ALTER TABLE ""fuel_analyses"" ADD COLUMN IF NOT EXISTS ""RouteCode"" VARCHAR(50);
+            ALTER TABLE ""fuel_analyses"" ADD COLUMN IF NOT EXISTS ""TotalFuelLitres"" DECIMAL(18,4);
+            ALTER TABLE ""fuel_analyses"" ADD COLUMN IF NOT EXISTS ""TotalKM"" DECIMAL(18,4);
+            ALTER TABLE ""fuel_analyses"" ADD COLUMN IF NOT EXISTS ""TotalTon"" DECIMAL(18,4);
+            ALTER TABLE ""fuel_analyses"" ADD COLUMN IF NOT EXISTS ""TotalTrips"" DECIMAL(18,4);
+            ALTER TABLE ""fuel_analyses"" ADD COLUMN IF NOT EXISTS ""UpdatedAt"" TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+            UPDATE ""fuel_analyses"" SET ""FuelCost"" = 0 WHERE ""FuelCost"" IS NULL;
+            UPDATE ""fuel_analyses"" SET ""FuelCostPerTon"" = 0 WHERE ""FuelCostPerTon"" IS NULL;
+            UPDATE ""fuel_analyses"" SET ""TotalFuelLitres"" = 0 WHERE ""TotalFuelLitres"" IS NULL;
+            UPDATE ""fuel_analyses"" SET ""TotalKM"" = 0 WHERE ""TotalKM"" IS NULL;
+            UPDATE ""fuel_analyses"" SET ""TotalTon"" = 0 WHERE ""TotalTon"" IS NULL;
+            UPDATE ""fuel_analyses"" SET ""TotalTrips"" = 0 WHERE ""TotalTrips"" IS NULL;
+            ");
         results.Add("fuel_analyses OK");
 
         // unit_cost_trackings
         await db.Database.ExecuteSqlRawAsync(@"
-            CREATE TABLE IF NOT EXISTS ""unit_cost_trackings"" (
+            CREATE TABLE IF NOT EXISTS ""unit_cost_tracking"" (
                 ""Id"" SERIAL PRIMARY KEY,
                 ""UnitNo"" VARCHAR(50) NOT NULL,
                 ""Site"" VARCHAR(100),
@@ -453,15 +468,20 @@ app.MapPost("/api/migrate/create-missing-tables", async (AppDbContext db) =>
                 ""CostPerTon"" DECIMAL(18,4),
                 ""CostPerKM"" DECIMAL(18,4),
                 ""CostPerHour"" DECIMAL(18,4),
-                ""Remarks"" VARCHAR(255),
+                ""Status"" VARCHAR(50),
                 ""CreatedAt"" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 ""UpdatedAt"" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );");
-        results.Add("unit_cost_trackings OK");
+            );
+            ALTER TABLE ""unit_cost_tracking"" ADD COLUMN IF NOT EXISTS ""CostCenter"" VARCHAR(100);
+            ALTER TABLE ""unit_cost_tracking"" ADD COLUMN IF NOT EXISTS ""Category"" VARCHAR(50);
+            ALTER TABLE ""unit_cost_tracking"" ADD COLUMN IF NOT EXISTS ""Status"" VARCHAR(50);
+            UPDATE ""unit_cost_tracking"" SET ""Status"" = 'ACTIVE' WHERE ""Status"" IS NULL;
+            ");
+        results.Add("unit_cost_tracking OK");
 
         // driver_productivities
         await db.Database.ExecuteSqlRawAsync(@"
-            CREATE TABLE IF NOT EXISTS ""driver_productivities"" (
+            CREATE TABLE IF NOT EXISTS ""driver_productivity"" (
                 ""Id"" SERIAL PRIMARY KEY,
                 ""DriverId"" VARCHAR(50) NOT NULL,
                 ""DriverName"" VARCHAR(100),
@@ -472,6 +492,7 @@ app.MapPost("/api/migrate/create-missing-tables", async (AppDbContext db) =>
                 ""TotalRitase"" INT,
                 ""TotalTon"" DECIMAL(18,4),
                 ""TotalKM"" DECIMAL(18,4),
+                ""TotalHours"" DECIMAL(18,4),
                 ""TargetTrips"" INT,
                 ""TargetRitase"" INT,
                 ""AchievementPercent"" DECIMAL(18,4),
@@ -483,7 +504,23 @@ app.MapPost("/api/migrate/create-missing-tables", async (AppDbContext db) =>
                 ""Remarks"" VARCHAR(255),
                 ""CreatedAt"" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 ""UpdatedAt"" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );");
+            );
+            ALTER TABLE ""driver_productivity"" ADD COLUMN IF NOT EXISTS ""UnitNo"" VARCHAR(50);
+            ALTER TABLE ""driver_productivity"" ADD COLUMN IF NOT EXISTS ""TotalHours"" DECIMAL(18,4);
+            ALTER TABLE ""driver_productivity"" ADD COLUMN IF NOT EXISTS ""RitaseRate"" DECIMAL(18,2);
+            ALTER TABLE ""driver_productivity"" ADD COLUMN IF NOT EXISTS ""TotalFuelLitres"" DECIMAL(18,4);
+            ALTER TABLE ""driver_productivity"" ADD COLUMN IF NOT EXISTS ""FuelEfficiency"" DECIMAL(18,4);
+            ALTER TABLE ""driver_productivity"" ADD COLUMN IF NOT EXISTS ""WorkingDays"" INT;
+            ALTER TABLE ""driver_productivity"" ADD COLUMN IF NOT EXISTS ""LateCount"" INT;
+            ALTER TABLE ""driver_productivity"" ADD COLUMN IF NOT EXISTS ""AccidentCount"" INT;
+            ALTER TABLE ""driver_productivity"" ADD COLUMN IF NOT EXISTS ""ViolationCount"" INT;
+            ALTER TABLE ""driver_productivity"" ADD COLUMN IF NOT EXISTS ""Status"" VARCHAR(50);
+            UPDATE ""driver_productivity"" SET ""TotalFuelLitres"" = 0 WHERE ""TotalFuelLitres"" IS NULL;
+            UPDATE ""driver_productivity"" SET ""FuelEfficiency"" = 0 WHERE ""FuelEfficiency"" IS NULL;
+            UPDATE ""driver_productivity"" SET ""TotalHours"" = 0 WHERE ""TotalHours"" IS NULL;
+            UPDATE ""driver_productivity"" SET ""RitaseRate"" = 0 WHERE ""RitaseRate"" IS NULL;
+            UPDATE ""driver_productivity"" SET ""Status"" = 'ACTIVE' WHERE ""Status"" IS NULL;
+            ");
         results.Add("driver_productivities OK");
 
         // ==================== OLD TABLES ====================
@@ -1226,19 +1263,19 @@ app.MapPost("/api/migrate/create-missing-tables", async (AppDbContext db) =>
             SELECT 'DIV-OPS', 'Operations Division', 'DIVISION', NULL, 'TNG', 'John Manager', 'Operations Director', 'ACTIVE'
             WHERE NOT EXISTS (SELECT 1 FROM ""department_master"" WHERE ""DeptCode"" = 'DIV-OPS');
             INSERT INTO ""department_master"" (""DeptCode"", ""DeptName"", ""ParentCode"", ""Level"", ""CostCenter"", ""SiteCode"", ""HeadName"", ""HeadTitle"", ""Status"")
-            SELECT 'DEPT-HAUL', 'Hauling Department', 'DIV-OPS', 'DEPARTMENT', 'CC-OPS-TNG', 'Bob Supervisor', 'Hauling Supervisor', 'ACTIVE'
+            SELECT 'DEPT-HAUL', 'Hauling Department', 'DIV-OPS', 'DEPARTMENT', 'CC-OPS-TNG', 'TNG', 'Bob Supervisor', 'Hauling Supervisor', 'ACTIVE'
             WHERE NOT EXISTS (SELECT 1 FROM ""department_master"" WHERE ""DeptCode"" = 'DEPT-HAUL');
             INSERT INTO ""department_master"" (""DeptCode"", ""DeptName"", ""ParentCode"", ""Level"", ""CostCenter"", ""SiteCode"", ""HeadName"", ""HeadTitle"", ""Status"")
-            SELECT 'DEPT-MNT', 'Maintenance Department', 'DIV-OPS', 'DEPARTMENT', 'CC-MNT-TNG', 'Charlie Mechanic', 'Maintenance Manager', 'ACTIVE'
+            SELECT 'DEPT-MNT', 'Maintenance Department', 'DIV-OPS', 'DEPARTMENT', 'CC-MNT-TNG', 'TNG', 'Charlie Mechanic', 'Maintenance Manager', 'ACTIVE'
             WHERE NOT EXISTS (SELECT 1 FROM ""department_master"" WHERE ""DeptCode"" = 'DEPT-MNT');
             INSERT INTO ""department_master"" (""DeptCode"", ""DeptName"", ""ParentCode"", ""Level"", ""CostCenter"", ""SiteCode"", ""HeadName"", ""HeadTitle"", ""Status"")
-            SELECT 'DEPT-ADMIN', 'Administration', 'DIV-OPS', 'DEPARTMENT', 'CC-ADMIN', 'Alice Admin', 'Admin Manager', 'ACTIVE'
+            SELECT 'DEPT-ADMIN', 'Administration', 'DIV-OPS', 'DEPARTMENT', 'CC-ADMIN', 'TNG', 'Alice Admin', 'Admin Manager', 'ACTIVE'
             WHERE NOT EXISTS (SELECT 1 FROM ""department_master"" WHERE ""DeptCode"" = 'DEPT-ADMIN');
             INSERT INTO ""department_master"" (""DeptCode"", ""DeptName"", ""Level"", ""CostCenter"", ""SiteCode"", ""HeadName"", ""HeadTitle"", ""Status"")
             SELECT 'DIV-FIN', 'Finance Division', 'DIVISION', NULL, 'TNG', 'David Finance', 'Finance Director', 'ACTIVE'
             WHERE NOT EXISTS (SELECT 1 FROM ""department_master"" WHERE ""DeptCode"" = 'DIV-FIN');
             INSERT INTO ""department_master"" (""DeptCode"", ""DeptName"", ""ParentCode"", ""Level"", ""CostCenter"", ""SiteCode"", ""HeadName"", ""HeadTitle"", ""Status"")
-            SELECT 'DEPT-ACC', 'Accounting', 'DIV-FIN', 'DEPARTMENT', 'CC-ADMIN', 'Eve Accounting', 'Accounting Head', 'ACTIVE'
+            SELECT 'DEPT-ACC', 'Accounting', 'DIV-FIN', 'DEPARTMENT', 'CC-ADMIN', 'TNG', 'Eve Accounting', 'Accounting Head', 'ACTIVE'
             WHERE NOT EXISTS (SELECT 1 FROM ""department_master"" WHERE ""DeptCode"" = 'DEPT-ACC');
         ");
         results.Add("department_master seed OK");
@@ -1292,9 +1329,617 @@ app.MapPost("/api/migrate/create-missing-tables", async (AppDbContext db) =>
         ");
         results.Add("approval_workflow seed OK");
 
+        // Seed fuel_analyses
+        await db.Database.ExecuteSqlRawAsync(@"
+            INSERT INTO ""fuel_analyses"" (""UnitNo"", ""Site"", ""PeriodMonth"", ""PeriodYear"", ""TotalFuelLitre"", ""TotalDistanceKM"", ""TotalPayloadTon"", ""TotalTonKM"", ""TotalHours"", ""LitrePerKM"", ""LitrePerTon"", ""LitrePerTonKM"", ""LitrePerHour"", ""BenchmarkLitrePerKM"", ""BenchmarkLitrePerTonKM"", ""VariancePercent"", ""FuelCost"", ""FuelCostPerTon"", ""Status"")
+            SELECT 'HINO-001', 'TNG', '01', '2026', 2500.00, 4800.00, 9600.00, 28800.00, 320.00, 0.5208, 0.2604, 0.0868, 7.8125, 0.5000, 0.0833, 4.17, 37500000.00, 3906.25, 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""fuel_analyses"" WHERE ""UnitNo"" = 'HINO-001' AND ""PeriodMonth"" = '01' AND ""PeriodYear"" = '2026');
+            INSERT INTO ""fuel_analyses"" (""UnitNo"", ""Site"", ""PeriodMonth"", ""PeriodYear"", ""TotalFuelLitre"", ""TotalDistanceKM"", ""TotalPayloadTon"", ""TotalTonKM"", ""TotalHours"", ""LitrePerKM"", ""LitrePerTon"", ""LitrePerTonKM"", ""LitrePerHour"", ""BenchmarkLitrePerKM"", ""BenchmarkLitrePerTonKM"", ""VariancePercent"", ""FuelCost"", ""FuelCostPerTon"", ""Status"")
+            SELECT 'HINO-002', 'TNG', '01', '2026', 2400.00, 4600.00, 9200.00, 27600.00, 310.00, 0.5217, 0.2609, 0.0870, 7.7419, 0.5000, 0.0833, 4.35, 36000000.00, 3913.04, 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""fuel_analyses"" WHERE ""UnitNo"" = 'HINO-002' AND ""PeriodMonth"" = '01' AND ""PeriodYear"" = '2026');
+            INSERT INTO ""fuel_analyses"" (""UnitNo"", ""Site"", ""PeriodMonth"", ""PeriodYear"", ""TotalFuelLitre"", ""TotalDistanceKM"", ""TotalPayloadTon"", ""TotalTonKM"", ""TotalHours"", ""LitrePerKM"", ""LitrePerTon"", ""LitrePerTonKM"", ""LitrePerHour"", ""BenchmarkLitrePerKM"", ""BenchmarkLitrePerTonKM"", ""VariancePercent"", ""FuelCost"", ""FuelCostPerTon"", ""Status"")
+            SELECT 'HINO-003', 'SDK', '01', '2026', 2600.00, 5000.00, 10000.00, 30000.00, 335.00, 0.5200, 0.2600, 0.0867, 7.7612, 0.5000, 0.0833, 4.00, 39000000.00, 3900.00, 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""fuel_analyses"" WHERE ""UnitNo"" = 'HINO-003' AND ""PeriodMonth"" = '01' AND ""PeriodYear"" = '2026');
+            INSERT INTO ""fuel_analyses"" (""UnitNo"", ""Site"", ""PeriodMonth"", ""PeriodYear"", ""TotalFuelLitre"", ""TotalDistanceKM"", ""TotalPayloadTon"", ""TotalTonKM"", ""TotalHours"", ""LitrePerKM"", ""LitrePerTon"", ""LitrePerTonKM"", ""LitrePerHour"", ""BenchmarkLitrePerKM"", ""BenchmarkLitrePerTonKM"", ""VariancePercent"", ""FuelCost"", ""FuelCostPerTon"", ""Status"")
+            SELECT 'HINO-004', 'SBB', '01', '2026', 2300.00, 4400.00, 8800.00, 26400.00, 300.00, 0.5227, 0.2614, 0.0871, 7.6667, 0.5000, 0.0833, 4.55, 34500000.00, 3920.45, 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""fuel_analyses"" WHERE ""UnitNo"" = 'HINO-004' AND ""PeriodMonth"" = '01' AND ""PeriodYear"" = '2026');
+            INSERT INTO ""fuel_analyses"" (""UnitNo"", ""Site"", ""PeriodMonth"", ""PeriodYear"", ""TotalFuelLitre"", ""TotalDistanceKM"", ""TotalPayloadTon"", ""TotalTonKM"", ""TotalHours"", ""LitrePerKM"", ""LitrePerTon"", ""LitrePerTonKM"", ""LitrePerHour"", ""BenchmarkLitrePerKM"", ""BenchmarkLitrePerTonKM"", ""VariancePercent"", ""FuelCost"", ""FuelCostPerTon"", ""Status"")
+            SELECT 'HINO-005', 'TNG', '02', '2026', 2550.00, 4900.00, 9800.00, 29400.00, 328.00, 0.5204, 0.2602, 0.0867, 7.7744, 0.5000, 0.0833, 4.08, 38250000.00, 3903.06, 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""fuel_analyses"" WHERE ""UnitNo"" = 'HINO-005' AND ""PeriodMonth"" = '02' AND ""PeriodYear"" = '2026');
+        ");
+        results.Add("fuel_analyses seed OK");
+
+        // Seed unit_cost_trackings
+        await db.Database.ExecuteSqlRawAsync(@"
+            INSERT INTO ""unit_cost_tracking"" (""UnitNo"", ""Site"", ""PeriodMonth"", ""PeriodYear"", ""FuelCost"", ""MaintenanceCost"", ""DriverCost"", ""DepreciationCost"", ""TyreCost"", ""OtherCost"", ""TotalCost"", ""TotalTrips"", ""TotalTon"", ""TotalKM"", ""TotalHours"", ""CostPerTrip"", ""CostPerTon"", ""CostPerKM"", ""CostPerHour"", ""CostCenter"", ""Category"", ""Status"")
+            SELECT 'HINO-001', 'TNG', '01', '2026', 37500000.00, 4500000.00, 15000000.00, 8000000.00, 3000000.00, 2000000.00, 70000000.00, 240, 4800.00, 4800.00, 320.00, 291666.67, 14583.33, 14583.33, 218750.00, 'CC-OPS-TNG', 'DUMP TRUCK', 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""unit_cost_tracking"" WHERE ""UnitNo"" = 'HINO-001' AND ""PeriodMonth"" = '01' AND ""PeriodYear"" = '2026');
+            INSERT INTO ""unit_cost_tracking"" (""UnitNo"", ""Site"", ""PeriodMonth"", ""PeriodYear"", ""FuelCost"", ""MaintenanceCost"", ""DriverCost"", ""DepreciationCost"", ""TyreCost"", ""OtherCost"", ""TotalCost"", ""TotalTrips"", ""TotalTon"", ""TotalKM"", ""TotalHours"", ""CostPerTrip"", ""CostPerTon"", ""CostPerKM"", ""CostPerHour"", ""CostCenter"", ""Category"", ""Status"")
+            SELECT 'HINO-002', 'TNG', '01', '2026', 36000000.00, 4200000.00, 15000000.00, 7500000.00, 2800000.00, 1800000.00, 67300000.00, 230, 4600.00, 4600.00, 310.00, 292608.70, 14630.43, 14630.43, 217096.77, 'CC-OPS-TNG', 'DUMP TRUCK', 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""unit_cost_tracking"" WHERE ""UnitNo"" = 'HINO-002' AND ""PeriodMonth"" = '01' AND ""PeriodYear"" = '2026');
+            INSERT INTO ""unit_cost_tracking"" (""UnitNo"", ""Site"", ""PeriodMonth"", ""PeriodYear"", ""FuelCost"", ""MaintenanceCost"", ""DriverCost"", ""DepreciationCost"", ""TyreCost"", ""OtherCost"", ""TotalCost"", ""TotalTrips"", ""TotalTon"", ""TotalKM"", ""TotalHours"", ""CostPerTrip"", ""CostPerTon"", ""CostPerKM"", ""CostPerHour"", ""CostCenter"", ""Category"", ""Status"")
+            SELECT 'HINO-003', 'SDK', '01', '2026', 39000000.00, 4800000.00, 15500000.00, 8500000.00, 3200000.00, 2100000.00, 73100000.00, 250, 5000.00, 5000.00, 335.00, 292400.00, 14620.00, 14620.00, 218208.96, 'CC-OPS-SDK', 'DUMP TRUCK', 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""unit_cost_tracking"" WHERE ""UnitNo"" = 'HINO-003' AND ""PeriodMonth"" = '01' AND ""PeriodYear"" = '2026');
+            INSERT INTO ""unit_cost_tracking"" (""UnitNo"", ""Site"", ""PeriodMonth"", ""PeriodYear"", ""FuelCost"", ""MaintenanceCost"", ""DriverCost"", ""DepreciationCost"", ""TyreCost"", ""OtherCost"", ""TotalCost"", ""TotalTrips"", ""TotalTon"", ""TotalKM"", ""TotalHours"", ""CostPerTrip"", ""CostPerTon"", ""CostPerKM"", ""CostPerHour"", ""CostCenter"", ""Category"", ""Status"")
+            SELECT 'HINO-004', 'SBB', '01', '2026', 34500000.00, 4000000.00, 14800000.00, 7200000.00, 2600000.00, 1700000.00, 64800000.00, 220, 4400.00, 4400.00, 300.00, 294545.45, 14727.27, 14727.27, 216000.00, 'CC-OPS-TNG', 'DUMP TRUCK', 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""unit_cost_tracking"" WHERE ""UnitNo"" = 'HINO-004' AND ""PeriodMonth"" = '01' AND ""PeriodYear"" = '2026');
+            INSERT INTO ""unit_cost_tracking"" (""UnitNo"", ""Site"", ""PeriodMonth"", ""PeriodYear"", ""FuelCost"", ""MaintenanceCost"", ""DriverCost"", ""DepreciationCost"", ""TyreCost"", ""OtherCost"", ""TotalCost"", ""TotalTrips"", ""TotalTon"", ""TotalKM"", ""TotalHours"", ""CostPerTrip"", ""CostPerTon"", ""CostPerKM"", ""CostPerHour"", ""CostCenter"", ""Category"", ""Status"")
+            SELECT 'HINO-005', 'TNG', '02', '2026', 38250000.00, 4600000.00, 15200000.00, 8100000.00, 3100000.00, 1900000.00, 71150000.00, 245, 4900.00, 4900.00, 328.00, 290408.16, 14520.41, 14520.41, 216920.73, 'CC-OPS-TNG', 'DUMP TRUCK', 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""unit_cost_tracking"" WHERE ""UnitNo"" = 'HINO-005' AND ""PeriodMonth"" = '02' AND ""PeriodYear"" = '2026');
+        ");
+        results.Add("unit_cost_trackings seed OK");
+
+        // Seed driver_productivities
+        await db.Database.ExecuteSqlRawAsync(@"
+            INSERT INTO ""driver_productivity"" (""DriverId"", ""DriverName"", ""Site"", ""PeriodMonth"", ""PeriodYear"", ""TotalTrips"", ""TotalRitase"", ""TotalTon"", ""TotalKM"", ""TotalHours"", ""TargetTrips"", ""TargetRitase"", ""AchievementPercent"", ""RitaseRate"", ""RitaseAllowance"", ""IncentiveAmount"", ""DeductionAmount"", ""TotalPayable"", ""UnitNo"", ""TotalFuelLitres"", ""FuelEfficiency"", ""WorkingDays"", ""LateCount"", ""AccidentCount"", ""ViolationCount"", ""Status"")
+            SELECT 'DRV-001', 'Ahmad Sutanto', 'TNG', '01', '2026', 88, 92, 1760.00, 1760.00, 440.00, 80, 80, 110.00, 115000.00, 1500000.00, 500000.00, 0.00, 2000000.00, 'HINO-001', 916.00, 0.5205, 26, 1, 0, 0, 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""driver_productivity"" WHERE ""DriverId"" = 'DRV-001' AND ""PeriodMonth"" = '01' AND ""PeriodYear"" = '2026');
+            INSERT INTO ""driver_productivity"" (""DriverId"", ""DriverName"", ""Site"", ""PeriodMonth"", ""PeriodYear"", ""TotalTrips"", ""TotalRitase"", ""TotalTon"", ""TotalKM"", ""TotalHours"", ""TargetTrips"", ""TargetRitase"", ""AchievementPercent"", ""RitaseRate"", ""RitaseAllowance"", ""IncentiveAmount"", ""DeductionAmount"", ""TotalPayable"", ""UnitNo"", ""TotalFuelLitres"", ""FuelEfficiency"", ""WorkingDays"", ""LateCount"", ""AccidentCount"", ""ViolationCount"", ""Status"")
+            SELECT 'DRV-002', 'Budi Santoso', 'TNG', '01', '2026', 82, 85, 1640.00, 1640.00, 410.00, 80, 80, 102.50, 115000.00, 1150000.00, 250000.00, 50000.00, 1350000.00, 'HINO-002', 853.00, 0.5201, 25, 2, 0, 1, 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""driver_productivity"" WHERE ""DriverId"" = 'DRV-002' AND ""PeriodMonth"" = '01' AND ""PeriodYear"" = '2026');
+            INSERT INTO ""driver_productivity"" (""DriverId"", ""DriverName"", ""Site"", ""PeriodMonth"", ""PeriodYear"", ""TotalTrips"", ""TotalRitase"", ""TotalTon"", ""TotalKM"", ""TotalHours"", ""TargetTrips"", ""TargetRitase"", ""AchievementPercent"", ""RitaseRate"", ""RitaseAllowance"", ""IncentiveAmount"", ""DeductionAmount"", ""TotalPayable"", ""UnitNo"", ""TotalFuelLitres"", ""FuelEfficiency"", ""WorkingDays"", ""LateCount"", ""AccidentCount"", ""ViolationCount"", ""Status"")
+            SELECT 'DRV-003', 'Cecep Rahmat', 'SDK', '01', '2026', 90, 95, 1800.00, 1800.00, 450.00, 80, 80, 112.50, 115000.00, 1725000.00, 600000.00, 0.00, 2325000.00, 'HINO-003', 936.00, 0.5200, 26, 0, 0, 0, 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""driver_productivity"" WHERE ""DriverId"" = 'DRV-003' AND ""PeriodMonth"" = '01' AND ""PeriodYear"" = '2026');
+            INSERT INTO ""driver_productivity"" (""DriverId"", ""DriverName"", ""Site"", ""PeriodMonth"", ""PeriodYear"", ""TotalTrips"", ""TotalRitase"", ""TotalTon"", ""TotalKM"", ""TotalHours"", ""TargetTrips"", ""TargetRitase"", ""AchievementPercent"", ""RitaseRate"", ""RitaseAllowance"", ""IncentiveAmount"", ""DeductionAmount"", ""TotalPayable"", ""UnitNo"", ""TotalFuelLitres"", ""FuelEfficiency"", ""WorkingDays"", ""LateCount"", ""AccidentCount"", ""ViolationCount"", ""Status"")
+            SELECT 'DRV-004', 'Dedi Kurniawan', 'SBB', '01', '2026', 78, 80, 1560.00, 1560.00, 390.00, 80, 80, 97.50, 115000.00, 0.00, 0.00, 150000.00, -150000.00, 'HINO-004', 812.00, 0.5205, 24, 3, 0, 2, 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""driver_productivity"" WHERE ""DriverId"" = 'DRV-004' AND ""PeriodMonth"" = '01' AND ""PeriodYear"" = '2026');
+            INSERT INTO ""driver_productivity"" (""DriverId"", ""DriverName"", ""Site"", ""PeriodMonth"", ""PeriodYear"", ""TotalTrips"", ""TotalRitase"", ""TotalTon"", ""TotalKM"", ""TotalHours"", ""TargetTrips"", ""TargetRitase"", ""AchievementPercent"", ""RitaseRate"", ""RitaseAllowance"", ""IncentiveAmount"", ""DeductionAmount"", ""TotalPayable"", ""UnitNo"", ""TotalFuelLitres"", ""FuelEfficiency"", ""WorkingDays"", ""LateCount"", ""AccidentCount"", ""ViolationCount"", ""Status"")
+            SELECT 'DRV-005', 'Eko Prasetyo', 'TNG', '02', '2026', 85, 88, 1700.00, 1700.00, 425.00, 80, 80, 106.25, 115000.00, 1350000.00, 350000.00, 50000.00, 1650000.00, 'HINO-005', 884.00, 0.5200, 25, 1, 0, 0, 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""driver_productivity"" WHERE ""DriverId"" = 'DRV-005' AND ""PeriodMonth"" = '02' AND ""PeriodYear"" = '2026');
+        ");
+        results.Add("driver_productivities seed OK");
 
         return Results.Ok(new { message = "All tables created/migrated", results });
-        return Results.Ok(new { message = "All tables created/migrated", results });
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+});
+
+// =====================================================
+// COMPREHENSIVE SEED ENDPOINT
+// =====================================================
+app.MapPost("/api/seed/full", async (AppDbContext db) =>
+{
+    var results = new List<string>();
+    try
+    {
+        // ---- HAULING OPERATIONS ----
+
+        // Seed fleet_vehicles
+        await db.Database.ExecuteSqlRawAsync(@"
+            INSERT INTO ""fleet_vehicles"" (""UnitNo"", ""UnitDescription"", ""Site"", ""MerkType"", ""Category"", ""LicensePlate"", ""ChassisNumber"", ""EngineNumber"", ""VehicleType"", ""FuelType"", ""GrossWeight"", ""TareWeight"", ""PayloadCapacity"", ""MaxPayload"", ""FuelTankCapacity"", ""AvgFuelConsumption"", ""BenchmarkLitrePerKM"", ""BenchmarkLitrePerHour"", ""FuelCardNumber"", ""TyreSize"", ""TyreQuantity"", ""TyreCostPerUnit"", ""AvgTyreLifeKM"", ""HMAwal"", ""KMAwal"", ""HMakhir"", ""KMakhir"", ""TotalJam"", ""TotalKM"", ""FuelRatio"", ""AvgHMHari"", ""AvgKMHari"", ""HMUsage"", ""TotalFuel"", ""CostCenter"", ""RouteCode"", ""AssignedDriverId"", ""AcquisitionCost"", ""DepreciationRate"", ""AccumulatedDepreciation"", ""BookValue"", ""UsefulLifeYear"", ""Status"")
+            SELECT 'HINO-001', 'Hino 500 FM 260 TI 6x4 Dump Truck', 'TNG', 'Hino 500 FM', 'DUMP TRUCK', 'KB 1234 ABC', 'JH5E3BHD3KP001234', 'E13C5R123456', 'HEAVY DUMP', 'DIESEL', 37.4, 13.2, 24.2, 24.0, 300.0, 0.5, 0.5, 8.0, 'FC-001', '11.00R24', 12, 4500000.0, 80000.0, 15200.0, 480000.0, 15500.0, 480000.0, 48000.0, 4500.0, 0.5, 15.0, 14.0, 760.0, 240000.0, 'CC-OPS-TNG', 'RT-001', 'DRV-001', 950000000.0, 0.1, 285000000.0, 665000000.0, '10 YEARS', 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""fleet_vehicles"" WHERE ""UnitNo"" = 'HINO-001');
+            INSERT INTO ""fleet_vehicles"" (""UnitNo"", ""UnitDescription"", ""Site"", ""MerkType"", ""Category"", ""LicensePlate"", ""ChassisNumber"", ""EngineNumber"", ""VehicleType"", ""FuelType"", ""GrossWeight"", ""TareWeight"", ""PayloadCapacity"", ""MaxPayload"", ""FuelTankCapacity"", ""AvgFuelConsumption"", ""BenchmarkLitrePerKM"", ""BenchmarkLitrePerHour"", ""FuelCardNumber"", ""TyreSize"", ""TyreQuantity"", ""TyreCostPerUnit"", ""AvgTyreLifeKM"", ""HMAwal"", ""KMAwal"", ""HMakhir"", ""KMakhir"", ""TotalJam"", ""TotalKM"", ""FuelRatio"", ""AvgHMHari"", ""AvgKMHari"", ""HMUsage"", ""TotalFuel"", ""CostCenter"", ""RouteCode"", ""AssignedDriverId"", ""AcquisitionCost"", ""DepreciationRate"", ""AccumulatedDepreciation"", ""BookValue"", ""UsefulLifeYear"", ""Status"")
+            SELECT 'HINO-002', 'Hino 500 FM 260 TI 6x4 Dump Truck', 'TNG', 'Hino 500 FM', 'DUMP TRUCK', 'KB 1235 ABC', 'JH5E3BHD3KP001235', 'E13C5R123457', 'HEAVY DUMP', 'DIESEL', 37.4, 13.2, 24.2, 24.0, 300.0, 0.5, 0.5, 8.0, 'FC-002', '11.00R24', 12, 4500000.0, 80000.0, 15000.0, 470000.0, 45500.0, 470000.0, 118000.0, 4400.0, 0.5, 14.5, 13.5, 740.0, 235000.0, 'CC-OPS-TNG', 'RT-002', 'DRV-002', 950000000.0, 0.1, 285000000.0, 665000000.0, '10 YEARS', 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""fleet_vehicles"" WHERE ""UnitNo"" = 'HINO-002');
+            INSERT INTO ""fleet_vehicles"" (""UnitNo"", ""UnitDescription"", ""Site"", ""MerkType"", ""Category"", ""LicensePlate"", ""ChassisNumber"", ""EngineNumber"", ""VehicleType"", ""FuelType"", ""GrossWeight"", ""TareWeight"", ""PayloadCapacity"", ""MaxPayload"", ""FuelTankCapacity"", ""AvgFuelConsumption"", ""BenchmarkLitrePerKM"", ""BenchmarkLitrePerHour"", ""FuelCardNumber"", ""TyreSize"", ""TyreQuantity"", ""TyreCostPerUnit"", ""AvgTyreLifeKM"", ""HMAwal"", ""KMAwal"", ""HMakhir"", ""KMakhir"", ""TotalJam"", ""TotalKM"", ""FuelRatio"", ""AvgHMHari"", ""AvgKMHari"", ""HMUsage"", ""TotalFuel"", ""CostCenter"", ""RouteCode"", ""AssignedDriverId"", ""AcquisitionCost"", ""DepreciationRate"", ""AccumulatedDepreciation"", ""BookValue"", ""UsefulLifeYear"", ""Status"")
+            SELECT 'HINO-003', 'Hino 500 FM 260 TI 6x4 Dump Truck', 'SDK', 'Hino 500 FM', 'DUMP TRUCK', 'KB 2234 ABC', 'JH5E3BHD3KP001236', 'E13C5R123458', 'HEAVY DUMP', 'DIESEL', 37.4, 13.2, 24.2, 24.0, 300.0, 0.5, 0.5, 8.0, 'FC-003', '11.00R24', 12, 4500000.0, 80000.0, 15800.0, 490000.0, 15900.0, 490000.0, 130000.0, 5000.0, 0.5, 15.5, 14.8, 810.0, 260000.0, 'CC-OPS-SDK', 'RT-003', 'DRV-003', 950000000.0, 0.1, 285000000.0, 665000000.0, '10 YEARS', 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""fleet_vehicles"" WHERE ""UnitNo"" = 'HINO-003');
+            INSERT INTO ""fleet_vehicles"" (""UnitNo"", ""UnitDescription"", ""Site"", ""MerkType"", ""Category"", ""LicensePlate"", ""ChassisNumber"", ""EngineNumber"", ""VehicleType"", ""FuelType"", ""GrossWeight"", ""TareWeight"", ""PayloadCapacity"", ""MaxPayload"", ""FuelTankCapacity"", ""AvgFuelConsumption"", ""BenchmarkLitrePerKM"", ""BenchmarkLitrePerHour"", ""FuelCardNumber"", ""TyreSize"", ""TyreQuantity"", ""TyreCostPerUnit"", ""AvgTyreLifeKM"", ""HMAwal"", ""KMAwal"", ""HMakhir"", ""KMakhir"", ""TotalJam"", ""TotalKM"", ""FuelRatio"", ""AvgHMHari"", ""AvgKMHari"", ""HMUsage"", ""TotalFuel"", ""CostCenter"", ""RouteCode"", ""AssignedDriverId"", ""AcquisitionCost"", ""DepreciationRate"", ""AccumulatedDepreciation"", ""BookValue"", ""UsefulLifeYear"", ""Status"")
+            SELECT 'HINO-004', 'Hino 500 FM 260 TI 6x4 Dump Truck', 'SBB', 'Hino 500 FM', 'DUMP TRUCK', 'KB 3234 ABC', 'JH5E3BHD3KP001237', 'E13C5R123459', 'HEAVY DUMP', 'DIESEL', 37.4, 13.2, 24.2, 24.0, 300.0, 0.5, 0.5, 8.0, 'FC-004', '11.00R24', 12, 4500000.0, 80000.0, 14500.0, 450000.0, 14800.0, 450000.0, 4200.0, 110000.0, 0.5, 14.2, 13.2, 720.0, 230000.0, 'CC-OPS-TNG', 'RT-004', 'DRV-004', 950000000.0, 0.1, 285000000.0, 665000000.0, '10 YEARS', 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""fleet_vehicles"" WHERE ""UnitNo"" = 'HINO-004');
+            INSERT INTO ""fleet_vehicles"" (""UnitNo"", ""UnitDescription"", ""Site"", ""MerkType"", ""Category"", ""LicensePlate"", ""ChassisNumber"", ""EngineNumber"", ""VehicleType"", ""FuelType"", ""GrossWeight"", ""TareWeight"", ""PayloadCapacity"", ""MaxPayload"", ""FuelTankCapacity"", ""AvgFuelConsumption"", ""BenchmarkLitrePerKM"", ""BenchmarkLitrePerHour"", ""FuelCardNumber"", ""TyreSize"", ""TyreQuantity"", ""TyreCostPerUnit"", ""AvgTyreLifeKM"", ""HMAwal"", ""KMAwal"", ""HMakhir"", ""KMakhir"", ""TotalJam"", ""TotalKM"", ""FuelRatio"", ""AvgHMHari"", ""AvgKMHari"", ""HMUsage"", ""TotalFuel"", ""CostCenter"", ""RouteCode"", ""AssignedDriverId"", ""AcquisitionCost"", ""DepreciationRate"", ""AccumulatedDepreciation"", ""BookValue"", ""UsefulLifeYear"", ""Status"")
+            SELECT 'HINO-005', 'Hino 500 FM 260 TI 6x4 Dump Truck', 'TNG', 'Hino 500 FM', 'DUMP TRUCK', 'KB 4234 ABC', 'JH5E3BHD3KP001238', 'E13C5R123460', 'HEAVY DUMP', 'DIESEL', 37.4, 13.2, 24.2, 24.0, 300.0, 0.5, 0.5, 8.0, 'FC-005', '11.00R24', 12, 4500000.0, 80000.0, 15500.0, 485000.0, 15700.0, 485000.0, 4800.0, 125000.0, 0.5, 15.0, 14.4, 780.0, 248000.0, 'CC-OPS-TNG', 'RT-001', 'DRV-005', 950000000.0, 0.1, 285000000.0, 665000000.0, '10 YEARS', 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""fleet_vehicles"" WHERE ""UnitNo"" = 'HINO-005');
+        ");
+        results.Add("fleet_vehicles seed OK");
+
+        // Seed route_master
+        await db.Database.ExecuteSqlRawAsync(@"
+            INSERT INTO ""route_master"" (""RouteCode"", ""RouteName"", ""Site"", ""OriginPit"", ""Destination"", ""DistanceKM"", ""EstimatedCycleTime"", ""GradePercent"", ""RoadType"", ""EstimatedFuelPerTrip"", ""CostPerKM"", ""CostPerTonKM"", ""RatePerTon"", ""Status"")
+            SELECT 'RT-001', 'Pit A - Stockpile Utara', 'TNG', 'Pit A', 'Stockpile Utara', 3.50, 35.00, 5.2, 'GRAVEL', 8.00, 15000.00, 4285.71, 35000.00, 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""route_master"" WHERE ""RouteCode"" = 'RT-001');
+            INSERT INTO ""route_master"" (""RouteCode"", ""RouteName"", ""Site"", ""OriginPit"", ""Destination"", ""DistanceKM"", ""EstimatedCycleTime"", ""GradePercent"", ""RoadType"", ""EstimatedFuelPerTrip"", ""CostPerKM"", ""CostPerTonKM"", ""RatePerTon"", ""Status"")
+            SELECT 'RT-002', 'Pit A - Stockpile Selatan', 'TNG', 'Pit A', 'Stockpile Selatan', 4.20, 40.00, 6.8, 'GRAVEL', 9.50, 15500.00, 3690.48, 34000.00, 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""route_master"" WHERE ""RouteCode"" = 'RT-002');
+            INSERT INTO ""route_master"" (""RouteCode"", ""RouteName"", ""Site"", ""OriginPit"", ""Destination"", ""DistanceKM"", ""EstimatedCycleTime"", ""GradePercent"", ""RoadType"", ""EstimatedFuelPerTrip"", ""CostPerKM"", ""CostPerTonKM"", ""RatePerTon"", ""Status"")
+            SELECT 'RT-003', 'Pit B - ROM', 'SDK', 'Pit B', 'ROM', 5.10, 48.00, 8.5, 'Batu', 12.00, 18000.00, 3529.41, 36000.00, 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""route_master"" WHERE ""RouteCode"" = 'RT-003');
+            INSERT INTO ""route_master"" (""RouteCode"", ""RouteName"", ""Site"", ""OriginPit"", ""Destination"", ""DistanceKM"", ""EstimatedCycleTime"", ""GradePercent"", ""RoadType"", ""EstimatedFuelPerTrip"", ""CostPerKM"", ""CostPerTonKM"", ""RatePerTon"", ""Status"")
+            SELECT 'RT-004', 'Pit C - Crusher', 'SBB', 'Pit C', 'Crusher', 2.80, 30.00, 4.0, 'GRAVEL', 6.50, 14000.00, 5000.00, 33000.00, 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""route_master"" WHERE ""RouteCode"" = 'RT-004');
+            INSERT INTO ""route_master"" (""RouteCode"", ""RouteName"", ""Site"", ""OriginPit"", ""Destination"", ""DistanceKM"", ""EstimatedCycleTime"", ""GradePercent"", ""RoadType"", ""EstimatedFuelPerTrip"", ""CostPerKM"", ""CostPerTonKM"", ""RatePerTon"", ""Status"")
+            SELECT 'RT-005', 'Pit B - Stockpile Timur', 'SDK', 'Pit B', 'Stockpile Timur', 4.80, 44.00, 7.2, 'GRAVEL', 11.00, 16500.00, 3437.50, 35500.00, 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""route_master"" WHERE ""RouteCode"" = 'RT-005');
+        ");
+        results.Add("route_master seed OK");
+
+        // Seed haul_trips
+        await db.Database.ExecuteSqlRawAsync(@"
+            INSERT INTO ""haul_trips"" (""TripNumber"", ""TripDate"", ""Site"", ""UnitNo"", ""DriverId"", ""DriverName"", ""RouteCode"", ""RouteName"", ""Shift"", ""MaterialType"", ""OriginPit"", ""DestinationStockpile"", ""GrossWeight"", ""TareWeight"", ""NetWeight"", ""PayloadTon"", ""StartTime"", ""EndTime"", ""CycleTimeMinutes"", ""LoadingTimeMinutes"", ""HaulingTimeMinutes"", ""DumpingTimeMinutes"", ""ReturningTimeMinutes"", ""DistanceKM"", ""FuelConsumed"", ""FuelRatioLperKM"", ""FuelRatioLperTonKM"", ""HMStart"", ""HMEnd"", ""RatePerTon"", ""TripRevenue"", ""TripCost"", ""Status"", ""IsWBValidated"", ""IsRevenuePosted"")
+            SELECT 'TRIP-2026-001', '2026-01-15', 'TNG', 'HINO-001', 'DRV-001', 'Ahmad Sutanto', 'RT-001', 'Pit A - Stockpile Utara', 'DAY', 'OVERBURDEN', 'Pit A', 'Stockpile Utara', 60.4000, 13.2000, 47.2000, 20.0000, '2026-01-15 07:00:00', '2026-01-15 07:38:00', 38.00, 8.00, 14.00, 6.00, 10.00, 3.50, 22.00, 0.4400, 1.1000, 15200.00, 15230.00, 35000.00, 700000.00, 420000.00, 'COMPLETED', true, true
+            WHERE NOT EXISTS (SELECT 1 FROM ""haul_trips"" WHERE ""TripNumber"" = 'TRIP-2026-001');
+            INSERT INTO ""haul_trips"" (""TripNumber"", ""TripDate"", ""Site"", ""UnitNo"", ""DriverId"", ""DriverName"", ""RouteCode"", ""RouteName"", ""Shift"", ""MaterialType"", ""OriginPit"", ""DestinationStockpile"", ""GrossWeight"", ""TareWeight"", ""NetWeight"", ""PayloadTon"", ""StartTime"", ""EndTime"", ""CycleTimeMinutes"", ""LoadingTimeMinutes"", ""HaulingTimeMinutes"", ""DumpingTimeMinutes"", ""ReturningTimeMinutes"", ""DistanceKM"", ""FuelConsumed"", ""FuelRatioLperKM"", ""FuelRatioLperTonKM"", ""HMStart"", ""HMEnd"", ""RatePerTon"", ""TripRevenue"", ""TripCost"", ""Status"", ""IsWBValidated"", ""IsRevenuePosted"")
+            SELECT 'TRIP-2026-002', '2026-01-15', 'TNG', 'HINO-002', 'DRV-002', 'Budi Santoso', 'RT-002', 'Pit A - Stockpile Selatan', 'DAY', 'COAL', 'Pit A', 'Stockpile Selatan', 62.1000, 13.2000, 48.9000, 20.0000, '2026-01-15 07:05:00', '2026-01-15 07:47:00', 42.00, 9.00, 16.00, 7.00, 10.00, 4.20, 24.00, 0.4762, 1.2000, 15000.00, 15025.00, 34000.00, 680000.00, 455000.00, 'COMPLETED', true, true
+            WHERE NOT EXISTS (SELECT 1 FROM ""haul_trips"" WHERE ""TripNumber"" = 'TRIP-2026-002');
+            INSERT INTO ""haul_trips"" (""TripNumber"", ""TripDate"", ""Site"", ""UnitNo"", ""DriverId"", ""DriverName"", ""RouteCode"", ""RouteName"", ""Shift"", ""MaterialType"", ""OriginPit"", ""DestinationStockpile"", ""GrossWeight"", ""TareWeight"", ""NetWeight"", ""PayloadTon"", ""StartTime"", ""EndTime"", ""CycleTimeMinutes"", ""LoadingTimeMinutes"", ""HaulingTimeMinutes"", ""DumpingTimeMinutes"", ""ReturningTimeMinutes"", ""DistanceKM"", ""FuelConsumed"", ""FuelRatioLperKM"", ""FuelRatioLperTonKM"", ""HMStart"", ""HMEnd"", ""RatePerTon"", ""TripRevenue"", ""TripCost"", ""Status"", ""IsWBValidated"", ""IsRevenuePosted"")
+            SELECT 'TRIP-2026-003', '2026-01-15', 'SDK', 'HINO-003', 'DRV-003', 'Cecep Rahmat', 'RT-003', 'Pit B - ROM', 'DAY', 'COAL', 'Pit B', 'ROM', 63.2000, 13.2000, 50.0000, 20.0000, '2026-01-15 07:10:00', '2026-01-15 08:00:00', 50.00, 10.00, 20.00, 8.00, 12.00, 5.10, 28.00, 0.4706, 0.5600, 15800.00, 15835.00, 36000.00, 720000.00, 495000.00, 'COMPLETED', true, true
+            WHERE NOT EXISTS (SELECT 1 FROM ""haul_trips"" WHERE ""TripNumber"" = 'TRIP-2026-003');
+            INSERT INTO ""haul_trips"" (""TripNumber"", ""TripDate"", ""Site"", ""UnitNo"", ""DriverId"", ""DriverName"", ""RouteCode"", ""RouteName"", ""Shift"", ""MaterialType"", ""OriginPit"", ""DestinationStockpile"", ""GrossWeight"", ""TareWeight"", ""NetWeight"", ""PayloadTon"", ""StartTime"", ""EndTime"", ""CycleTimeMinutes"", ""LoadingTimeMinutes"", ""HaulingTimeMinutes"", ""DumpingTimeMinutes"", ""ReturningTimeMinutes"", ""DistanceKM"", ""FuelConsumed"", ""FuelRatioLperKM"", ""FuelRatioLperTonKM"", ""HMStart"", ""HMEnd"", ""RatePerTon"", ""TripRevenue"", ""TripCost"", ""Status"", ""IsWBValidated"", ""IsRevenuePosted"")
+            SELECT 'TRIP-2026-004', '2026-01-16', 'SBB', 'HINO-004', 'DRV-004', 'Dedi Kurniawan', 'RT-004', 'Pit C - Crusher', 'DAY', 'LIMESTONE', 'Pit C', 'Crusher', 58.5000, 13.2000, 45.3000, 20.0000, '2026-01-16 07:00:00', '2026-01-16 07:32:00', 32.00, 7.00, 12.00, 5.00, 8.00, 2.80, 16.00, 0.4444, 0.8000, 14500.00, 14520.00, 33000.00, 660000.00, 380000.00, 'COMPLETED', true, true
+            WHERE NOT EXISTS (SELECT 1 FROM ""haul_trips"" WHERE ""TripNumber"" = 'TRIP-2026-004');
+            INSERT INTO ""haul_trips"" (""TripNumber"", ""TripDate"", ""Site"", ""UnitNo"", ""DriverId"", ""DriverName"", ""RouteCode"", ""RouteName"", ""Shift"", ""MaterialType"", ""OriginPit"", ""DestinationStockpile"", ""GrossWeight"", ""TareWeight"", ""NetWeight"", ""PayloadTon"", ""StartTime"", ""EndTime"", ""CycleTimeMinutes"", ""LoadingTimeMinutes"", ""HaulingTimeMinutes"", ""DumpingTimeMinutes"", ""ReturningTimeMinutes"", ""DistanceKM"", ""FuelConsumed"", ""FuelRatioLperKM"", ""FuelRatioLperTonKM"", ""HMStart"", ""HMEnd"", ""RatePerTon"", ""TripRevenue"", ""TripCost"", ""Status"", ""IsWBValidated"", ""IsRevenuePosted"")
+            SELECT 'TRIP-2026-005', '2026-01-16', 'TNG', 'HINO-005', 'DRV-005', 'Eko Prasetyo', 'RT-001', 'Pit A - Stockpile Utara', 'DAY', 'OVERBURDEN', 'Pit A', 'Stockpile Utara', 61.0000, 13.2000, 47.8000, 20.0000, '2026-01-16 07:15:00', '2026-01-16 07:54:00', 39.00, 8.00, 15.00, 6.00, 10.00, 3.50, 21.00, 0.4375, 1.0500, 15500.00, 15528.00, 35000.00, 700000.00, 435000.00, 'COMPLETED', true, true
+            WHERE NOT EXISTS (SELECT 1 FROM ""haul_trips"" WHERE ""TripNumber"" = 'TRIP-2026-005');
+        ");
+        results.Add("haul_trips seed OK");
+
+        // Seed weighbridge_tickets
+        await db.Database.ExecuteSqlRawAsync(@"
+            INSERT INTO ""weighbridge_tickets"" (""TicketNumber"", ""TicketDate"", ""Site"", ""TicketType"", ""UnitNo"", ""DriverName"", ""DriverBadge"", ""FirstWeight"", ""SecondWeight"", ""NetWeight"", ""MaterialType"", ""OriginPit"", ""DestinationStockpile"", ""TareCompensation"", ""FinalNetWeight"", ""VehicleType"", ""AxleLoad"", ""WeighbridgeOperator"", ""FirstWeighTime"", ""SecondWeighTime"", ""TripNumber"", ""IsLinked"", ""Status"", ""Remarks"")
+            SELECT 'WB-2026-001', '2026-01-15', 'TNG', 'IN', 'HINO-001', 'Ahmad Sutanto', 'DRV-001', 13.2000, 60.4000, 47.2000, 'OVERBURDEN', 'Pit A', 'Stockpile Utara', 0.0000, 47.2000, 'HEAVY DUMP', 13.20, 'Operator-01', '2026-01-15 07:00:00', '2026-01-15 07:38:00', 'TRIP-2026-001', true, 'VALID', 'Trip completed OK'
+            WHERE NOT EXISTS (SELECT 1 FROM ""weighbridge_tickets"" WHERE ""TicketNumber"" = 'WB-2026-001');
+            INSERT INTO ""weighbridge_tickets"" (""TicketNumber"", ""TicketDate"", ""Site"", ""TicketType"", ""UnitNo"", ""DriverName"", ""DriverBadge"", ""FirstWeight"", ""SecondWeight"", ""NetWeight"", ""MaterialType"", ""OriginPit"", ""DestinationStockpile"", ""TareCompensation"", ""FinalNetWeight"", ""VehicleType"", ""AxleLoad"", ""WeighbridgeOperator"", ""FirstWeighTime"", ""SecondWeighTime"", ""TripNumber"", ""IsLinked"", ""Status"", ""Remarks"")
+            SELECT 'WB-2026-002', '2026-01-15', 'TNG', 'IN', 'HINO-002', 'Budi Santoso', 'DRV-002', 13.2000, 62.1000, 48.9000, 'COAL', 'Pit A', 'Stockpile Selatan', 0.0000, 48.9000, 'HEAVY DUMP', 13.20, 'Operator-01', '2026-01-15 07:05:00', '2026-01-15 07:47:00', 'TRIP-2026-002', true, 'VALID', 'Trip completed OK'
+            WHERE NOT EXISTS (SELECT 1 FROM ""weighbridge_tickets"" WHERE ""TicketNumber"" = 'WB-2026-002');
+            INSERT INTO ""weighbridge_tickets"" (""TicketNumber"", ""TicketDate"", ""Site"", ""TicketType"", ""UnitNo"", ""DriverName"", ""DriverBadge"", ""FirstWeight"", ""SecondWeight"", ""NetWeight"", ""MaterialType"", ""OriginPit"", ""DestinationStockpile"", ""TareCompensation"", ""FinalNetWeight"", ""VehicleType"", ""AxleLoad"", ""WeighbridgeOperator"", ""FirstWeighTime"", ""SecondWeighTime"", ""TripNumber"", ""IsLinked"", ""Status"", ""Remarks"")
+            SELECT 'WB-2026-003', '2026-01-15', 'SDK', 'IN', 'HINO-003', 'Cecep Rahmat', 'DRV-003', 13.2000, 63.2000, 50.0000, 'COAL', 'Pit B', 'ROM', 0.0000, 50.0000, 'HEAVY DUMP', 13.20, 'Operator-02', '2026-01-15 07:10:00', '2026-01-15 08:00:00', 'TRIP-2026-003', true, 'VALID', 'Trip completed OK'
+            WHERE NOT EXISTS (SELECT 1 FROM ""weighbridge_tickets"" WHERE ""TicketNumber"" = 'WB-2026-003');
+            INSERT INTO ""weighbridge_tickets"" (""TicketNumber"", ""TicketDate"", ""Site"", ""TicketType"", ""UnitNo"", ""DriverName"", ""DriverBadge"", ""FirstWeight"", ""SecondWeight"", ""NetWeight"", ""MaterialType"", ""OriginPit"", ""DestinationStockpile"", ""TareCompensation"", ""FinalNetWeight"", ""VehicleType"", ""AxleLoad"", ""WeighbridgeOperator"", ""FirstWeighTime"", ""SecondWeighTime"", ""TripNumber"", ""IsLinked"", ""Status"", ""Remarks"")
+            SELECT 'WB-2026-004', '2026-01-16', 'SBB', 'IN', 'HINO-004', 'Dedi Kurniawan', 'DRV-004', 13.2000, 58.5000, 45.3000, 'LIMESTONE', 'Pit C', 'Crusher', 0.0000, 45.3000, 'HEAVY DUMP', 13.20, 'Operator-03', '2026-01-16 07:00:00', '2026-01-16 07:32:00', 'TRIP-2026-004', true, 'VALID', 'Trip completed OK'
+            WHERE NOT EXISTS (SELECT 1 FROM ""weighbridge_tickets"" WHERE ""TicketNumber"" = 'WB-2026-004');
+            INSERT INTO ""weighbridge_tickets"" (""TicketNumber"", ""TicketDate"", ""Site"", ""TicketType"", ""UnitNo"", ""DriverName"", ""DriverBadge"", ""FirstWeight"", ""SecondWeight"", ""NetWeight"", ""MaterialType"", ""OriginPit"", ""DestinationStockpile"", ""TareCompensation"", ""FinalNetWeight"", ""VehicleType"", ""AxleLoad"", ""WeighbridgeOperator"", ""FirstWeighTime"", ""SecondWeighTime"", ""TripNumber"", ""IsLinked"", ""Status"", ""Remarks"")
+            SELECT 'WB-2026-005', '2026-01-16', 'TNG', 'IN', 'HINO-005', 'Eko Prasetyo', 'DRV-005', 13.2000, 61.0000, 47.8000, 'OVERBURDEN', 'Pit A', 'Stockpile Utara', 0.0000, 47.8000, 'HEAVY DUMP', 13.20, 'Operator-01', '2026-01-16 07:15:00', '2026-01-16 07:54:00', 'TRIP-2026-005', true, 'VALID', 'Trip completed OK'
+            WHERE NOT EXISTS (SELECT 1 FROM ""weighbridge_tickets"" WHERE ""TicketNumber"" = 'WB-2026-005');
+        ");
+        results.Add("weighbridge_tickets seed OK");
+
+        // ---- HR MODULE ----
+
+        // Seed hr_employees
+        await db.Database.ExecuteSqlRawAsync(@"
+            INSERT INTO ""hr_employees"" (""EmployeeCode"", ""FullName"", ""NickName"", ""PIN"", ""RFID"", ""Gender"", ""BirthDate"", ""BirthPlace"", ""Religion"", ""MaritalStatus"", ""Address"", ""Phone"", ""Email"", ""EmergencyContact"", ""EmergencyPhone"", ""Site"", ""Department"", ""Position"", ""Level"", ""EmployeeType"", ""Status"", ""JoinDate"")
+            SELECT 'EMP-001', 'Ahmad Sutanto', 'Ahmad', '1001', 'RFID-001', 'MALE', '1990-05-10', 'Banjarmasin', 'ISLAM', 'MARRIED', 'Jl. Merdeka No.10, Banjarmasin', '081234567001', 'ahmad.sutanto@lfn.com', 'Siti Sutanto', '081234567011', 'TNG', 'Operations', 'Heavy Equipment Driver', 'STAFF', 'CONTRACT', 'ACTIVE', '2022-03-15'
+            WHERE NOT EXISTS (SELECT 1 FROM ""hr_employees"" WHERE ""EmployeeCode"" = 'EMP-001');
+            INSERT INTO ""hr_employees"" (""EmployeeCode"", ""FullName"", ""NickName"", ""PIN"", ""RFID"", ""Gender"", ""BirthDate"", ""BirthPlace"", ""Religion"", ""MaritalStatus"", ""Address"", ""Phone"", ""Email"", ""EmergencyContact"", ""EmergencyPhone"", ""Site"", ""Department"", ""Position"", ""Level"", ""EmployeeType"", ""Status"", ""JoinDate"")
+            SELECT 'EMP-002', 'Budi Santoso', 'Budi', '1002', 'RFID-002', 'MALE', '1988-08-22', 'Palangkaraya', 'ISLAM', 'MARRIED', 'Jl. Sudirman No.5, Palangkaraya', '081234567002', 'budi.santoso@lfn.com', 'Wati Santoso', '081234567012', 'TNG', 'Operations', 'Heavy Equipment Driver', 'STAFF', 'CONTRACT', 'ACTIVE', '2022-06-01'
+            WHERE NOT EXISTS (SELECT 1 FROM ""hr_employees"" WHERE ""EmployeeCode"" = 'EMP-002');
+            INSERT INTO ""hr_employees"" (""EmployeeCode"", ""FullName"", ""NickName"", ""PIN"", ""RFID"", ""Gender"", ""BirthDate"", ""BirthPlace"", ""Religion"", ""MaritalStatus"", ""Address"", ""Phone"", ""Email"", ""EmergencyContact"", ""EmergencyPhone"", ""Site"", ""Department"", ""Position"", ""Level"", ""EmployeeType"", ""Status"", ""JoinDate"")
+            SELECT 'EMP-003', 'Cecep Rahmat Hidayat', 'Cecep', '1003', 'RFID-003', 'MALE', '1992-03-14', 'Bandung', 'ISLAM', 'MARRIED', 'Jl. Asia No.8, Bandung', '081234567003', 'cecep.rahmat@lfn.com', 'Yanti Rahmat', '081234567013', 'SDK', 'Operations', 'Heavy Equipment Driver', 'STAFF', 'PERMANENT', 'ACTIVE', '2021-11-20'
+            WHERE NOT EXISTS (SELECT 1 FROM ""hr_employees"" WHERE ""EmployeeCode"" = 'EMP-003');
+            INSERT INTO ""hr_employees"" (""EmployeeCode"", ""FullName"", ""NickName"", ""PIN"", ""RFID"", ""Gender"", ""BirthDate"", ""BirthPlace"", ""Religion"", ""MaritalStatus"", ""Address"", ""Phone"", ""Email"", ""EmergencyContact"", ""EmergencyPhone"", ""Site"", ""Department"", ""Position"", ""Level"", ""EmployeeType"", ""Status"", ""JoinDate"")
+            SELECT 'EMP-004', 'Dedi Kurniawan', 'Dedi', '1004', 'RFID-004', 'MALE', '1985-12-30', 'Makassar', 'ISLAM', 'MARRIED', 'Jl. Pettarani No.12, Makassar', '081234567004', 'dedi.kurniawan@lfn.com', 'arni Dediana', '081234567014', 'SBB', 'Operations', 'Heavy Equipment Driver', 'STAFF', 'CONTRACT', 'ACTIVE', '2023-01-10'
+            WHERE NOT EXISTS (SELECT 1 FROM ""hr_employees"" WHERE ""EmployeeCode"" = 'EMP-004');
+            INSERT INTO ""hr_employees"" (""EmployeeCode"", ""FullName"", ""NickName"", ""PIN"", ""RFID"", ""Gender"", ""BirthDate"", ""BirthPlace"", ""Religion"", ""MaritalStatus"", ""Address"", ""Phone"", ""Email"", ""EmergencyContact"", ""EmergencyPhone"", ""Site"", ""Department"", ""Position"", ""Level"", ""EmployeeType"", ""Status"", ""JoinDate"")
+            SELECT 'EMP-005', 'Eko Prasetyo Nugroho', 'Eko', '1005', 'RFID-005', 'MALE', '1991-07-08', 'Semarang', 'ISLAM', 'SINGLE', 'Jl. Pemuda No.20, Semarang', '081234567005', 'eko.prasetyo@lfn.com', 'Budi Prasetyo', '081234567015', 'TNG', 'Operations', 'Heavy Equipment Driver', 'STAFF', 'CONTRACT', 'ACTIVE', '2023-05-22'
+            WHERE NOT EXISTS (SELECT 1 FROM ""hr_employees"" WHERE ""EmployeeCode"" = 'EMP-005');
+        ");
+        results.Add("hr_employees seed OK");
+
+        // Seed hr_attendance
+        await db.Database.ExecuteSqlRawAsync(@"
+            INSERT INTO ""hr_attendance"" (""EmployeeCode"", ""EmployeeName"", ""Site"", ""Department"", ""AttendanceDate"", ""CheckIn"", ""CheckOut"", ""Shift"", ""Status"", ""WorkingHours"", ""OvertimeHours"")
+            SELECT 'EMP-001', 'Ahmad Sutanto', 'TNG', 'Operations', '2026-01-15', '2026-01-15 06:55:00', '2026-01-15 17:10:00', 'DAY', 'PRESENT', 9.25, 1.25
+            WHERE NOT EXISTS (SELECT 1 FROM ""hr_attendance"" WHERE ""EmployeeCode"" = 'EMP-001' AND ""AttendanceDate"" = '2026-01-15');
+            INSERT INTO ""hr_attendance"" (""EmployeeCode"", ""EmployeeName"", ""Site"", ""Department"", ""AttendanceDate"", ""CheckIn"", ""CheckOut"", ""Shift"", ""Status"", ""WorkingHours"", ""OvertimeHours"")
+            SELECT 'EMP-002', 'Budi Santoso', 'TNG', 'Operations', '2026-01-15', '2026-01-15 07:00:00', '2026-01-15 17:05:00', 'DAY', 'PRESENT', 9.08, 1.08
+            WHERE NOT EXISTS (SELECT 1 FROM ""hr_attendance"" WHERE ""EmployeeCode"" = 'EMP-002' AND ""AttendanceDate"" = '2026-01-15');
+            INSERT INTO ""hr_attendance"" (""EmployeeCode"", ""EmployeeName"", ""Site"", ""Department"", ""AttendanceDate"", ""CheckIn"", ""CheckOut"", ""Shift"", ""Status"", ""WorkingHours"", ""OvertimeHours"")
+            SELECT 'EMP-003', 'Cecep Rahmat', 'SDK', 'Operations', '2026-01-15', '2026-01-15 06:50:00', '2026-01-15 17:30:00', 'DAY', 'PRESENT', 9.67, 1.67
+            WHERE NOT EXISTS (SELECT 1 FROM ""hr_attendance"" WHERE ""EmployeeCode"" = 'EMP-003' AND ""AttendanceDate"" = '2026-01-15');
+            INSERT INTO ""hr_attendance"" (""EmployeeCode"", ""EmployeeName"", ""Site"", ""Department"", ""AttendanceDate"", ""CheckIn"", ""CheckOut"", ""Shift"", ""Status"", ""WorkingHours"", ""OvertimeHours"")
+            SELECT 'EMP-004', 'Dedi Kurniawan', 'SBB', 'Operations', '2026-01-16', '2026-01-16 07:05:00', '2026-01-16 16:50:00', 'DAY', 'PRESENT', 8.75, 0.75
+            WHERE NOT EXISTS (SELECT 1 FROM ""hr_attendance"" WHERE ""EmployeeCode"" = 'EMP-004' AND ""AttendanceDate"" = '2026-01-16');
+            INSERT INTO ""hr_attendance"" (""EmployeeCode"", ""EmployeeName"", ""Site"", ""Department"", ""AttendanceDate"", ""CheckIn"", ""CheckOut"", ""Shift"", ""Status"", ""WorkingHours"", ""OvertimeHours"")
+            SELECT 'EMP-005', 'Eko Prasetyo', 'TNG', 'Operations', '2026-01-16', '2026-01-16 06:58:00', '2026-01-16 17:15:00', 'DAY', 'PRESENT', 9.28, 1.28
+            WHERE NOT EXISTS (SELECT 1 FROM ""hr_attendance"" WHERE ""EmployeeCode"" = 'EMP-005' AND ""AttendanceDate"" = '2026-01-16');
+        ");
+        results.Add("hr_attendance seed OK");
+
+        // Seed hr_payroll
+        await db.Database.ExecuteSqlRawAsync(@"
+            INSERT INTO ""hr_payroll"" (""PayrollNumber"", ""PayrollDate"", ""PeriodMonth"", ""PeriodYear"", ""EmployeeCode"", ""EmployeeName"", ""Site"", ""Department"", ""Position"", ""BasicSalary"", ""Allowance"", ""Overtime"", ""Bonus"", ""TotalEarning"", ""AbsenceDeduction"", ""TaxDeduction"", ""InsuranceDeduction"", ""OtherDeduction"", ""TotalDeduction"", ""NetSalary"", ""Status"")
+            SELECT 'PAY-2026-01-001', '2026-01-25', '01', '2026', 'EMP-001', 'Ahmad Sutanto', 'TNG', 'Operations', 'Heavy Equipment Driver', 6500000.00, 3500000.00, 450000.00, 500000.00, 10950000.00, 0.00, 875000.00, 325000.00, 0.00, 1200000.00, 9750000.00, 'PAID'
+            WHERE NOT EXISTS (SELECT 1 FROM ""hr_payroll"" WHERE ""PayrollNumber"" = 'PAY-2026-01-001');
+            INSERT INTO ""hr_payroll"" (""PayrollNumber"", ""PayrollDate"", ""PeriodMonth"", ""PeriodYear"", ""EmployeeCode"", ""EmployeeName"", ""Site"", ""Department"", ""Position"", ""BasicSalary"", ""Allowance"", ""Overtime"", ""Bonus"", ""TotalEarning"", ""AbsenceDeduction"", ""TaxDeduction"", ""InsuranceDeduction"", ""OtherDeduction"", ""TotalDeduction"", ""NetSalary"", ""Status"")
+            SELECT 'PAY-2026-01-002', '2026-01-25', '01', '2026', 'EMP-002', 'Budi Santoso', 'TNG', 'Operations', 'Heavy Equipment Driver', 6500000.00, 3500000.00, 380000.00, 300000.00, 10680000.00, 0.00, 854000.00, 325000.00, 0.00, 1179000.00, 9501000.00, 'PAID'
+            WHERE NOT EXISTS (SELECT 1 FROM ""hr_payroll"" WHERE ""PayrollNumber"" = 'PAY-2026-01-002');
+            INSERT INTO ""hr_payroll"" (""PayrollNumber"", ""PayrollDate"", ""PeriodMonth"", ""PeriodYear"", ""EmployeeCode"", ""EmployeeName"", ""Site"", ""Department"", ""Position"", ""BasicSalary"", ""Allowance"", ""Overtime"", ""Bonus"", ""TotalEarning"", ""AbsenceDeduction"", ""TaxDeduction"", ""InsuranceDeduction"", ""OtherDeduction"", ""TotalDeduction"", ""NetSalary"", ""Status"")
+            SELECT 'PAY-2026-01-003', '2026-01-25', '01', '2026', 'EMP-003', 'Cecep Rahmat', 'SDK', 'Operations', 'Heavy Equipment Driver', 7000000.00, 3800000.00, 600000.00, 750000.00, 12150000.00, 0.00, 972000.00, 350000.00, 0.00, 1322000.00, 10828000.00, 'PAID'
+            WHERE NOT EXISTS (SELECT 1 FROM ""hr_payroll"" WHERE ""PayrollNumber"" = 'PAY-2026-01-003');
+            INSERT INTO ""hr_payroll"" (""PayrollNumber"", ""PayrollDate"", ""PeriodMonth"", ""PeriodYear"", ""EmployeeCode"", ""EmployeeName"", ""Site"", ""Department"", ""Position"", ""BasicSalary"", ""Allowance"", ""Overtime"", ""Bonus"", ""TotalEarning"", ""AbsenceDeduction"", ""TaxDeduction"", ""InsuranceDeduction"", ""OtherDeduction"", ""TotalDeduction"", ""NetSalary"", ""Status"")
+            SELECT 'PAY-2026-01-004', '2026-01-25', '01', '2026', 'EMP-004', 'Dedi Kurniawan', 'SBB', 'Operations', 'Heavy Equipment Driver', 6500000.00, 3500000.00, 270000.00, 200000.00, 10470000.00, 200000.00, 837000.00, 325000.00, 0.00, 1362000.00, 9108000.00, 'PAID'
+            WHERE NOT EXISTS (SELECT 1 FROM ""hr_payroll"" WHERE ""PayrollNumber"" = 'PAY-2026-01-004');
+            INSERT INTO ""hr_payroll"" (""PayrollNumber"", ""PayrollDate"", ""PeriodMonth"", ""PeriodYear"", ""EmployeeCode"", ""EmployeeName"", ""Site"", ""Department"", ""Position"", ""BasicSalary"", ""Allowance"", ""Overtime"", ""Bonus"", ""TotalEarning"", ""AbsenceDeduction"", ""TaxDeduction"", ""InsuranceDeduction"", ""OtherDeduction"", ""TotalDeduction"", ""NetSalary"", ""Status"")
+            SELECT 'PAY-2026-01-005', '2026-01-25', '01', '2026', 'EMP-005', 'Eko Prasetyo', 'TNG', 'Operations', 'Heavy Equipment Driver', 6500000.00, 3500000.00, 460000.00, 400000.00, 10860000.00, 0.00, 868000.00, 325000.00, 0.00, 1193000.00, 9670000.00, 'PAID'
+            WHERE NOT EXISTS (SELECT 1 FROM ""hr_payroll"" WHERE ""PayrollNumber"" = 'PAY-2026-01-005');
+        ");
+        results.Add("hr_payroll seed OK");
+
+        // ---- FINANCE MODULE ----
+
+        // Seed chart_of_accounts
+        await db.Database.ExecuteSqlRawAsync(@"
+            INSERT INTO ""chart_of_accounts"" (""AccountCode"", ""AccountName"", ""AccountType"", ""NormalBalance"", ""Currency"", ""OpeningBalance"", ""CurrentBalance"", ""IsActive"", ""Remarks"")
+            SELECT '5101-001', 'Fuel Expense - Diesel', 'EXPENSE', 'DEBIT', 'IDR', 0.00, 0.00, true, 'Fuel consumption cost'
+            WHERE NOT EXISTS (SELECT 1 FROM ""chart_of_accounts"" WHERE ""AccountCode"" = '5101-001');
+            INSERT INTO ""chart_of_accounts"" (""AccountCode"", ""AccountName"", ""AccountType"", ""NormalBalance"", ""Currency"", ""OpeningBalance"", ""CurrentBalance"", ""IsActive"", ""Remarks"")
+            SELECT '5101-002', 'Driver Salary', 'EXPENSE', 'DEBIT', 'IDR', 0.00, 0.00, true, 'Driver labor cost'
+            WHERE NOT EXISTS (SELECT 1 FROM ""chart_of_accounts"" WHERE ""AccountCode"" = '5101-002');
+            INSERT INTO ""chart_of_accounts"" (""AccountCode"", ""AccountName"", ""AccountType"", ""NormalBalance"", ""Currency"", ""OpeningBalance"", ""CurrentBalance"", ""IsActive"", ""Remarks"")
+            SELECT '5101-003', 'Vehicle Maintenance', 'EXPENSE', 'DEBIT', 'IDR', 0.00, 0.00, true, 'Repair and maintenance cost'
+            WHERE NOT EXISTS (SELECT 1 FROM ""chart_of_accounts"" WHERE ""AccountCode"" = '5101-003');
+            INSERT INTO ""chart_of_accounts"" (""AccountCode"", ""AccountName"", ""AccountType"", ""NormalBalance"", ""Currency"", ""OpeningBalance"", ""CurrentBalance"", ""IsActive"", ""Remarks"")
+            SELECT '5101-004', 'Depreciation - Fleet', 'EXPENSE', 'DEBIT', 'IDR', 0.00, 0.00, true, 'Vehicle depreciation'
+            WHERE NOT EXISTS (SELECT 1 FROM ""chart_of_accounts"" WHERE ""AccountCode"" = '5101-004');
+            INSERT INTO ""chart_of_accounts"" (""AccountCode"", ""AccountName"", ""AccountType"", ""NormalBalance"", ""Currency"", ""OpeningBalance"", ""CurrentBalance"", ""IsActive"", ""Remarks"")
+            SELECT '4101-001', 'Hauling Revenue', 'REVENUE', 'CREDIT', 'IDR', 0.00, 0.00, true, 'Revenue from hauling services'
+            WHERE NOT EXISTS (SELECT 1 FROM ""chart_of_accounts"" WHERE ""AccountCode"" = '4101-001');
+        ");
+        results.Add("chart_of_accounts seed OK");
+
+        // Seed budgets
+        await db.Database.ExecuteSqlRawAsync(@"
+            INSERT INTO ""budgets"" (""BudgetNumber"", ""PeriodMonth"", ""PeriodYear"", ""Site"", ""Department"", ""Division"", ""AccountCode"", ""AccountName"", ""PlannedAmount"", ""ActualAmount"", ""CommittedAmount"", ""AvailableBudget"", ""UtilizationPercent"", ""Status"", ""ApprovedBy"")
+            SELECT 'BUD-2026-01-TNG-OPS', '01', '2026', 'TNG', 'Operations', 'Hauling', '5101-001', 'Fuel Expense - Diesel', 180000000.00, 45000000.00, 0.00, 135000000.00, 25.00, 'APPROVED', 'John Manager'
+            WHERE NOT EXISTS (SELECT 1 FROM ""budgets"" WHERE ""BudgetNumber"" = 'BUD-2026-01-TNG-OPS');
+            INSERT INTO ""budgets"" (""BudgetNumber"", ""PeriodMonth"", ""PeriodYear"", ""Site"", ""Department"", ""Division"", ""AccountCode"", ""AccountName"", ""PlannedAmount"", ""ActualAmount"", ""CommittedAmount"", ""AvailableBudget"", ""UtilizationPercent"", ""Status"", ""ApprovedBy"")
+            SELECT 'BUD-2026-01-TNG-MNT', '01', '2026', 'TNG', 'Maintenance', 'Hauling', '5101-003', 'Vehicle Maintenance', 75000000.00, 12000000.00, 5000000.00, 58000000.00, 16.00, 'APPROVED', 'Charlie Mechanic'
+            WHERE NOT EXISTS (SELECT 1 FROM ""budgets"" WHERE ""BudgetNumber"" = 'BUD-2026-01-TNG-MNT');
+            INSERT INTO ""budgets"" (""BudgetNumber"", ""PeriodMonth"", ""PeriodYear"", ""Site"", ""Department"", ""Division"", ""AccountCode"", ""AccountName"", ""PlannedAmount"", ""ActualAmount"", ""CommittedAmount"", ""AvailableBudget"", ""UtilizationPercent"", ""Status"", ""ApprovedBy"")
+            SELECT 'BUD-2026-01-SDK-OPS', '01', '2026', 'SDK', 'Operations', 'Hauling', '5101-001', 'Fuel Expense - Diesel', 160000000.00, 39000000.00, 0.00, 121000000.00, 24.38, 'APPROVED', 'John Manager'
+            WHERE NOT EXISTS (SELECT 1 FROM ""budgets"" WHERE ""BudgetNumber"" = 'BUD-2026-01-SDK-OPS');
+            INSERT INTO ""budgets"" (""BudgetNumber"", ""PeriodMonth"", ""PeriodYear"", ""Site"", ""Department"", ""Division"", ""AccountCode"", ""AccountName"", ""PlannedAmount"", ""ActualAmount"", ""CommittedAmount"", ""AvailableBudget"", ""UtilizationPercent"", ""Status"", ""ApprovedBy"")
+            SELECT 'BUD-2026-01-SBB-OPS', '01', '2026', 'SBB', 'Operations', 'Hauling', '5101-001', 'Fuel Expense - Diesel', 140000000.00, 34500000.00, 0.00, 105500000.00, 24.64, 'APPROVED', 'John Manager'
+            WHERE NOT EXISTS (SELECT 1 FROM ""budgets"" WHERE ""BudgetNumber"" = 'BUD-2026-01-SBB-OPS');
+            INSERT INTO ""budgets"" (""BudgetNumber"", ""PeriodMonth"", ""PeriodYear"", ""Site"", ""Department"", ""Division"", ""AccountCode"", ""AccountName"", ""PlannedAmount"", ""ActualAmount"", ""CommittedAmount"", ""AvailableBudget"", ""UtilizationPercent"", ""Status"", ""ApprovedBy"")
+            SELECT 'BUD-2026-02-TNG-OPS', '02', '2026', 'TNG', 'Operations', 'Hauling', '5101-001', 'Fuel Expense - Diesel', 185000000.00, 0.00, 0.00, 185000000.00, 0.00, 'DRAFT', 'John Manager'
+            WHERE NOT EXISTS (SELECT 1 FROM ""budgets"" WHERE ""BudgetNumber"" = 'BUD-2026-02-TNG-OPS');
+        ");
+        results.Add("budgets seed OK");
+
+        // ---- PROCUREMENT MODULE ----
+
+        // Seed vendors
+        await db.Database.ExecuteSqlRawAsync(@"
+            INSERT INTO ""vendors"" (""VendorCode"", ""VendorName"", ""Address"", ""City"", ""Phone"", ""Email"", ""ContactPerson"", ""TaxId"", ""PaymentTerms"", ""Category"", ""Status"", ""TotalPurchases"", ""OutstandingBalance"")
+            SELECT 'VND-PERTAMINA', 'PT. Pertamina (Persero)', 'Jl. Medan Merdeka Timur No.17A', 'Jakarta', '021-5000000', 'info@pertamina.com', 'Sales Dept', '01.000123.01-012.000', 'NET 30', 'FUEL SUPPLIER', 'ACTIVE', 450000000.00, 75000000.00
+            WHERE NOT EXISTS (SELECT 1 FROM ""vendors"" WHERE ""VendorCode"" = 'VND-PERTAMINA');
+            INSERT INTO ""vendors"" (""VendorCode"", ""VendorName"", ""Address"", ""City"", ""Phone"", ""Email"", ""ContactPerson"", ""TaxId"", ""PaymentTerms"", ""Category"", ""Status"", ""TotalPurchases"", ""OutstandingBalance"")
+            SELECT 'VND-HINOMAR', 'PT. Hino Motors Sales Indonesia', 'Jl. Girlie No.21, Kel. Melinda', 'Bekasi', '021-8805500', 'sales@hino.co.id', 'Fleet Sales', '01.000456.01-023.000', 'NET 45', 'VEHICLE SUPPLIER', 'ACTIVE', 950000000.00, 0.00
+            WHERE NOT EXISTS (SELECT 1 FROM ""vendors"" WHERE ""VendorCode"" = 'VND-HINOMAR');
+            INSERT INTO ""vendors"" (""VendorCode"", ""VendorName"", ""Address"", ""City"", ""Phone"", ""Email"", ""ContactPerson"", ""TaxId"", ""PaymentTerms"", ""Category"", ""Status"", ""TotalPurchases"", ""OutstandingBalance"")
+            SELECT 'VND-BRATA', 'PT. Brata Multi Lestari', 'Jl. Pangeran Jayakarta No.68', 'Jakarta', '021-6009555', 'marketing@bratamulti.com', 'Marketing', '01.000789.01-045.000', 'NET 30', 'TYRE SUPPLIER', 'ACTIVE', 180000000.00, 30000000.00
+            WHERE NOT EXISTS (SELECT 1 FROM ""vendors"" WHERE ""VendorCode"" = 'VND-BRATA');
+            INSERT INTO ""vendors"" (""VendorCode"", ""VendorName"", ""Address"", ""City"", ""Phone"", ""Email"", ""ContactPerson"", ""TaxId"", ""PaymentTerms"", ""Category"", ""Status"", ""TotalPurchases"", ""OutstandingBalance"")
+            SELECT 'VND-MITUTOMO', 'PT. Mitutomo Indonesia', 'Jl. Sultan Agung No.28', 'Bekasi', '021-8201108', 'sales@mitutomo.co.id', 'Sales', '01.000321.01-067.000', 'NET 30', 'SPARE PARTS SUPPLIER', 'ACTIVE', 95000000.00, 15000000.00
+            WHERE NOT EXISTS (SELECT 1 FROM ""vendors"" WHERE ""VendorCode"" = 'VND-MITUTOMO');
+            INSERT INTO ""vendors"" (""VendorCode"", ""VendorName"", ""Address"", ""City"", ""Phone"", ""Email"", ""ContactPerson"", ""TaxId"", ""PaymentTerms"", ""Category"", ""Status"", ""TotalPurchases"", ""OutstandingBalance"")
+            SELECT 'VND-OTOCRipart', 'PT. Oto Multi Part', 'Jl.夹Merah Putih No.12', 'Surabaya', '031-8456200', 'order@otomultipart.com', 'Sales Dept', '01.000654.01-089.000', 'NET 30', 'SPARE PARTS SUPPLIER', 'ACTIVE', 60000000.00, 10000000.00
+            WHERE NOT EXISTS (SELECT 1 FROM ""vendors"" WHERE ""VendorCode"" = 'VND-OTOCRipart');
+        ");
+        results.Add("vendors seed OK");
+
+        // Seed purchase_requests + purchase_request_items
+        await db.Database.ExecuteSqlRawAsync(@"
+            INSERT INTO ""purchase_requests"" (""PRNumber"", ""PRDate"", ""Site"", ""Department"", ""RequestedBy"", ""ApprovedBy"", ""Status"", ""Remarks"")
+            SELECT 'PR-2026-001', '2026-01-05', 'TNG', 'Operations', 'Ahmad Sutanto', 'John Manager', 'APPROVED', 'Routine fuel request Jan 2026'
+            WHERE NOT EXISTS (SELECT 1 FROM ""purchase_requests"" WHERE ""PRNumber"" = 'PR-2026-001');
+            INSERT INTO ""purchase_request_items"" (""PurchaseRequestId"", ""PartNumber"", ""Description"", ""Unit"", ""Quantity"", ""EstimatedPrice"", ""TotalPrice"", ""Purpose"", ""Priority"")
+            SELECT (SELECT ""Id"" FROM ""purchase_requests"" WHERE ""PRNumber"" = 'PR-2026-001' LIMIT 1), 'FUEL-DIESEL', 'Solar / Diesel', 'L', 3000.00, 15000.00, 45000000.00, 'Operational fuel for HINO fleet Jan 2026', 'HIGH'
+            WHERE EXISTS (SELECT 1 FROM ""purchase_requests"" WHERE ""PRNumber"" = 'PR-2026-001');
+
+            INSERT INTO ""purchase_requests"" (""PRNumber"", ""PRDate"", ""Site"", ""Department"", ""RequestedBy"", ""ApprovedBy"", ""Status"", ""Remarks"")
+            SELECT 'PR-2026-002', '2026-01-08', 'TNG', 'Maintenance', 'Charlie Mechanic', 'John Manager', 'APPROVED', 'Tyre replacement for HINO-001'
+            WHERE NOT EXISTS (SELECT 1 FROM ""purchase_requests"" WHERE ""PRNumber"" = 'PR-2026-002');
+            INSERT INTO ""purchase_request_items"" (""PurchaseRequestId"", ""PartNumber"", ""Description"", ""Unit"", ""Quantity"", ""EstimatedPrice"", ""TotalPrice"", ""Purpose"", ""Priority"")
+            SELECT (SELECT ""Id"" FROM ""purchase_requests"" WHERE ""PRNumber"" = 'PR-2026-002' LIMIT 1), 'TYRE-OTR-24.00', 'OTR Tyre 24.00R25', 'PCS', 4.00, 8500000.00, 34000000.00, 'Replace worn tyres HINO-001', 'URGENT'
+            WHERE EXISTS (SELECT 1 FROM ""purchase_requests"" WHERE ""PRNumber"" = 'PR-2026-002');
+
+            INSERT INTO ""purchase_requests"" (""PRNumber"", ""PRDate"", ""Site"", ""Department"", ""RequestedBy"", ""ApprovedBy"", ""Status"", ""Remarks"")
+            SELECT 'PR-2026-003', '2026-01-10', 'SDK', 'Maintenance', 'Cecep Rahmat', 'John Manager', 'PENDING', 'Engine oil and filter request'
+            WHERE NOT EXISTS (SELECT 1 FROM ""purchase_requests"" WHERE ""PRNumber"" = 'PR-2026-003');
+            INSERT INTO ""purchase_request_items"" (""PurchaseRequestId"", ""PartNumber"", ""Description"", ""Unit"", ""Quantity"", ""EstimatedPrice"", ""TotalPrice"", ""Purpose"", ""Priority"")
+            SELECT (SELECT ""Id"" FROM ""purchase_requests"" WHERE ""PRNumber"" = 'PR-2026-003' LIMIT 1), 'PART-ENGINE-OIL', 'Engine Oil 15W-40', 'L', 20.00, 85000.00, 1700000.00, 'Routine maintenance HINO-003', 'NORMAL'
+            WHERE EXISTS (SELECT 1 FROM ""purchase_requests"" WHERE ""PRNumber"" = 'PR-2026-003');
+            INSERT INTO ""purchase_request_items"" (""PurchaseRequestId"", ""PartNumber"", ""Description"", ""Unit"", ""Quantity"", ""EstimatedPrice"", ""TotalPrice"", ""Purpose"", ""Priority"")
+            SELECT (SELECT ""Id"" FROM ""purchase_requests"" WHERE ""PRNumber"" = 'PR-2026-003' LIMIT 1), 'PART-FILTER-OIL', 'Oil Filter', 'PCS', 5.00, 125000.00, 625000.00, 'Routine maintenance HINO-003', 'NORMAL'
+            WHERE EXISTS (SELECT 1 FROM ""purchase_requests"" WHERE ""PRNumber"" = 'PR-2026-003');
+
+            INSERT INTO ""purchase_requests"" (""PRNumber"", ""PRDate"", ""Site"", ""Department"", ""RequestedBy"", ""ApprovedBy"", ""Status"", ""Remarks"")
+            SELECT 'PR-2026-004', '2026-01-12', 'TNG', 'Operations', 'Budi Santoso', 'John Manager', 'APPROVED', 'Brake pad replacement HINO-002'
+            WHERE NOT EXISTS (SELECT 1 FROM ""purchase_requests"" WHERE ""PRNumber"" = 'PR-2026-004');
+            INSERT INTO ""purchase_request_items"" (""PurchaseRequestId"", ""PartNumber"", ""Description"", ""Unit"", ""Quantity"", ""EstimatedPrice"", ""TotalPrice"", ""Purpose"", ""Priority"")
+            SELECT (SELECT ""Id"" FROM ""purchase_requests"" WHERE ""PRNumber"" = 'PR-2026-004' LIMIT 1), 'PART-BRAKE-PAD', 'Brake Pad Set', 'PCS', 2.00, 450000.00, 900000.00, 'Replace brake pads HINO-002', 'NORMAL'
+            WHERE EXISTS (SELECT 1 FROM ""purchase_requests"" WHERE ""PRNumber"" = 'PR-2026-004');
+
+            INSERT INTO ""purchase_requests"" (""PRNumber"", ""PRDate"", ""Site"", ""Department"", ""RequestedBy"", ""ApprovedBy"", ""Status"", ""Remarks"")
+            SELECT 'PR-2026-005', '2026-01-14', 'SBB', 'Maintenance', 'Dedi Kurniawan', 'John Manager', 'DRAFT', 'Tire chain order HINO-004'
+            WHERE NOT EXISTS (SELECT 1 FROM ""purchase_requests"" WHERE ""PRNumber"" = 'PR-2026-005');
+            INSERT INTO ""purchase_request_items"" (""PurchaseRequestId"", ""PartNumber"", ""Description"", ""Unit"", ""Quantity"", ""EstimatedPrice"", ""TotalPrice"", ""Purpose"", ""Priority"")
+            SELECT (SELECT ""Id"" FROM ""purchase_requests"" WHERE ""PRNumber"" = 'PR-2026-005' LIMIT 1), 'PART-TIRE-CHAIN', 'Tire Chain', 'PCS', 6.00, 2500000.00, 15000000.00, 'Heavy duty tire chain SBB route', 'HIGH'
+            WHERE EXISTS (SELECT 1 FROM ""purchase_requests"" WHERE ""PRNumber"" = 'PR-2026-005');
+        ");
+        results.Add("purchase_requests + items seed OK");
+
+        // Seed purchase_orders + purchase_order_items
+        await db.Database.ExecuteSqlRawAsync(@"
+            INSERT INTO ""purchase_orders"" (""PONumber"", ""PODate"", ""Site"", ""Vendor"", ""VendorCode"", ""PRNumber"", ""Status"", ""DeliveryDate"", ""SubTotal"", ""Tax"", ""TotalAmount"", ""PaymentTerms"", ""ApprovedBy"")
+            SELECT 'PO-2026-001', '2026-01-06', 'TNG', 'PT. Pertamina (Persero)', 'VND-PERTAMINA', 'PR-2026-001', 'RECEIVED', '2026-01-08', 45000000.00, 4500000.00, 49500000.00, 'NET 30', 'John Manager'
+            WHERE NOT EXISTS (SELECT 1 FROM ""purchase_orders"" WHERE ""PONumber"" = 'PO-2026-001');
+            INSERT INTO ""purchase_order_items"" (""PurchaseOrderId"", ""PartNumber"", ""Description"", ""Unit"", ""Quantity"", ""UnitPrice"", ""TotalPrice"", ""DeliveredQty"")
+            SELECT (SELECT ""Id"" FROM ""purchase_orders"" WHERE ""PONumber"" = 'PO-2026-001' LIMIT 1), 'FUEL-DIESEL', 'Solar / Diesel', 'L', 3000.00, 15000.00, 45000000.00, 3000.00
+            WHERE EXISTS (SELECT 1 FROM ""purchase_orders"" WHERE ""PONumber"" = 'PO-2026-001');
+
+            INSERT INTO ""purchase_orders"" (""PONumber"", ""PODate"", ""Site"", ""Vendor"", ""VendorCode"", ""PRNumber"", ""Status"", ""DeliveryDate"", ""SubTotal"", ""Tax"", ""TotalAmount"", ""PaymentTerms"", ""ApprovedBy"")
+            SELECT 'PO-2026-002', '2026-01-09', 'TNG', 'PT. Brata Multi Lestari', 'VND-BRATA', 'PR-2026-002', 'RECEIVED', '2026-01-15', 34000000.00, 3400000.00, 37400000.00, 'NET 30', 'John Manager'
+            WHERE NOT EXISTS (SELECT 1 FROM ""purchase_orders"" WHERE ""PONumber"" = 'PO-2026-002');
+            INSERT INTO ""purchase_order_items"" (""PurchaseOrderId"", ""PartNumber"", ""Description"", ""Unit"", ""Quantity"", ""UnitPrice"", ""TotalPrice"", ""DeliveredQty"")
+            SELECT (SELECT ""Id"" FROM ""purchase_orders"" WHERE ""PONumber"" = 'PO-2026-002' LIMIT 1), 'TYRE-OTR-24.00', 'OTR Tyre 24.00R25', 'PCS', 4.00, 8500000.00, 34000000.00, 4.00
+            WHERE EXISTS (SELECT 1 FROM ""purchase_orders"" WHERE ""PONumber"" = 'PO-2026-002');
+
+            INSERT INTO ""purchase_orders"" (""PONumber"", ""PODate"", ""Site"", ""Vendor"", ""VendorCode"", ""PRNumber"", ""Status"", ""DeliveryDate"", ""SubTotal"", ""Tax"", ""TotalAmount"", ""PaymentTerms"", ""ApprovedBy"")
+            SELECT 'PO-2026-003', '2026-01-11', 'SDK', 'PT. Mitutomo Indonesia', 'VND-MITUTOMO', 'PR-2026-003', 'SENT', '2026-01-18', 2325000.00, 232500.00, 2557500.00, 'NET 30', 'John Manager'
+            WHERE NOT EXISTS (SELECT 1 FROM ""purchase_orders"" WHERE ""PONumber"" = 'PO-2026-003');
+            INSERT INTO ""purchase_order_items"" (""PurchaseOrderId"", ""PartNumber"", ""Description"", ""Unit"", ""Quantity"", ""UnitPrice"", ""TotalPrice"", ""DeliveredQty"")
+            SELECT (SELECT ""Id"" FROM ""purchase_orders"" WHERE ""PONumber"" = 'PO-2026-003' LIMIT 1), 'PART-ENGINE-OIL', 'Engine Oil 15W-40', 'L', 20.00, 85000.00, 1700000.00, 0.00
+            WHERE EXISTS (SELECT 1 FROM ""purchase_orders"" WHERE ""PONumber"" = 'PO-2026-003');
+            INSERT INTO ""purchase_order_items"" (""PurchaseOrderId"", ""PartNumber"", ""Description"", ""Unit"", ""Quantity"", ""UnitPrice"", ""TotalPrice"", ""DeliveredQty"")
+            SELECT (SELECT ""Id"" FROM ""purchase_orders"" WHERE ""PONumber"" = 'PO-2026-003' LIMIT 1), 'PART-FILTER-OIL', 'Oil Filter', 'PCS', 5.00, 125000.00, 625000.00, 0.00
+            WHERE EXISTS (SELECT 1 FROM ""purchase_orders"" WHERE ""PONumber"" = 'PO-2026-003');
+
+            INSERT INTO ""purchase_orders"" (""PONumber"", ""PODate"", ""Site"", ""Vendor"", ""VendorCode"", ""PRNumber"", ""Status"", ""DeliveryDate"", ""SubTotal"", ""Tax"", ""TotalAmount"", ""PaymentTerms"", ""ApprovedBy"")
+            SELECT 'PO-2026-004', '2026-01-13', 'TNG', 'PT. Oto Multi Part', 'VND-OTOCRipart', 'PR-2026-004', 'DRAFT', '2026-01-20', 900000.00, 90000.00, 990000.00, 'NET 30', 'John Manager'
+            WHERE NOT EXISTS (SELECT 1 FROM ""purchase_orders"" WHERE ""PONumber"" = 'PO-2026-004');
+            INSERT INTO ""purchase_order_items"" (""PurchaseOrderId"", ""PartNumber"", ""Description"", ""Unit"", ""Quantity"", ""UnitPrice"", ""TotalPrice"", ""DeliveredQty"")
+            SELECT (SELECT ""Id"" FROM ""purchase_orders"" WHERE ""PONumber"" = 'PO-2026-004' LIMIT 1), 'PART-BRAKE-PAD', 'Brake Pad Set', 'PCS', 2.00, 450000.00, 900000.00, 0.00
+            WHERE EXISTS (SELECT 1 FROM ""purchase_orders"" WHERE ""PONumber"" = 'PO-2026-004');
+
+            INSERT INTO ""purchase_orders"" (""PONumber"", ""PODate"", ""Site"", ""Vendor"", ""VendorCode"", ""PRNumber"", ""Status"", ""DeliveryDate"", ""SubTotal"", ""Tax"", ""TotalAmount"", ""PaymentTerms"", ""ApprovedBy"")
+            SELECT 'PO-2026-005', '2026-01-15', 'SBB', 'PT. Oto Multi Part', 'VND-OTOCRipart', 'PR-2026-005', 'DRAFT', '2026-01-22', 15000000.00, 1500000.00, 16500000.00, 'NET 30', 'John Manager'
+            WHERE NOT EXISTS (SELECT 1 FROM ""purchase_orders"" WHERE ""PONumber"" = 'PO-2026-005');
+            INSERT INTO ""purchase_order_items"" (""PurchaseOrderId"", ""PartNumber"", ""Description"", ""Unit"", ""Quantity"", ""UnitPrice"", ""TotalPrice"", ""DeliveredQty"")
+            SELECT (SELECT ""Id"" FROM ""purchase_orders"" WHERE ""PONumber"" = 'PO-2026-005' LIMIT 1), 'PART-TIRE-CHAIN', 'Tire Chain', 'PCS', 6.00, 2500000.00, 15000000.00, 0.00
+            WHERE EXISTS (SELECT 1 FROM ""purchase_orders"" WHERE ""PONumber"" = 'PO-2026-005');
+        ");
+        results.Add("purchase_orders + items seed OK");
+
+        // Seed good_receipts + good_receipt_items
+        await db.Database.ExecuteSqlRawAsync(@"
+            INSERT INTO ""good_receipts"" (""GRNumber"", ""GRDate"", ""Site"", ""Vendor"", ""PONumber"", ""Status"", ""ReceivedBy"", ""ApprovedBy"")
+            SELECT 'GR-2026-001', '2026-01-08', 'TNG', 'PT. Pertamina (Persero)', 'PO-2026-001', 'RECEIVED', 'Charlie Mechanic', 'John Manager'
+            WHERE NOT EXISTS (SELECT 1 FROM ""good_receipts"" WHERE ""GRNumber"" = 'GR-2026-001');
+            INSERT INTO ""good_receipt_items"" (""GoodReceiptId"", ""PartNumber"", ""Description"", ""Unit"", ""OrderedQty"", ""ReceivedQty"", ""AcceptedQty"", ""RejectedQty"", ""Location"")
+            SELECT (SELECT ""Id"" FROM ""good_receipts"" WHERE ""GRNumber"" = 'GR-2026-001' LIMIT 1), 'FUEL-DIESEL', 'Solar / Diesel', 'L', 3000.00, 3000.00, 3000.00, 0.00, 'Fuel Tank TNG'
+            WHERE EXISTS (SELECT 1 FROM ""good_receipts"" WHERE ""GRNumber"" = 'GR-2026-001');
+
+            INSERT INTO ""good_receipts"" (""GRNumber"", ""GRDate"", ""Site"", ""Vendor"", ""PONumber"", ""Status"", ""ReceivedBy"", ""ApprovedBy"")
+            SELECT 'GR-2026-002', '2026-01-15', 'TNG', 'PT. Brata Multi Lestari', 'PO-2026-002', 'RECEIVED', 'Charlie Mechanic', 'John Manager'
+            WHERE NOT EXISTS (SELECT 1 FROM ""good_receipts"" WHERE ""GRNumber"" = 'GR-2026-002');
+            INSERT INTO ""good_receipt_items"" (""GoodReceiptId"", ""PartNumber"", ""Description"", ""Unit"", ""OrderedQty"", ""ReceivedQty"", ""AcceptedQty"", ""RejectedQty"", ""Location"")
+            SELECT (SELECT ""Id"" FROM ""good_receipts"" WHERE ""GRNumber"" = 'GR-2026-002' LIMIT 1), 'TYRE-OTR-24.00', 'OTR Tyre 24.00R25', 'PCS', 4.00, 4.00, 4.00, 0.00, 'Tyre Storage TNG'
+            WHERE EXISTS (SELECT 1 FROM ""good_receipts"" WHERE ""GRNumber"" = 'GR-2026-002');
+
+            INSERT INTO ""good_receipts"" (""GRNumber"", ""GRDate"", ""Site"", ""Vendor"", ""PONumber"", ""Status"", ""ReceivedBy"", ""ApprovedBy"")
+            SELECT 'GR-2026-003', '2026-01-16', 'SDK', 'PT. Mitutomo Indonesia', 'PO-2026-003', 'RECEIVED', 'Cecep Rahmat', 'John Manager'
+            WHERE NOT EXISTS (SELECT 1 FROM ""good_receipts"" WHERE ""GRNumber"" = 'GR-2026-003');
+            INSERT INTO ""good_receipt_items"" (""GoodReceiptId"", ""PartNumber"", ""Description"", ""Unit"", ""OrderedQty"", ""ReceivedQty"", ""AcceptedQty"", ""RejectedQty"", ""Location"")
+            SELECT (SELECT ""Id"" FROM ""good_receipts"" WHERE ""GRNumber"" = 'GR-2026-003' LIMIT 1), 'PART-ENGINE-OIL', 'Engine Oil 15W-40', 'L', 20.00, 20.00, 20.00, 0.00, 'Lube Storage SDK'
+            WHERE EXISTS (SELECT 1 FROM ""good_receipts"" WHERE ""GRNumber"" = 'GR-2026-003');
+            INSERT INTO ""good_receipt_items"" (""GoodReceiptId"", ""PartNumber"", ""Description"", ""Unit"", ""OrderedQty"", ""ReceivedQty"", ""AcceptedQty"", ""RejectedQty"", ""Location"")
+            SELECT (SELECT ""Id"" FROM ""good_receipts"" WHERE ""GRNumber"" = 'GR-2026-003' LIMIT 1), 'PART-FILTER-OIL', 'Oil Filter', 'PCS', 5.00, 5.00, 5.00, 0.00, 'Parts Storage SDK'
+            WHERE EXISTS (SELECT 1 FROM ""good_receipts"" WHERE ""GRNumber"" = 'GR-2026-003');
+
+            INSERT INTO ""good_receipts"" (""GRNumber"", ""GRDate"", ""Site"", ""Vendor"", ""PONumber"", ""Status"", ""ReceivedBy"", ""ApprovedBy"")
+            SELECT 'GR-2026-004', '2026-01-18', 'TNG', 'PT. Oto Multi Part', 'PO-2026-004', 'RECEIVED', 'Charlie Mechanic', 'John Manager'
+            WHERE NOT EXISTS (SELECT 1 FROM ""good_receipts"" WHERE ""GRNumber"" = 'GR-2026-004');
+            INSERT INTO ""good_receipt_items"" (""GoodReceiptId"", ""PartNumber"", ""Description"", ""Unit"", ""OrderedQty"", ""ReceivedQty"", ""AcceptedQty"", ""RejectedQty"", ""Location"")
+            SELECT (SELECT ""Id"" FROM ""good_receipts"" WHERE ""GRNumber"" = 'GR-2026-004' LIMIT 1), 'PART-BRAKE-PAD', 'Brake Pad Set', 'PCS', 2.00, 2.00, 2.00, 0.00, 'Parts Storage TNG'
+            WHERE EXISTS (SELECT 1 FROM ""good_receipts"" WHERE ""GRNumber"" = 'GR-2026-004');
+
+            INSERT INTO ""good_receipts"" (""GRNumber"", ""GRDate"", ""Site"", ""Vendor"", ""PONumber"", ""Status"", ""ReceivedBy"", ""ApprovedBy"")
+            SELECT 'GR-2026-005', '2026-01-20', 'SBB', 'PT. Oto Multi Part', 'PO-2026-005', 'RECEIVED', 'Dedi Kurniawan', 'John Manager'
+            WHERE NOT EXISTS (SELECT 1 FROM ""good_receipts"" WHERE ""GRNumber"" = 'GR-2026-005');
+            INSERT INTO ""good_receipt_items"" (""GoodReceiptId"", ""PartNumber"", ""Description"", ""Unit"", ""OrderedQty"", ""ReceivedQty"", ""AcceptedQty"", ""RejectedQty"", ""Location"")
+            SELECT (SELECT ""Id"" FROM ""good_receipts"" WHERE ""GRNumber"" = 'GR-2026-005' LIMIT 1), 'PART-TIRE-CHAIN', 'Tire Chain', 'PCS', 6.00, 6.00, 6.00, 0.00, 'Tyre Storage SBB'
+            WHERE EXISTS (SELECT 1 FROM ""good_receipts"" WHERE ""GRNumber"" = 'GR-2026-005');
+        ");
+        results.Add("good_receipts + items seed OK");
+
+        // Seed good_issues + good_issue_items
+        await db.Database.ExecuteSqlRawAsync(@"
+            INSERT INTO ""good_issues"" (""GINumber"", ""GIDate"", ""Site"", ""Department"", ""RequestNumber"", ""Status"", ""IssuedBy"", ""ReceivedBy"", ""ApprovedBy"")
+            SELECT 'GI-2026-001', '2026-01-09', 'TNG', 'Operations', 'PR-2026-001', 'ISSUED', 'Charlie Mechanic', 'Ahmad Sutanto', 'John Manager'
+            WHERE NOT EXISTS (SELECT 1 FROM ""good_issues"" WHERE ""GINumber"" = 'GI-2026-001');
+            INSERT INTO ""good_issue_items"" (""GoodIssueId"", ""PartNumber"", ""Description"", ""Unit"", ""RequestedQty"", ""IssuedQty"", ""StockBefore"", ""StockAfter"", ""Purpose"")
+            SELECT (SELECT ""Id"" FROM ""good_issues"" WHERE ""GINumber"" = 'GI-2026-001' LIMIT 1), 'FUEL-DIESEL', 'Solar / Diesel', 'L', 3000.00, 3000.00, 10000.00, 7000.00, 'Fleet fueling HINO-001 to HINO-005'
+            WHERE EXISTS (SELECT 1 FROM ""good_issues"" WHERE ""GINumber"" = 'GI-2026-001');
+
+            INSERT INTO ""good_issues"" (""GINumber"", ""GIDate"", ""Site"", ""Department"", ""RequestNumber"", ""Status"", ""IssuedBy"", ""ReceivedBy"", ""ApprovedBy"")
+            SELECT 'GI-2026-002', '2026-01-16', 'TNG', 'Maintenance', 'PR-2026-002', 'ISSUED', 'Charlie Mechanic', 'Charlie Mechanic', 'John Manager'
+            WHERE NOT EXISTS (SELECT 1 FROM ""good_issues"" WHERE ""GINumber"" = 'GI-2026-002');
+            INSERT INTO ""good_issue_items"" (""GoodIssueId"", ""PartNumber"", ""Description"", ""Unit"", ""RequestedQty"", ""IssuedQty"", ""StockBefore"", ""StockAfter"", ""Purpose"")
+            SELECT (SELECT ""Id"" FROM ""good_issues"" WHERE ""GINumber"" = 'GI-2026-002' LIMIT 1), 'TYRE-OTR-24.00', 'OTR Tyre 24.00R25', 'PCS', 4.00, 4.00, 8.00, 4.00, 'Replace tyres HINO-001'
+            WHERE EXISTS (SELECT 1 FROM ""good_issues"" WHERE ""GINumber"" = 'GI-2026-002');
+
+            INSERT INTO ""good_issues"" (""GINumber"", ""GIDate"", ""Site"", ""Department"", ""RequestNumber"", ""Status"", ""IssuedBy"", ""ReceivedBy"", ""ApprovedBy"")
+            SELECT 'GI-2026-003', '2026-01-17', 'SDK', 'Maintenance', 'PR-2026-003', 'ISSUED', 'Cecep Rahmat', 'Cecep Rahmat', 'John Manager'
+            WHERE NOT EXISTS (SELECT 1 FROM ""good_issues"" WHERE ""GINumber"" = 'GI-2026-003');
+            INSERT INTO ""good_issue_items"" (""GoodIssueId"", ""PartNumber"", ""Description"", ""Unit"", ""RequestedQty"", ""IssuedQty"", ""StockBefore"", ""StockAfter"", ""Purpose"")
+            SELECT (SELECT ""Id"" FROM ""good_issues"" WHERE ""GINumber"" = 'GI-2026-003' LIMIT 1), 'PART-ENGINE-OIL', 'Engine Oil 15W-40', 'L', 20.00, 20.00, 50.00, 30.00, 'Routine maintenance HINO-003'
+            WHERE EXISTS (SELECT 1 FROM ""good_issues"" WHERE ""GINumber"" = 'GI-2026-003');
+            INSERT INTO ""good_issue_items"" (""GoodIssueId"", ""PartNumber"", ""Description"", ""Unit"", ""RequestedQty"", ""IssuedQty"", ""StockBefore"", ""StockAfter"", ""Purpose"")
+            SELECT (SELECT ""Id"" FROM ""good_issues"" WHERE ""GINumber"" = 'GI-2026-003' LIMIT 1), 'PART-FILTER-OIL', 'Oil Filter', 'PCS', 5.00, 5.00, 15.00, 10.00, 'Routine maintenance HINO-003'
+            WHERE EXISTS (SELECT 1 FROM ""good_issues"" WHERE ""GINumber"" = 'GI-2026-003');
+
+            INSERT INTO ""good_issues"" (""GINumber"", ""GIDate"", ""Site"", ""Department"", ""RequestNumber"", ""Status"", ""IssuedBy"", ""ReceivedBy"", ""ApprovedBy"")
+            SELECT 'GI-2026-004', '2026-01-19', 'TNG', 'Maintenance', 'PR-2026-004', 'ISSUED', 'Charlie Mechanic', 'Charlie Mechanic', 'John Manager'
+            WHERE NOT EXISTS (SELECT 1 FROM ""good_issues"" WHERE ""GINumber"" = 'GI-2026-004');
+            INSERT INTO ""good_issue_items"" (""GoodIssueId"", ""PartNumber"", ""Description"", ""Unit"", ""RequestedQty"", ""IssuedQty"", ""StockBefore"", ""StockAfter"", ""Purpose"")
+            SELECT (SELECT ""Id"" FROM ""good_issues"" WHERE ""GINumber"" = 'GI-2026-004' LIMIT 1), 'PART-BRAKE-PAD', 'Brake Pad Set', 'PCS', 2.00, 2.00, 6.00, 4.00, 'Replace brake pads HINO-002'
+            WHERE EXISTS (SELECT 1 FROM ""good_issues"" WHERE ""GINumber"" = 'GI-2026-004');
+
+            INSERT INTO ""good_issues"" (""GINumber"", ""GIDate"", ""Site"", ""Department"", ""RequestNumber"", ""Status"", ""IssuedBy"", ""ReceivedBy"", ""ApprovedBy"")
+            SELECT 'GI-2026-005', '2026-01-21', 'SBB', 'Maintenance', 'PR-2026-005', 'ISSUED', 'Dedi Kurniawan', 'Dedi Kurniawan', 'John Manager'
+            WHERE NOT EXISTS (SELECT 1 FROM ""good_issues"" WHERE ""GINumber"" = 'GI-2026-005');
+            INSERT INTO ""good_issue_items"" (""GoodIssueId"", ""PartNumber"", ""Description"", ""Unit"", ""RequestedQty"", ""IssuedQty"", ""StockBefore"", ""StockAfter"", ""Purpose"")
+            SELECT (SELECT ""Id"" FROM ""good_issues"" WHERE ""GINumber"" = 'GI-2026-005' LIMIT 1), 'PART-TIRE-CHAIN', 'Tire Chain', 'PCS', 6.00, 6.00, 12.00, 6.00, 'Heavy duty tire chain HINO-004 SBB route'
+            WHERE EXISTS (SELECT 1 FROM ""good_issues"" WHERE ""GINumber"" = 'GI-2026-005');
+        ");
+        results.Add("good_issues + items seed OK");
+
+        // ---- MAINTENANCE MODULE ----
+
+        // Seed work_orders
+        await db.Database.ExecuteSqlRawAsync(@"
+            INSERT INTO ""work_orders"" (""WONumber"", ""WODate"", ""Site"", ""UnitNo"", ""MerkType"", ""Category"", ""WOType"", ""Priority"", ""Problem"", ""Status"", ""ScheduledDate"", ""StartDate"", ""EndDate"", ""EstimatedCost"", ""ActualCost"", ""AssignedTo"")
+            SELECT 'WO-2026-001', '2026-01-05', 'TNG', 'HINO-001', 'Hino 500 FM', 'DUMP TRUCK', 'CORRECTIVE', 'HIGH', 'Left rear tyre severely worn, safety hazard', 'CLOSED', '2026-01-05', '2026-01-15', '2026-01-15', 38000000.00, 36200000.00, 'Charlie Mechanic'
+            WHERE NOT EXISTS (SELECT 1 FROM ""work_orders"" WHERE ""WONumber"" = 'WO-2026-001');
+            INSERT INTO ""work_orders"" (""WONumber"", ""WODate"", ""Site"", ""UnitNo"", ""MerkType"", ""Category"", ""WOType"", ""Priority"", ""Problem"", ""Status"", ""ScheduledDate"", ""StartDate"", ""EndDate"", ""EstimatedCost"", ""ActualCost"", ""AssignedTo"")
+            SELECT 'WO-2026-002', '2026-01-08', 'TNG', 'HINO-002', 'Hino 500 FM', 'DUMP TRUCK', 'CORRECTIVE', 'NORMAL', 'Brake pad wear detected at 80%, replacement needed', 'CLOSED', '2026-01-10', '2026-01-13', '2026-01-13', 1100000.00, 980000.00, 'Charlie Mechanic'
+            WHERE NOT EXISTS (SELECT 1 FROM ""work_orders"" WHERE ""WONumber"" = 'WO-2026-002');
+            INSERT INTO ""work_orders"" (""WONumber"", ""WODate"", ""Site"", ""UnitNo"", ""MerkType"", ""Category"", ""WOType"", ""Priority"", ""Problem"", ""Status"", ""ScheduledDate"", ""StartDate"", ""EndDate"", ""EstimatedCost"", ""ActualCost"", ""AssignedTo"")
+            SELECT 'WO-2026-003', '2026-01-10', 'SDK', 'HINO-003', 'Hino 500 FM', 'DUMP TRUCK', 'PREVENTIVE', 'NORMAL', 'Scheduled 500-hour preventive maintenance', 'CLOSED', '2026-01-15', '2026-01-17', '2026-01-17', 2500000.00, 2325000.00, 'Cecep Rahmat'
+            WHERE NOT EXISTS (SELECT 1 FROM ""work_orders"" WHERE ""WONumber"" = 'WO-2026-003');
+            INSERT INTO ""work_orders"" (""WONumber"", ""WODate"", ""Site"", ""UnitNo"", ""MerkType"", ""Category"", ""WOType"", ""Priority"", ""Problem"", ""Status"", ""ScheduledDate"", ""StartDate"", ""EndDate"", ""EstimatedCost"", ""ActualCost"", ""AssignedTo"")
+            SELECT 'WO-2026-004', '2026-01-12', 'SBB', 'HINO-004', 'Hino 500 FM', 'DUMP TRUCK', 'CORRECTIVE', 'URGENT', 'Engine overheating, coolant leak detected', 'OPEN', '2026-01-20', NULL, NULL, 5500000.00, 0.00, 'Dedi Kurniawan'
+            WHERE NOT EXISTS (SELECT 1 FROM ""work_orders"" WHERE ""WONumber"" = 'WO-2026-004');
+            INSERT INTO ""work_orders"" (""WONumber"", ""WODate"", ""Site"", ""UnitNo"", ""MerkType"", ""Category"", ""WOType"", ""Priority"", ""Problem"", ""Status"", ""ScheduledDate"", ""StartDate"", ""EndDate"", ""EstimatedCost"", ""ActualCost"", ""AssignedTo"")
+            SELECT 'WO-2026-005', '2026-01-14', 'TNG', 'HINO-005', 'Hino 500 FM', 'DUMP TRUCK', 'PREVENTIVE', 'NORMAL', 'Scheduled 250-hour preventive maintenance', 'IN PROGRESS', '2026-01-25', NULL, NULL, 2000000.00, 0.00, 'Charlie Mechanic'
+            WHERE NOT EXISTS (SELECT 1 FROM ""work_orders"" WHERE ""WONumber"" = 'WO-2026-005');
+            INSERT INTO ""work_orders"" (""WONumber"", ""WODate"", ""Site"", ""UnitNo"", ""MerkType"", ""Category"", ""WOType"", ""Priority"", ""Problem"", ""Status"", ""ScheduledDate"", ""StartDate"", ""EndDate"", ""EstimatedCost"", ""ActualCost"", ""AssignedTo"")
+            SELECT 'WO-2026-006', '2026-02-03', 'SDK', 'HINO-006', 'Hino 500 FM', 'DUMP TRUCK', 'CORRECTIVE', 'HIGH', 'Transmission gear shifting not smooth, grinding noise from gearbox', 'OPEN', '2026-02-10', NULL, NULL, 8000000.00, 0.00, 'Cecep Rahmat'
+            WHERE NOT EXISTS (SELECT 1 FROM ""work_orders"" WHERE ""WONumber"" = 'WO-2026-006');
+            INSERT INTO ""work_orders"" (""WONumber"", ""WODate"", ""Site"", ""UnitNo"", ""MerkType"", ""Category"", ""WOType"", ""Priority"", ""Problem"", ""Status"", ""ScheduledDate"", ""StartDate"", ""EndDate"", ""EstimatedCost"", ""ActualCost"", ""AssignedTo"")
+            SELECT 'WO-2026-007', '2026-02-10', 'SBB', 'HINO-007', 'Hino 500 FM', 'DUMP TRUCK', 'PREVENTIVE', 'NORMAL', 'Scheduled 1000-hour preventive maintenance - full fluid change and filter replacement', 'SCHEDULED', '2026-02-20', NULL, NULL, 3500000.00, 0.00, 'Dedi Kurniawan'
+            WHERE NOT EXISTS (SELECT 1 FROM ""work_orders"" WHERE ""WONumber"" = 'WO-2026-007');
+            INSERT INTO ""work_orders"" (""WONumber"", ""WODate"", ""Site"", ""UnitNo"", ""MerkType"", ""Category"", ""WOType"", ""Priority"", ""Problem"", ""Status"", ""ScheduledDate"", ""StartDate"", ""EndDate"", ""EstimatedCost"", ""ActualCost"", ""AssignedTo"")
+            SELECT 'WO-2026-008', '2026-02-15', 'TNG', 'HINO-008', 'Isuzu Giga FVZ', 'DUMP TRUCK', 'CORRECTIVE', 'CRITICAL', 'Engine total breakdown - unable to start, suspected starter motor failure', 'OPEN', '2026-02-16', NULL, NULL, 15000000.00, 0.00, 'Charlie Mechanic'
+            WHERE NOT EXISTS (SELECT 1 FROM ""work_orders"" WHERE ""WONumber"" = 'WO-2026-008');
+        ");
+        results.Add("work_orders seed OK");
+
+        // Seed preventive_maintenance
+        await db.Database.ExecuteSqlRawAsync(@"
+            INSERT INTO ""preventive_maintenance"" (""PMNumber"", ""PMDate"", ""Site"", ""UnitNo"", ""MerkType"", ""PMType"", ""Description"", ""Status"", ""ScheduledDate"", ""HMValue"", ""NextHMValue"", ""AssignedTo"")
+            SELECT 'PM-2026-001', '2026-01-17', 'SDK', 'HINO-003', 'Hino 500 FM', '500 HOURS', 'Scheduled maintenance: oil change, filter replacement, brake inspection, tyre rotation', 'COMPLETED', '2026-01-17', 15800.00, 16000.00, 'Cecep Rahmat'
+            WHERE NOT EXISTS (SELECT 1 FROM ""preventive_maintenance"" WHERE ""PMNumber"" = 'PM-2026-001');
+            INSERT INTO ""preventive_maintenance"" (""PMNumber"", ""PMDate"", ""Site"", ""UnitNo"", ""MerkType"", ""PMType"", ""Description"", ""Status"", ""ScheduledDate"", ""HMValue"", ""NextHMValue"", ""AssignedTo"")
+            SELECT 'PM-2026-002', '2026-01-20', 'TNG', 'HINO-001', 'Hino 500 FM', '250 HOURS', 'Scheduled maintenance: oil change, filter check, tyre inspection', 'COMPLETED', '2026-01-20', 15230.00, 15480.00, 'Charlie Mechanic'
+            WHERE NOT EXISTS (SELECT 1 FROM ""preventive_maintenance"" WHERE ""PMNumber"" = 'PM-2026-002');
+            INSERT INTO ""preventive_maintenance"" (""PMNumber"", ""PMDate"", ""Site"", ""UnitNo"", ""MerkType"", ""PMType"", ""Description"", ""Status"", ""ScheduledDate"", ""HMValue"", ""NextHMValue"", ""AssignedTo"")
+            SELECT 'PM-2026-003', '2026-01-22', 'TNG', 'HINO-002', 'Hino 500 FM', '250 HOURS', 'Scheduled maintenance: oil change, filter check, tyre inspection', 'COMPLETED', '2026-01-22', 15025.00, 15275.00, 'Charlie Mechanic'
+            WHERE NOT EXISTS (SELECT 1 FROM ""preventive_maintenance"" WHERE ""PMNumber"" = 'PM-2026-003');
+            INSERT INTO ""preventive_maintenance"" (""PMNumber"", ""PMDate"", ""Site"", ""UnitNo"", ""MerkType"", ""PMType"", ""Description"", ""Status"", ""ScheduledDate"", ""HMValue"", ""NextHMValue"", ""AssignedTo"")
+            SELECT 'PM-2026-004', '2026-01-25', 'SBB', 'HINO-004', 'Hino 500 FM', '500 HOURS', 'Scheduled maintenance: oil change, filter replacement, coolant system check', 'SCHEDULED', '2026-01-30', 14520.00, 15020.00, 'Dedi Kurniawan'
+            WHERE NOT EXISTS (SELECT 1 FROM ""preventive_maintenance"" WHERE ""PMNumber"" = 'PM-2026-004');
+            INSERT INTO ""preventive_maintenance"" (""PMNumber"", ""PMDate"", ""Site"", ""UnitNo"", ""MerkType"", ""PMType"", ""Description"", ""Status"", ""ScheduledDate"", ""HMValue"", ""NextHMValue"", ""AssignedTo"")
+            SELECT 'PM-2026-005', '2026-01-25', 'TNG', 'HINO-005', 'Hino 500 FM', '250 HOURS', 'Scheduled maintenance: oil change, filter check, brake inspection', 'SCHEDULED', '2026-01-25', 15528.00, 15778.00, 'Charlie Mechanic'
+            WHERE NOT EXISTS (SELECT 1 FROM ""preventive_maintenance"" WHERE ""PMNumber"" = 'PM-2026-005');
+        ");
+        results.Add("preventive_maintenance seed OK");
+
+        // Seed corrective_maintenance
+        await db.Database.ExecuteSqlRawAsync(@"
+            INSERT INTO ""corrective_maintenance"" (""CMNumber"", ""CMDate"", ""Site"", ""UnitNo"", ""MerkType"", ""Category"", ""CMType"", ""Priority"", ""Problem"", ""RootCause"", ""Solution"", ""Status"", ""BreakdownStart"", ""ReportedBy"", ""RepairCost"", ""PartsCost"", ""LaborCost"")
+            SELECT 'CM-2026-001', '2026-01-15', 'TNG', 'HINO-001', 'Hino 500 FM', 'DUMP TRUCK', 'CORRECTIVE', 'HIGH', 'Left rear tyre severely worn - safety hazard', 'Tyre worn beyond safe limit due to misalignment', 'Tyre replacement + wheel alignment', 'CLOSED', '2026-01-15 10:00:00', 'Charlie Mechanic', 32000000.00, 30000000.00, 2000000.00
+            WHERE NOT EXISTS (SELECT 1 FROM ""corrective_maintenance"" WHERE ""CMNumber"" = 'CM-2026-001');
+            INSERT INTO ""corrective_maintenance"" (""CMNumber"", ""CMDate"", ""Site"", ""UnitNo"", ""MerkType"", ""Category"", ""CMType"", ""Priority"", ""Problem"", ""RootCause"", ""Solution"", ""Status"", ""BreakdownStart"", ""ReportedBy"", ""RepairCost"", ""PartsCost"", ""LaborCost"")
+            SELECT 'CM-2026-002', '2026-01-13', 'TNG', 'HINO-002', 'Hino 500 FM', 'DUMP TRUCK', 'CORRECTIVE', 'NORMAL', 'Brake pad wear at 80% - squeaking noise reported', 'Normal wear, inspection revealed need for replacement', 'Brake pad replacement + brake system check', 'CLOSED', '2026-01-13 14:00:00', 'Charlie Mechanic', 880000.00, 600000.00, 280000.00
+            WHERE NOT EXISTS (SELECT 1 FROM ""corrective_maintenance"" WHERE ""CMNumber"" = 'CM-2026-002');
+            INSERT INTO ""corrective_maintenance"" (""CMNumber"", ""CMDate"", ""Site"", ""UnitNo"", ""MerkType"", ""Category"", ""CMType"", ""Priority"", ""Problem"", ""RootCause"", ""Solution"", ""Status"", ""BreakdownStart"", ""ReportedBy"", ""RepairCost"", ""PartsCost"", ""LaborCost"")
+            SELECT 'CM-2026-003', '2026-01-20', 'SBB', 'HINO-004', 'Hino 500 FM', 'DUMP TRUCK', 'CORRECTIVE', 'URGENT', 'Engine overheating - temperature warning activated', 'Coolant leak from lower radiator hose', 'Radiator hose replacement + coolant top-up + system flush', 'IN PROGRESS', '2026-01-20 11:30:00', 'Dedi Kurniawan', 0.00, 0.00, 0.00
+            WHERE NOT EXISTS (SELECT 1 FROM ""corrective_maintenance"" WHERE ""CMNumber"" = 'CM-2026-003');
+            INSERT INTO ""corrective_maintenance"" (""CMNumber"", ""CMDate"", ""Site"", ""UnitNo"", ""MerkType"", ""Category"", ""CMType"", ""Priority"", ""Problem"", ""RootCause"", ""Solution"", ""Status"", ""BreakdownStart"", ""ReportedBy"", ""RepairCost"", ""PartsCost"", ""LaborCost"")
+            SELECT 'CM-2026-004', '2026-01-10', 'SDK', 'HINO-003', 'Hino 500 FM', 'DUMP TRUCK', 'CORRECTIVE', 'NORMAL', 'Air filter clogging - reduced engine performance', 'Dirty air filter element after dusty conditions', 'Air filter replacement + intake system cleaning', 'CLOSED', '2026-01-10 09:00:00', 'Cecep Rahmat', 450000.00, 250000.00, 200000.00
+            WHERE NOT EXISTS (SELECT 1 FROM ""corrective_maintenance"" WHERE ""CMNumber"" = 'CM-2026-004');
+            INSERT INTO ""corrective_maintenance"" (""CMNumber"", ""CMDate"", ""Site"", ""UnitNo"", ""MerkType"", ""Category"", ""CMType"", ""Priority"", ""Problem"", ""RootCause"", ""Solution"", ""Status"", ""BreakdownStart"", ""ReportedBy"", ""RepairCost"", ""PartsCost"", ""LaborCost"")
+            SELECT 'CM-2026-005', '2026-01-18', 'TNG', 'HINO-005', 'Hino 500 FM', 'DUMP TRUCK', 'CORRECTIVE', 'NORMAL', 'Battery weak - slow engine crank on cold start', 'Battery age >2 years, reduced cranking capacity', 'Battery replacement', 'CLOSED', '2026-01-18 07:30:00', 'Charlie Mechanic', 1850000.00, 1400000.00, 450000.00
+            WHERE NOT EXISTS (SELECT 1 FROM ""corrective_maintenance"" WHERE ""CMNumber"" = 'CM-2026-005');
+        ");
+        results.Add("corrective_maintenance seed OK");
+
+        // ---- FUEL MODULE ----
+
+        // Seed fuel_receipts
+        await db.Database.ExecuteSqlRawAsync(@"
+            INSERT INTO ""fuel_receipts"" (""No"", ""Tanggal"", ""Site"", ""Vendor"", ""Liter"", ""JenisBBM"", ""HargaPerLiter"", ""TotalHarga"", ""NoTiket"", ""StartTime"", ""EndTime"", ""Keterangan"")
+            SELECT 1, '2026-01-05', 'TNG', 'PT. Pertamina (Persero)', 500.00, 'DIESEL', 15000.00, 7500000.00, 'TKT-F-2026-001', '08:00:00', '08:45:00', 'Initial fuel stock'
+            WHERE NOT EXISTS (SELECT 1 FROM ""fuel_receipts"" WHERE ""No"" = 1 AND ""Site"" = 'TNG');
+            INSERT INTO ""fuel_receipts"" (""No"", ""Tanggal"", ""Site"", ""Vendor"", ""Liter"", ""JenisBBM"", ""HargaPerLiter"", ""TotalHarga"", ""NoTiket"", ""StartTime"", ""EndTime"", ""Keterangan"")
+            SELECT 2, '2026-01-08', 'TNG', 'PT. Pertamina (Persero)', 3000.00, 'DIESEL', 15000.00, 45000000.00, 'TKT-F-2026-002', '09:00:00', '11:30:00', 'Monthly fuel delivery Jan 2026'
+            WHERE NOT EXISTS (SELECT 1 FROM ""fuel_receipts"" WHERE ""No"" = 2 AND ""Site"" = 'TNG');
+            INSERT INTO ""fuel_receipts"" (""No"", ""Tanggal"", ""Site"", ""Vendor"", ""Liter"", ""JenisBBM"", ""HargaPerLiter"", ""TotalHarga"", ""NoTiket"", ""StartTime"", ""EndTime"", ""Keterangan"")
+            SELECT 3, '2026-01-10', 'SDK', 'PT. Pertamina (Persero)', 2500.00, 'DIESEL', 15000.00, 37500000.00, 'TKT-F-2026-003', '08:30:00', '10:45:00', 'Monthly fuel delivery Jan 2026'
+            WHERE NOT EXISTS (SELECT 1 FROM ""fuel_receipts"" WHERE ""No"" = 3 AND ""Site"" = 'SDK');
+            INSERT INTO ""fuel_receipts"" (""No"", ""Tanggal"", ""Site"", ""Vendor"", ""Liter"", ""JenisBBM"", ""HargaPerLiter"", ""TotalHarga"", ""NoTiket"", ""StartTime"", ""EndTime"", ""Keterangan"")
+            SELECT 4, '2026-01-12', 'SBB', 'PT. Pertamina (Persero)', 2000.00, 'DIESEL', 15000.00, 30000000.00, 'TKT-F-2026-004', '09:15:00', '11:00:00', 'Monthly fuel delivery Jan 2026'
+            WHERE NOT EXISTS (SELECT 1 FROM ""fuel_receipts"" WHERE ""No"" = 4 AND ""Site"" = 'SBB');
+            INSERT INTO ""fuel_receipts"" (""No"", ""Tanggal"", ""Site"", ""Vendor"", ""Liter"", ""JenisBBM"", ""HargaPerLiter"", ""TotalHarga"", ""NoTiket"", ""StartTime"", ""EndTime"", ""Keterangan"")
+            SELECT 5, '2026-01-15', 'TNG', 'PT. Pertamina (Persero)', 2800.00, 'DIESEL', 15000.00, 42000000.00, 'TKT-F-2026-005', '08:00:00', '10:15:00', 'Monthly fuel delivery Feb 2026'
+            WHERE NOT EXISTS (SELECT 1 FROM ""fuel_receipts"" WHERE ""No"" = 5 AND ""Site"" = 'TNG');
+        ");
+        results.Add("fuel_receipts seed OK");
+
+        // Seed fuel_usages
+        await db.Database.ExecuteSqlRawAsync(@"
+            INSERT INTO ""fuel_usages"" (""No"", ""Tanggal"", ""Site"", ""UnitNo"", ""Operator"", ""HM"", ""KM"", ""Pemakaian"", ""JamKerja"", ""EFisiensi"", ""Keterangan"")
+            SELECT 1, '2026-01-15', 'TNG', 'HINO-001', 'Ahmad Sutanto', 15230.00, 480000.00, 22.00, 8.00, 2.75, 'Daily fuel usage HINO-001'
+            WHERE NOT EXISTS (SELECT 1 FROM ""fuel_usages"" WHERE ""No"" = 1 AND ""Site"" = 'TNG');
+            INSERT INTO ""fuel_usages"" (""No"", ""Tanggal"", ""Site"", ""UnitNo"", ""Operator"", ""HM"", ""KM"", ""Pemakaian"", ""JamKerja"", ""EFisiensi"", ""Keterangan"")
+            SELECT 2, '2026-01-15', 'TNG', 'HINO-002', 'Budi Santoso', 15025.00, 460000.00, 24.00, 8.00, 3.00, 'Daily fuel usage HINO-002'
+            WHERE NOT EXISTS (SELECT 1 FROM ""fuel_usages"" WHERE ""No"" = 2 AND ""Site"" = 'TNG');
+            INSERT INTO ""fuel_usages"" (""No"", ""Tanggal"", ""Site"", ""UnitNo"", ""Operator"", ""HM"", ""KM"", ""Pemakaian"", ""JamKerja"", ""EFisiensi"", ""Keterangan"")
+            SELECT 3, '2026-01-15', 'SDK', 'HINO-003', 'Cecep Rahmat', 15835.00, 490000.00, 28.00, 8.50, 3.11, 'Daily fuel usage HINO-003'
+            WHERE NOT EXISTS (SELECT 1 FROM ""fuel_usages"" WHERE ""No"" = 3 AND ""Site"" = 'SDK');
+            INSERT INTO ""fuel_usages"" (""No"", ""Tanggal"", ""Site"", ""UnitNo"", ""Operator"", ""HM"", ""KM"", ""Pemakaian"", ""JamKerja"", ""EFisiensi"", ""Keterangan"")
+            SELECT 4, '2026-01-16', 'SBB', 'HINO-004', 'Dedi Kurniawan', 14520.00, 440000.00, 16.00, 7.00, 2.00, 'Daily fuel usage HINO-004'
+            WHERE NOT EXISTS (SELECT 1 FROM ""fuel_usages"" WHERE ""No"" = 4 AND ""Site"" = 'SBB');
+            INSERT INTO ""fuel_usages"" (""No"", ""Tanggal"", ""Site"", ""UnitNo"", ""Operator"", ""HM"", ""KM"", ""Pemakaian"", ""JamKerja"", ""EFisiensi"", ""Keterangan"")
+            SELECT 5, '2026-01-16', 'TNG', 'HINO-005', 'Eko Prasetyo', 15528.00, 485000.00, 21.00, 8.00, 2.625, 'Daily fuel usage HINO-005'
+            WHERE NOT EXISTS (SELECT 1 FROM ""fuel_usages"" WHERE ""No"" = 5 AND ""Site"" = 'TNG');
+        ");
+        results.Add("fuel_usages seed OK");
+
+        // ---- MASTER DATA ----
+
+        // ---- MASTER DATA ----
+
+        // Create drivers table (if not exists via migration)
+        await db.Database.ExecuteSqlRawAsync(@"
+            CREATE TABLE IF NOT EXISTS ""drivers"" (
+                ""Id"" SERIAL PRIMARY KEY,
+                ""DriverId"" VARCHAR(50) NOT NULL,
+                ""DriverName"" VARCHAR(100),
+                ""NickName"" VARCHAR(50),
+                ""BadgeNo"" VARCHAR(50),
+                ""Site"" VARCHAR(50),
+                ""Department"" VARCHAR(50),
+                ""LicenseNumber"" VARCHAR(50),
+                ""LicenseExpiry"" VARCHAR(50),
+                ""Phone"" VARCHAR(50),
+                ""EmergencyContact"" VARCHAR(100),
+                ""JoinDate"" VARCHAR(50),
+                ""Status"" VARCHAR(50) DEFAULT 'ACTIVE',
+                ""CreatedAt"" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                ""UpdatedAt"" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );");
+        results.Add("drivers table OK");
+
+        // Seed drivers (master)
+        await db.Database.ExecuteSqlRawAsync(@"
+            INSERT INTO ""drivers"" (""DriverId"", ""DriverName"", ""NickName"", ""BadgeNo"", ""Site"", ""Department"", ""LicenseNumber"", ""LicenseExpiry"", ""Phone"", ""EmergencyContact"", ""JoinDate"", ""Status"")
+            SELECT 'DRV-001', 'Ahmad Sutanto', 'Ahmad', 'BDG-001', 'TNG', 'Operations', 'SIM B 1234567890', '2027-12-31', '081234567001', 'Siti Sutanto - 081234567011', '2022-03-15', 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""drivers"" WHERE ""DriverId"" = 'DRV-001');
+            INSERT INTO ""drivers"" (""DriverId"", ""DriverName"", ""NickName"", ""BadgeNo"", ""Site"", ""Department"", ""LicenseNumber"", ""LicenseExpiry"", ""Phone"", ""EmergencyContact"", ""JoinDate"", ""Status"")
+            SELECT 'DRV-002', 'Budi Santoso', 'Budi', 'BDG-002', 'TNG', 'Operations', 'SIM B 1234567891', '2027-06-30', '081234567002', 'Wati Santoso - 081234567012', '2022-06-01', 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""drivers"" WHERE ""DriverId"" = 'DRV-002');
+            INSERT INTO ""drivers"" (""DriverId"", ""DriverName"", ""NickName"", ""BadgeNo"", ""Site"", ""Department"", ""LicenseNumber"", ""LicenseExpiry"", ""Phone"", ""EmergencyContact"", ""JoinDate"", ""Status"")
+            SELECT 'DRV-003', 'Cecep Rahmat Hidayat', 'Cecep', 'BDG-003', 'SDK', 'Operations', 'SIM B 1234567892', '2026-09-30', '081234567003', 'Yanti Rahmat - 081234567013', '2021-11-20', 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""drivers"" WHERE ""DriverId"" = 'DRV-003');
+            INSERT INTO ""drivers"" (""DriverId"", ""DriverName"", ""NickName"", ""BadgeNo"", ""Site"", ""Department"", ""LicenseNumber"", ""LicenseExpiry"", ""Phone"", ""EmergencyContact"", ""JoinDate"", ""Status"")
+            SELECT 'DRV-004', 'Dedi Kurniawan', 'Dedi', 'BDG-004', 'SBB', 'Operations', 'SIM B 1234567893', '2027-03-31', '081234567004', 'arni Dediana - 081234567014', '2023-01-10', 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""drivers"" WHERE ""DriverId"" = 'DRV-004');
+            INSERT INTO ""drivers"" (""DriverId"", ""DriverName"", ""NickName"", ""BadgeNo"", ""Site"", ""Department"", ""LicenseNumber"", ""LicenseExpiry"", ""Phone"", ""EmergencyContact"", ""JoinDate"", ""Status"")
+            SELECT 'DRV-005', 'Eko Prasetyo Nugroho', 'Eko', 'BDG-005', 'TNG', 'Operations', 'SIM B 1234567894', '2028-01-31', '081234567005', 'Budi Prasetyo - 081234567015', '2023-05-22', 'ACTIVE'
+            WHERE NOT EXISTS (SELECT 1 FROM ""drivers"" WHERE ""DriverId"" = 'DRV-005');
+        ");
+        results.Add("drivers seed OK");
+
+        return Results.Ok(new { message = "Full seed completed", tables_seeded = results.Count, details = results });
     }
     catch (Exception ex)
     {
@@ -1750,6 +2395,9 @@ app.MapGet("/download-template/{type}", (string type) =>
         "usage" => Path.Combine("wwwroot/templates", "fuel_usage_template_v1.csv"),
         "tyres-po" => Path.Combine("wwwroot/templates", "tyres_po_template.csv"),
         "tyres-problem" => Path.Combine("wwwroot/templates", "tyres_problem_template.csv"),
+        "rm-workorder" => Path.Combine("wwwroot/templates", "rm_workorder_template.csv"),
+        "rm-pm" => Path.Combine("wwwroot/templates", "rm_pm_template.csv"),
+        "rm-cm" => Path.Combine("wwwroot/templates", "rm_cm_template.csv"),
         _ => null
     };
 
@@ -1808,7 +2456,7 @@ app.MapGet("/api/fuel-receipts", async (AppDbContext db, string? site = null, Da
     var query = db.FuelReceipts.AsQueryable();
 
     if (!string.IsNullOrWhiteSpace(site) && site != "all")
-        query = query.Where(r => r.Site.ToLower() == site.ToLower());
+        query = query.Where(r => r.Site != null && r.Site.ToLower() == site.ToLower());
 
     if (startDate.HasValue)
         query = query.Where(r => r.Tanggal >= startDate.Value);
@@ -1963,6 +2611,15 @@ app.MapDelete("/api/fuel-usages/{id}", async (int id, AppDbContext db) =>
 // ===== TYRE PO CRUD =====
 app.MapPost("/api/tyres/po", async (TyrePO tyrePO, AppDbContext db) =>
 {
+    // === DUPLICATE CHECK: NoPO + Site ===
+    if (!string.IsNullOrWhiteSpace(tyrePO.NoPO) && !string.IsNullOrWhiteSpace(tyrePO.Site))
+    {
+        var existing = await db.TyrePOs
+            .FirstOrDefaultAsync(t => t.NoPO == tyrePO.NoPO && t.Site == tyrePO.Site);
+        if (existing != null)
+            return Results.BadRequest(new { error = $"Tyre PO '{tyrePO.NoPO}' sudah ada di site '{tyrePO.Site}'" });
+    }
+
     var maxNo = db.TyrePOs.Any() ? db.TyrePOs.Max(t => t.No) : 0;
     tyrePO.No = maxNo + 1;
     tyrePO.CreatedAt = DateTime.UtcNow;
@@ -1976,6 +2633,16 @@ app.MapPut("/api/tyres/po/{id}", async (int id, TyrePO updated, AppDbContext db)
 {
     var tyrePO = await db.TyrePOs.FindAsync(id);
     if (tyrePO == null) return Results.NotFound();
+
+    // === DUPLICATE CHECK: NoPO + Site (exclude current record) ===
+    if (!string.IsNullOrWhiteSpace(updated.NoPO) && !string.IsNullOrWhiteSpace(updated.Site))
+    {
+        var existing = await db.TyrePOs
+            .FirstOrDefaultAsync(t => t.NoPO == updated.NoPO && t.Site == updated.Site && t.Id != id);
+        if (existing != null)
+            return Results.BadRequest(new { error = $"Tyre PO '{updated.NoPO}' sudah ada di site '{updated.Site}'" });
+    }
+
     tyrePO.Tanggal = updated.Tanggal;
     tyrePO.Site = updated.Site;
     tyrePO.Vendor = updated.Vendor;
@@ -2003,6 +2670,15 @@ app.MapDelete("/api/tyres/po/{id}", async (int id, AppDbContext db) =>
 // ===== TYRE PROBLEM CRUD =====
 app.MapPost("/api/tyres/problems", async (TyreProblem tyreProblem, AppDbContext db) =>
 {
+    // === DUPLICATE CHECK: SerialNumber + Tanggal ===
+    if (!string.IsNullOrWhiteSpace(tyreProblem.SerialNumber))
+    {
+        var existing = await db.TyreProblems
+            .FirstOrDefaultAsync(t => t.SerialNumber == tyreProblem.SerialNumber && t.Tanggal.Date == tyreProblem.Tanggal.Date);
+        if (existing != null)
+            return Results.BadRequest(new { error = $"Tyre Problem dengan NoSeri '{tyreProblem.SerialNumber}' di tanggal {tyreProblem.Tanggal:yyyy-MM-dd} sudah ada" });
+    }
+
     var maxNo = db.TyreProblems.Any() ? db.TyreProblems.Max(t => t.No) : 0;
     tyreProblem.No = maxNo + 1;
     tyreProblem.CreatedAt = DateTime.UtcNow;
@@ -2016,8 +2692,19 @@ app.MapPut("/api/tyres/problems/{id}", async (int id, TyreProblem updated, AppDb
 {
     var tyreProblem = await db.TyreProblems.FindAsync(id);
     if (tyreProblem == null) return Results.NotFound();
+
+    // === DUPLICATE CHECK: SerialNumber + Tanggal (exclude current record) ===
+    if (!string.IsNullOrWhiteSpace(updated.SerialNumber))
+    {
+        var existing = await db.TyreProblems
+            .FirstOrDefaultAsync(t => t.SerialNumber == updated.SerialNumber && t.Tanggal.Date == updated.Tanggal.Date && t.Id != id);
+        if (existing != null)
+            return Results.BadRequest(new { error = $"Tyre Problem dengan NoSeri '{updated.SerialNumber}' di tanggal {updated.Tanggal:yyyy-MM-dd} sudah ada" });
+    }
+
     tyreProblem.Tanggal = updated.Tanggal;
     tyreProblem.Site = updated.Site;
+    tyreProblem.Post = updated.Post;
     tyreProblem.UnitNo = updated.UnitNo;
     tyreProblem.SerialNumber = updated.SerialNumber;
     tyreProblem.MerkType = updated.MerkType;
@@ -2028,6 +2715,7 @@ app.MapPut("/api/tyres/problems/{id}", async (int id, TyreProblem updated, AppDb
     tyreProblem.StartHM = updated.StartHM;
     tyreProblem.EndHM = updated.EndHM;
     tyreProblem.TotalHM = updated.TotalHM;
+    tyreProblem.Cost = updated.Cost;
     tyreProblem.UpdatedAt = DateTime.UtcNow;
     await db.SaveChangesAsync();
     return Results.Ok(tyreProblem);
@@ -2211,18 +2899,20 @@ app.MapGet("/api/tyres/po", async (AppDbContext db, string? site = null) =>
 {
     var query = db.TyrePOs.AsQueryable();
     if (!string.IsNullOrWhiteSpace(site) && site != "all")
-        query = query.Where(r => r.Site.ToLower() == site.ToLower());
+        query = query.Where(r => r.Site != null && r.Site.ToLower() == site.ToLower());
 
     var results = await query.OrderByDescending(r => r.Tanggal).ThenBy(r => r.No).ToListAsync();
     return Results.Ok(results);
 });
 
 // Get Tyre Problems by Site
-app.MapGet("/api/tyres/problems", async (AppDbContext db, string? site = null) =>
+app.MapGet("/api/tyres/problems", async (AppDbContext db, string? site = null, string? post = null) =>
 {
     var query = db.TyreProblems.AsQueryable();
     if (!string.IsNullOrWhiteSpace(site) && site != "all")
-        query = query.Where(r => r.Site.ToLower() == site.ToLower());
+        query = query.Where(r => r.Site != null && r.Site.ToLower() == site.ToLower());
+    if (!string.IsNullOrWhiteSpace(post) && post != "all")
+        query = query.Where(r => r.Post != null && r.Post.ToLower() == post.ToLower());
 
     var results = await query.OrderByDescending(r => r.Tanggal).ThenBy(r => r.No).ToListAsync();
     return Results.Ok(results);
@@ -2252,6 +2942,8 @@ app.MapPost("/api/tyres/po-upload", async (HttpRequest request, AppDbContext db)
 
         var headers = lines[0].Split(';');
         int insertedCount = 0;
+        int skippedCount = 0;
+        var skippedRecords = new List<string>();
 
         for (int i = 1; i < lines.Length; i++)
         {
@@ -2260,6 +2952,19 @@ app.MapPost("/api/tyres/po-upload", async (HttpRequest request, AppDbContext db)
 
             try
             {
+                var noPO = GetValue(values, headers, "NoPO");
+                if (string.IsNullOrWhiteSpace(noPO)) continue;
+
+                // === DUPLICATE CHECK: NoPO + Site ===
+                var existing = await db.TyrePOs
+                    .FirstOrDefaultAsync(t => t.NoPO == noPO && t.Site == site);
+                if (existing != null)
+                {
+                    skippedCount++;
+                    skippedRecords.Add($"Tyre PO '{noPO}' sudah ada di site '{site}'");
+                    continue;
+                }
+
                 var tanggalStr = GetValue(values, headers, "Tanggal");
                 DateTime tanggal = DateTime.Now;
                 if (!string.IsNullOrWhiteSpace(tanggalStr))
@@ -2276,7 +2981,7 @@ app.MapPost("/api/tyres/po-upload", async (HttpRequest request, AppDbContext db)
                     Tanggal = tanggal,
                     Site = site,
                     Vendor = GetValue(values, headers, "Vendor"),
-                    NoPO = GetValue(values, headers, "NoPO"),
+                    NoPO = noPO,
                     MerkType = GetValue(values, headers, "MerkType"),
                     Size = GetValue(values, headers, "Size"),
                     Qty = decimal.TryParse(GetValue(values, headers, "Qty"), out var qty) ? qty : 0,
@@ -2291,7 +2996,13 @@ app.MapPost("/api/tyres/po-upload", async (HttpRequest request, AppDbContext db)
         }
 
         await db.SaveChangesAsync();
-        return Results.Ok(new { message = $"Uploaded {insertedCount} records", inserted = insertedCount });
+        return Results.Ok(new {
+            message = $"Uploaded {insertedCount} records",
+            inserted = insertedCount,
+            skipped = skippedCount,
+            skippedRecords = skippedRecords.Take(10).ToList(),
+            warning = skippedCount > 0 ? $"{skippedCount} record dilewati karena sudah ada." : null
+        });
     }
     catch (Exception ex)
     {
@@ -2308,6 +3019,7 @@ app.MapPost("/api/tyres/problem-upload", async (HttpRequest request, AppDbContex
     var form = await request.ReadFormAsync();
     var file = form.Files["file"];
     var site = form["site"].ToString();
+    var post = form["post"].ToString();
 
     if (file == null || file.Length == 0)
         return Results.BadRequest(new { error = "No file uploaded" });
@@ -2323,6 +3035,8 @@ app.MapPost("/api/tyres/problem-upload", async (HttpRequest request, AppDbContex
 
         var headers = lines[0].Split(';');
         int insertedCount = 0;
+        int skippedCount = 0;
+        var skippedRecords = new List<string>();
 
         for (int i = 1; i < lines.Length; i++)
         {
@@ -2331,6 +3045,7 @@ app.MapPost("/api/tyres/problem-upload", async (HttpRequest request, AppDbContex
 
             try
             {
+                var serialNumber = GetValue(values, headers, "NoSeriTyre");
                 var tanggalStr = GetValue(values, headers, "Tanggal");
                 DateTime tanggal = DateTime.Now;
                 if (!string.IsNullOrWhiteSpace(tanggalStr))
@@ -2341,21 +3056,36 @@ app.MapPost("/api/tyres/problem-upload", async (HttpRequest request, AppDbContex
                         tanggal = DateTime.SpecifyKind(tanggalIso, DateTimeKind.Unspecified);
                 }
 
+                if (!string.IsNullOrWhiteSpace(serialNumber))
+                {
+                    // === DUPLICATE CHECK: SerialNumber + Tanggal ===
+                    var existing = await db.TyreProblems
+                        .FirstOrDefaultAsync(t => t.SerialNumber == serialNumber && t.Tanggal.Date == tanggal.Date);
+                    if (existing != null)
+                    {
+                        skippedCount++;
+                        skippedRecords.Add($"Tyre Problem dengan NoSeri '{serialNumber}' di tanggal {tanggal:yyyy-MM-dd} sudah ada");
+                        continue;
+                    }
+                }
+
                 var tyreProblem = new TyreProblem
                 {
                     No = int.TryParse(GetValue(values, headers, "No"), out var no) ? no : i,
                     Tanggal = tanggal,
                     Site = site,
+                    Post = string.IsNullOrWhiteSpace(GetValue(values, headers, "Pos")) ? post : GetValue(values, headers, "Pos"),
                     UnitNo = GetValue(values, headers, "UnitNo"),
-                    SerialNumber = GetValue(values, headers, "SerialNumber"),
-                    MerkType = GetValue(values, headers, "MerkType"),
+                    SerialNumber = serialNumber,
+                    MerkType = GetValue(values, headers, "MerkBan"),
                     Size = GetValue(values, headers, "Size"),
-                    Problem = GetValue(values, headers, "Problem"),
-                    Kerusakan = GetValue(values, headers, "Kerusakan"),
+                    Problem = GetValue(values, headers, "ProblemDescription"),
+                    Kerusakan = GetValue(values, headers, "ActionTaken"),
                     Location = GetValue(values, headers, "Location"),
-                    StartHM = decimal.TryParse(GetValue(values, headers, "StartHM"), out var startHM) ? startHM : 0,
-                    EndHM = decimal.TryParse(GetValue(values, headers, "EndHM"), out var endHM) ? endHM : 0,
-                    TotalHM = decimal.TryParse(GetValue(values, headers, "TotalHM"), out var totalHM) ? totalHM : 0
+                    StartHM = decimal.TryParse(GetValue(values, headers, "HM"), out var startHM) ? startHM : null,
+                    EndHM = decimal.TryParse(GetValue(values, headers, "EndHM"), out var endHM) ? endHM : null,
+                    TotalHM = decimal.TryParse(GetValue(values, headers, "TotalHM"), out var totalHM) ? totalHM : null,
+                    Cost = decimal.TryParse(GetValue(values, headers, "Cost"), out var cost) ? cost : null
                 };
                 db.TyreProblems.Add(tyreProblem);
                 insertedCount++;
@@ -2364,7 +3094,354 @@ app.MapPost("/api/tyres/problem-upload", async (HttpRequest request, AppDbContex
         }
 
         await db.SaveChangesAsync();
-        return Results.Ok(new { message = $"Uploaded {insertedCount} records", inserted = insertedCount });
+        return Results.Ok(new {
+            message = $"Uploaded {insertedCount} records",
+            inserted = insertedCount,
+            skipped = skippedCount,
+            skippedRecords = skippedRecords.Take(10).ToList(),
+            warning = skippedCount > 0 ? $"{skippedCount} record dilewati karena sudah ada." : null
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(new { error = $"Error: {ex.Message}" });
+    }
+});
+
+// ==================== R&M UPLOAD API ENDPOINTS ====================
+
+// Upload Work Orders
+app.MapPost("/api/workorders/upload", async (HttpRequest request, AppDbContext db) =>
+{
+    if (!request.HasFormContentType)
+        return Results.BadRequest(new { error = "Invalid form content type" });
+
+    var form = await request.ReadFormAsync();
+    var file = form.Files["file"];
+    var site = form["site"].ToString();
+
+    if (file == null || file.Length == 0)
+        return Results.BadRequest(new { error = "No file uploaded" });
+
+    try
+    {
+        using var reader = new StreamReader(file.OpenReadStream());
+        var fileContent = await reader.ReadToEndAsync();
+        var lines = fileContent.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+        if (lines.Length < 2)
+            return Results.BadRequest(new { error = "File is empty or invalid" });
+
+        var headers = lines[0].Split(';');
+        int insertedCount = 0;
+        int skippedCount = 0;
+        var skippedRecords = new List<string>();
+        int nextNo = (await db.WorkOrders.AnyAsync() ? await db.WorkOrders.MaxAsync(w => w.Id) + 1 : 1);
+
+        for (int i = 1; i < lines.Length; i++)
+        {
+            var values = lines[i].Split(';');
+            if (values.Length < headers.Length) continue;
+
+            try
+            {
+                var woNumber = GetValue(values, headers, "No");
+                var woSite = string.IsNullOrWhiteSpace(GetValue(values, headers, "Site")) ? site : GetValue(values, headers, "Site");
+
+                if (!string.IsNullOrWhiteSpace(woNumber))
+                {
+                    // === DUPLICATE CHECK: WONumber + Site ===
+                    var existing = await db.WorkOrders
+                        .FirstOrDefaultAsync(w => w.WONumber == woNumber && w.Site == woSite);
+                    if (existing != null)
+                    {
+                        skippedCount++;
+                        skippedRecords.Add($"Work Order '{woNumber}' sudah ada di site '{woSite}'");
+                        continue;
+                    }
+                }
+
+                var woDateStr = GetValue(values, headers, "Tanggal");
+                DateTime woDate = DateTime.UtcNow;
+                if (!string.IsNullOrWhiteSpace(woDateStr))
+                {
+                    if (DateTime.TryParseExact(woDateStr, "d/M/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d))
+                        woDate = DateTime.SpecifyKind(d, DateTimeKind.Unspecified);
+                    else if (DateTime.TryParseExact(woDateStr, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d2))
+                        woDate = DateTime.SpecifyKind(d2, DateTimeKind.Unspecified);
+                }
+
+                var scheduledStr = GetValue(values, headers, "ScheduledDate");
+                DateTime? scheduledDate = null;
+                if (!string.IsNullOrWhiteSpace(scheduledStr))
+                {
+                    if (DateTime.TryParseExact(scheduledStr, "d/M/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d))
+                        scheduledDate = DateTime.SpecifyKind(d, DateTimeKind.Unspecified);
+                    else if (DateTime.TryParseExact(scheduledStr, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d2))
+                        scheduledDate = DateTime.SpecifyKind(d2, DateTimeKind.Unspecified);
+                }
+
+                var wo = new WorkOrder
+                {
+                    WONumber = woNumber ?? $"WO-AUTO-{nextNo}",
+                    WODate = woDate,
+                    Site = woSite,
+                    UnitNo = GetValue(values, headers, "UnitNo"),
+                    MerkType = GetValue(values, headers, "MerkType"),
+                    Category = GetValue(values, headers, "Category"),
+                    WOType = string.IsNullOrWhiteSpace(GetValue(values, headers, "WOType")) ? "PREVENTIVE" : GetValue(values, headers, "WOType"),
+                    Priority = string.IsNullOrWhiteSpace(GetValue(values, headers, "Priority")) ? "MEDIUM" : GetValue(values, headers, "Priority"),
+                    Problem = GetValue(values, headers, "Problem"),
+                    Status = string.IsNullOrWhiteSpace(GetValue(values, headers, "Status")) ? "OPEN" : GetValue(values, headers, "Status"),
+                    ScheduledDate = scheduledDate,
+                    EstimatedCost = decimal.TryParse(GetValue(values, headers, "EstimatedCost"), out var ec) ? ec : null,
+                    AssignedTo = GetValue(values, headers, "AssignedTo")
+                };
+                db.WorkOrders.Add(wo);
+                nextNo++;
+                insertedCount++;
+            }
+            catch { }
+        }
+
+        await db.SaveChangesAsync();
+        return Results.Ok(new {
+            message = $"Uploaded {insertedCount} work orders",
+            inserted = insertedCount,
+            skipped = skippedCount,
+            skippedRecords = skippedRecords.Take(10).ToList(),
+            warning = skippedCount > 0 ? $"{skippedCount} record dilewati karena sudah ada." : null
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(new { error = $"Error: {ex.Message}" });
+    }
+});
+
+// Upload Preventive Maintenance
+app.MapPost("/api/pm/upload", async (HttpRequest request, AppDbContext db) =>
+{
+    if (!request.HasFormContentType)
+        return Results.BadRequest(new { error = "Invalid form content type" });
+
+    var form = await request.ReadFormAsync();
+    var file = form.Files["file"];
+    var site = form["site"].ToString();
+
+    if (file == null || file.Length == 0)
+        return Results.BadRequest(new { error = "No file uploaded" });
+
+    try
+    {
+        using var reader = new StreamReader(file.OpenReadStream());
+        var fileContent = await reader.ReadToEndAsync();
+        var lines = fileContent.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+        if (lines.Length < 2)
+            return Results.BadRequest(new { error = "File is empty or invalid" });
+
+        var headers = lines[0].Split(';');
+        int insertedCount = 0;
+        int skippedCount = 0;
+        var skippedRecords = new List<string>();
+        int nextNo = (await db.PreventiveMaintenances.AnyAsync() ? await db.PreventiveMaintenances.MaxAsync(p => p.Id) + 1 : 1);
+
+        for (int i = 1; i < lines.Length; i++)
+        {
+            var values = lines[i].Split(';');
+            if (values.Length < headers.Length) continue;
+
+            try
+            {
+                var pmNumber = GetValue(values, headers, "No");
+                var pmSite = string.IsNullOrWhiteSpace(GetValue(values, headers, "Site")) ? site : GetValue(values, headers, "Site");
+
+                if (!string.IsNullOrWhiteSpace(pmNumber))
+                {
+                    // === DUPLICATE CHECK: PMNumber + Site ===
+                    var existing = await db.PreventiveMaintenances
+                        .FirstOrDefaultAsync(p => p.PMNumber == pmNumber && p.Site == pmSite);
+                    if (existing != null)
+                    {
+                        skippedCount++;
+                        skippedRecords.Add($"PM '{pmNumber}' sudah ada di site '{pmSite}'");
+                        continue;
+                    }
+                }
+
+                var pmDateStr = GetValue(values, headers, "Tanggal");
+                DateTime pmDate = DateTime.UtcNow;
+                if (!string.IsNullOrWhiteSpace(pmDateStr))
+                {
+                    if (DateTime.TryParseExact(pmDateStr, "d/M/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d))
+                        pmDate = DateTime.SpecifyKind(d, DateTimeKind.Unspecified);
+                    else if (DateTime.TryParseExact(pmDateStr, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d2))
+                        pmDate = DateTime.SpecifyKind(d2, DateTimeKind.Unspecified);
+                }
+
+                var scheduledStr = GetValue(values, headers, "ScheduledDate");
+                DateTime? scheduledDate = null;
+                if (!string.IsNullOrWhiteSpace(scheduledStr))
+                {
+                    if (DateTime.TryParseExact(scheduledStr, "d/M/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d))
+                        scheduledDate = DateTime.SpecifyKind(d, DateTimeKind.Unspecified);
+                    else if (DateTime.TryParseExact(scheduledStr, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d2))
+                        scheduledDate = DateTime.SpecifyKind(d2, DateTimeKind.Unspecified);
+                }
+
+                var pm = new PreventiveMaintenance
+                {
+                    PMNumber = pmNumber ?? $"PM-AUTO-{nextNo}",
+                    PMDate = pmDate,
+                    Site = pmSite,
+                    UnitNo = GetValue(values, headers, "UnitNo"),
+                    MerkType = GetValue(values, headers, "MerkType"),
+                    PMType = string.IsNullOrWhiteSpace(GetValue(values, headers, "PMType")) ? "DAILY" : GetValue(values, headers, "PMType"),
+                    Description = GetValue(values, headers, "Description"),
+                    Status = "SCHEDULED",
+                    ScheduledDate = scheduledDate,
+                    HMValue = decimal.TryParse(GetValue(values, headers, "HMValue"), out var hm) ? hm : null,
+                    AssignedTo = GetValue(values, headers, "AssignedTo")
+                };
+                db.PreventiveMaintenances.Add(pm);
+                nextNo++;
+                insertedCount++;
+            }
+            catch { }
+        }
+
+        await db.SaveChangesAsync();
+        return Results.Ok(new {
+            message = $"Uploaded {insertedCount} PM records",
+            inserted = insertedCount,
+            skipped = skippedCount,
+            skippedRecords = skippedRecords.Take(10).ToList(),
+            warning = skippedCount > 0 ? $"{skippedCount} record dilewati karena sudah ada." : null
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(new { error = $"Error: {ex.Message}" });
+    }
+});
+
+// Upload Corrective / Breakdown Maintenance
+app.MapPost("/api/cm/upload", async (HttpRequest request, AppDbContext db) =>
+{
+    if (!request.HasFormContentType)
+        return Results.BadRequest(new { error = "Invalid form content type" });
+
+    var form = await request.ReadFormAsync();
+    var file = form.Files["file"];
+    var site = form["site"].ToString();
+
+    if (file == null || file.Length == 0)
+        return Results.BadRequest(new { error = "No file uploaded" });
+
+    try
+    {
+        using var reader = new StreamReader(file.OpenReadStream());
+        var fileContent = await reader.ReadToEndAsync();
+        var lines = fileContent.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+        if (lines.Length < 2)
+            return Results.BadRequest(new { error = "File is empty or invalid" });
+
+        var headers = lines[0].Split(';');
+        int insertedCount = 0;
+        int skippedCount = 0;
+        var skippedRecords = new List<string>();
+        int nextNo = (await db.CorrectiveMaintenances.AnyAsync() ? await db.CorrectiveMaintenances.MaxAsync(c => c.Id) + 1 : 1);
+
+        for (int i = 1; i < lines.Length; i++)
+        {
+            var values = lines[i].Split(';');
+            if (values.Length < headers.Length) continue;
+
+            try
+            {
+                var cmNumber = GetValue(values, headers, "No");
+                var cmSite = string.IsNullOrWhiteSpace(GetValue(values, headers, "Site")) ? site : GetValue(values, headers, "Site");
+
+                if (!string.IsNullOrWhiteSpace(cmNumber))
+                {
+                    // === DUPLICATE CHECK: CMNumber + Site ===
+                    var existing = await db.CorrectiveMaintenances
+                        .FirstOrDefaultAsync(c => c.CMNumber == cmNumber && c.Site == cmSite);
+                    if (existing != null)
+                    {
+                        skippedCount++;
+                        skippedRecords.Add($"Corrective '{cmNumber}' sudah ada di site '{cmSite}'");
+                        continue;
+                    }
+                }
+
+                var cmDateStr = GetValue(values, headers, "Tanggal");
+                DateTime cmDate = DateTime.UtcNow;
+                if (!string.IsNullOrWhiteSpace(cmDateStr))
+                {
+                    if (DateTime.TryParseExact(cmDateStr, "d/M/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d))
+                        cmDate = DateTime.SpecifyKind(d, DateTimeKind.Unspecified);
+                    else if (DateTime.TryParseExact(cmDateStr, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d2))
+                        cmDate = DateTime.SpecifyKind(d2, DateTimeKind.Unspecified);
+                }
+
+                var bsStr = GetValue(values, headers, "BreakdownStart");
+                DateTime? bs = null;
+                if (!string.IsNullOrWhiteSpace(bsStr))
+                {
+                    if (DateTime.TryParseExact(bsStr, "d/M/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d))
+                        bs = DateTime.SpecifyKind(d, DateTimeKind.Unspecified);
+                    else if (DateTime.TryParseExact(bsStr, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d2))
+                        bs = DateTime.SpecifyKind(d2, DateTimeKind.Unspecified);
+                }
+
+                var beStr = GetValue(values, headers, "BreakdownEnd");
+                DateTime? be = null;
+                if (!string.IsNullOrWhiteSpace(beStr))
+                {
+                    if (DateTime.TryParseExact(beStr, "d/M/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d))
+                        be = DateTime.SpecifyKind(d, DateTimeKind.Unspecified);
+                    else if (DateTime.TryParseExact(beStr, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d2))
+                        be = DateTime.SpecifyKind(d2, DateTimeKind.Unspecified);
+                }
+
+                var cm = new CorrectiveMaintenance
+                {
+                    CMNumber = cmNumber ?? $"CM-AUTO-{nextNo}",
+                    CMDate = cmDate,
+                    Site = cmSite,
+                    UnitNo = GetValue(values, headers, "UnitNo"),
+                    MerkType = GetValue(values, headers, "MerkType"),
+                    Category = GetValue(values, headers, "Category"),
+                    CMType = string.IsNullOrWhiteSpace(GetValue(values, headers, "WOType")) ? "CORRECTIVE" : GetValue(values, headers, "WOType"),
+                    Priority = string.IsNullOrWhiteSpace(GetValue(values, headers, "Priority")) ? "MEDIUM" : GetValue(values, headers, "Priority"),
+                    Problem = GetValue(values, headers, "Problem"),
+                    RootCause = GetValue(values, headers, "RootCause"),
+                    Solution = GetValue(values, headers, "Solution"),
+                    Status = "REPORTED",
+                    BreakdownStart = bs,
+                    BreakdownEnd = be,
+                    DowntimeHours = decimal.TryParse(GetValue(values, headers, "DowntimeHours"), out var dh) ? dh : null,
+                    ReportedBy = GetValue(values, headers, "ReportedBy"),
+                    AssignedTo = GetValue(values, headers, "AssignedTo")
+                };
+                db.CorrectiveMaintenances.Add(cm);
+                nextNo++;
+                insertedCount++;
+            }
+            catch { }
+        }
+
+        await db.SaveChangesAsync();
+        return Results.Ok(new {
+            message = $"Uploaded {insertedCount} corrective records",
+            inserted = insertedCount,
+            skipped = skippedCount,
+            skippedRecords = skippedRecords.Take(10).ToList(),
+            warning = skippedCount > 0 ? $"{skippedCount} record dilewati karena sudah ada." : null
+        });
     }
     catch (Exception ex)
     {
@@ -3149,6 +4226,15 @@ app.MapGet("/api/workorders/{id}", async (int id, AppDbContext db) =>
 // Create Work Order
 app.MapPost("/api/workorders", async (WorkOrderInput input, AppDbContext db) =>
 {
+    // === DUPLICATE CHECK: WONumber + Site ===
+    if (!string.IsNullOrWhiteSpace(input.WONumber) && !string.IsNullOrWhiteSpace(input.Site))
+    {
+        var existing = await db.WorkOrders
+            .FirstOrDefaultAsync(w => w.WONumber == input.WONumber && w.Site == input.Site);
+        if (existing != null)
+            return Results.BadRequest(new { error = $"Work Order '{input.WONumber}' sudah ada di site '{input.Site}'" });
+    }
+
     var wo = new WorkOrder
     {
         WONumber = input.WONumber ?? $"WO-{DateTime.Now:yyyyMMdd}-{new Random().Next(1000, 9999)}",
@@ -3184,6 +4270,15 @@ app.MapPut("/api/workorders/{id}", async (int id, WorkOrderInput input, AppDbCon
 {
     var wo = await db.WorkOrders.FindAsync(id);
     if (wo == null) return Results.NotFound();
+
+    // === DUPLICATE CHECK: WONumber + Site (exclude current record) ===
+    if (!string.IsNullOrWhiteSpace(input.WONumber) && !string.IsNullOrWhiteSpace(input.Site))
+    {
+        var existing = await db.WorkOrders
+            .FirstOrDefaultAsync(w => w.WONumber == input.WONumber && w.Site == input.Site && w.Id != id);
+        if (existing != null)
+            return Results.BadRequest(new { error = $"Work Order '{input.WONumber}' sudah ada di site '{input.Site}'" });
+    }
 
     wo.Site = input.Site;
     wo.UnitNo = input.UnitNo;
@@ -3243,6 +4338,15 @@ app.MapGet("/api/pm/{id}", async (int id, AppDbContext db) =>
 // Create PM
 app.MapPost("/api/pm", async (PMInput input, AppDbContext db) =>
 {
+    // === DUPLICATE CHECK: PMNumber + Site ===
+    if (!string.IsNullOrWhiteSpace(input.PMNumber) && !string.IsNullOrWhiteSpace(input.Site))
+    {
+        var existing = await db.PreventiveMaintenances
+            .FirstOrDefaultAsync(p => p.PMNumber == input.PMNumber && p.Site == input.Site);
+        if (existing != null)
+            return Results.BadRequest(new { error = $"PM '{input.PMNumber}' sudah ada di site '{input.Site}'" });
+    }
+
     var pm = new PreventiveMaintenance
     {
         PMNumber = input.PMNumber ?? $"PM-{DateTime.Now:yyyyMMdd}-{new Random().Next(1000, 9999)}",
@@ -3275,11 +4379,20 @@ app.MapPut("/api/pm/{id}", async (int id, PMInput input, AppDbContext db) =>
     var pm = await db.PreventiveMaintenances.FindAsync(id);
     if (pm == null) return Results.NotFound();
 
+    // === DUPLICATE CHECK: PMNumber + Site (exclude current record) ===
+    if (!string.IsNullOrWhiteSpace(input.PMNumber) && !string.IsNullOrWhiteSpace(input.Site))
+    {
+        var existing = await db.PreventiveMaintenances
+            .FirstOrDefaultAsync(p => p.PMNumber == input.PMNumber && p.Site == input.Site && p.Id != id);
+        if (existing != null)
+            return Results.BadRequest(new { error = $"PM '{input.PMNumber}' sudah ada di site '{input.Site}'" });
+    }
+
     pm.Site = input.Site;
     pm.UnitNo = input.UnitNo;
     pm.MerkType = input.MerkType;
     pm.PMType = input.PMType;
-    pm.Description = input.UnitNo;
+    pm.Description = input.Description;
     pm.Status = input.Status;
     pm.ScheduledDate = input.ScheduledDate;
     pm.StartDate = input.StartDate;
@@ -3344,6 +4457,15 @@ app.MapPost("/api/corrective", async (CMInput input, AppDbContext db) =>
     if (input.BreakdownEnd.HasValue && input.BreakdownStart.HasValue && input.BreakdownEnd < input.BreakdownStart)
         return Results.BadRequest(new { error = $"BreakdownEnd ({input.BreakdownEnd}) tidak boleh lebih kecil dari BreakdownStart ({input.BreakdownStart})" });
 
+    // === DUPLICATE CHECK: CMNumber + Site ===
+    if (!string.IsNullOrWhiteSpace(input.CMNumber) && !string.IsNullOrWhiteSpace(input.Site))
+    {
+        var existing = await db.CorrectiveMaintenances
+            .FirstOrDefaultAsync(c => c.CMNumber == input.CMNumber && c.Site == input.Site);
+        if (existing != null)
+            return Results.BadRequest(new { error = $"Corrective '{input.CMNumber}' sudah ada di site '{input.Site}'" });
+    }
+
     var cm = new CorrectiveMaintenance
     {
         CMNumber = input.CMNumber ?? $"CM-{DateTime.Now:yyyyMMdd}-{new Random().Next(1000, 9999)}",
@@ -3381,6 +4503,15 @@ app.MapPut("/api/corrective/{id}", async (int id, CMInput input, AppDbContext db
 {
     var cm = await db.CorrectiveMaintenances.FindAsync(id);
     if (cm == null) return Results.NotFound();
+
+    // === DUPLICATE CHECK: CMNumber + Site (exclude current record) ===
+    if (!string.IsNullOrWhiteSpace(input.CMNumber) && !string.IsNullOrWhiteSpace(input.Site))
+    {
+        var existing = await db.CorrectiveMaintenances
+            .FirstOrDefaultAsync(c => c.CMNumber == input.CMNumber && c.Site == input.Site && c.Id != id);
+        if (existing != null)
+            return Results.BadRequest(new { error = $"Corrective '{input.CMNumber}' sudah ada di site '{input.Site}'" });
+    }
 
     cm.Site = input.Site;
     cm.UnitNo = input.UnitNo;
@@ -3526,6 +4657,22 @@ using (var scope = app.Services.CreateScope())
                     ""CreatedAt"" timestamp DEFAULT CURRENT_TIMESTAMP,
                     ""UpdatedAt"" timestamp DEFAULT CURRENT_TIMESTAMP
                 );
+                ALTER TABLE ""tyres_problems"" ADD COLUMN IF NOT EXISTS ""Post"" VARCHAR(50);
+                ALTER TABLE ""tyres_problems"" ADD COLUMN IF NOT EXISTS ""SerialNumber"" VARCHAR(100);
+                ALTER TABLE ""tyres_problems"" ADD COLUMN IF NOT EXISTS ""MerkType"" VARCHAR(100);
+                ALTER TABLE ""tyres_problems"" ADD COLUMN IF NOT EXISTS ""Size"" VARCHAR(50);
+                ALTER TABLE ""tyres_problems"" ADD COLUMN IF NOT EXISTS ""Problem"" VARCHAR(500);
+                ALTER TABLE ""tyres_problems"" ADD COLUMN IF NOT EXISTS ""Kerusakan"" VARCHAR(100);
+                ALTER TABLE ""tyres_problems"" ADD COLUMN IF NOT EXISTS ""Location"" VARCHAR(100);
+                ALTER TABLE ""tyres_problems"" ADD COLUMN IF NOT EXISTS ""StartHM"" numeric(18,4);
+                ALTER TABLE ""tyres_problems"" ADD COLUMN IF NOT EXISTS ""EndHM"" numeric(18,4);
+                ALTER TABLE ""tyres_problems"" ADD COLUMN IF NOT EXISTS ""TotalHM"" numeric(18,4);
+                ALTER TABLE ""tyres_problems"" ALTER COLUMN ""StartHM"" SET DEFAULT 0;
+                ALTER TABLE ""tyres_problems"" ALTER COLUMN ""EndHM"" SET DEFAULT 0;
+                ALTER TABLE ""tyres_problems"" ALTER COLUMN ""TotalHM"" SET DEFAULT 0;
+                UPDATE ""tyres_problems"" SET ""StartHM"" = 0 WHERE ""StartHM"" IS NULL;
+                UPDATE ""tyres_problems"" SET ""EndHM"" = 0 WHERE ""EndHM"" IS NULL;
+                UPDATE ""tyres_problems"" SET ""TotalHM"" = 0 WHERE ""TotalHM"" IS NULL;
             ");
             Console.WriteLine("Tyre tables created!");
         }

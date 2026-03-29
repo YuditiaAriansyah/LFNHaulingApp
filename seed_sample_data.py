@@ -396,17 +396,18 @@ SAMPLES = {
 def make_seed_block(samples, seed_key):
     """Build the seed IIFE as a string."""
     payload = json.dumps(samples, ensure_ascii=False)
-    return f"""
-        // ── DEMO SEED: auto-populate {len(samples)} sample records ──
-        (function() {{
-            var key = "{seed_key}";
-            try {{
-                if (!localStorage.getItem(key)) {{
-                    localStorage.setItem(key, JSON.stringify({payload}));
-                }}
-            }} catch(e) {{}}
-        }})();
-    """
+    closing = "</" + "script>"
+    return (f'<script>\n'
+            f'        // ── DEMO SEED: auto-populate {len(samples)} sample records ──\n'
+            f'        (function() {{\n'
+            f'            var key = "{seed_key}";\n'
+            f'            try {{\n'
+            f'                if (!localStorage.getItem(key)) {{\n'
+            f'                    localStorage.setItem(key, JSON.stringify({payload}));\n'
+            f'                }}\n'
+            f'            }} catch(e) {{}}\n'
+            f'        }})();\n'
+            f'    {closing}\n')
 
 
 def find_load_block(content, var_name):
@@ -441,19 +442,36 @@ def patch_file(filepath, info):
     var_name = info["varName"]
     samples = info["samples"]
 
-    if seed_key in content:
-        return False, "already seeded"
-
     if not samples:
         return False, "no samples"
 
-    seed_block = make_seed_block(samples, seed_key)
+    # Check if already seeded with correct <script> wrapper
+    already_seeded_correct = f'<script>\n        // ── DEMO SEED:' in content and f'var key = "{seed_key}"' in content
 
-    # ── Step 1: Inject seed IIFE before </body> ──────────────────────────
-    body_end = content.rfind("</body>")
-    if body_end == -1:
-        return False, "no </body>"
-    content = content[:body_end] + seed_block + "\n    " + content[body_end:]
+    # Check if seeded but WITHOUT <script> wrapper (broken — needs fix)
+    seed_without_script = re.search(
+        r'\n        // ── DEMO SEED:.*?^\s*\}\)\(\);',
+        content, re.MULTILINE | re.DOTALL
+    )
+    if already_seeded_correct:
+        return False, "already seeded (correct)"
+    elif seed_without_script:
+        # Replace the broken block (no need to re-inject at body_end)
+        seed_block = make_seed_block(samples, seed_key)
+        content = (content[:seed_without_script.start()] +
+                   seed_block + "\n    " +
+                   content[seed_without_script.end():])
+        patched_inject = False  # loadData already patched from first run
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(content)
+        return True, "FIXED script tags"
+    else:
+        # Fresh injection at </body>
+        seed_block = make_seed_block(samples, seed_key)
+        body_end = content.rfind("</body>")
+        if body_end == -1:
+            return False, "no </body>"
+        content = content[:body_end] + seed_block + "\n    " + content[body_end:]
 
     # ── Step 2: Patch loadData to read from localStorage when API empty ───
     # Find the fetch+json block

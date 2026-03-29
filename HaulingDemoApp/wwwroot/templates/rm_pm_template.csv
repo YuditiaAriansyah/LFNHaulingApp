@@ -1,0 +1,4 @@
+No;Tanggal;Site;UnitNo;MerkType;PMType;Description;ScheduledDate;HMValue
+1;05/02/2026;Sungai Dua;HINO-001;Hino 500 FM;DAILY;Daily inspection: tyres, brakes, lights, fluid levels;10/02/2026;12500
+2;10/02/2026;Sebamban;HINO-002;Hino 500 FM;WEEKLY;Weekly service: oil level, tyre pressure, battery check;15/02/2026;9800
+3;20/02/2026;Mandala;HINO-003;Isuzu Giga;MONTHLY;Monthly full service: oil change, filter replacement, brake inspection;25/02/2026;15200

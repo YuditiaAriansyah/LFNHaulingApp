@@ -107,6 +107,29 @@
         .dropdown-item:hover i, .dropdown-item.active i { opacity: 1; color: var(--accent); }
         .dropdown-item.active { color: #fff !important; background: var(--accent-dim) !important; }
 
+        /* Dropdown submenu */
+        .dropdown-submenu { position: relative; }
+        .dropdown-submenu > .dropdown-menu {
+            position: absolute !important;
+            top: 0;
+            left: 100%;
+            margin-top: -6px;
+            margin-left: 4px;
+            border-radius: 10px !important;
+            min-width: 180px;
+        }
+        .dropdown-submenu:hover > .dropdown-menu { display: block; }
+        .dropdown-submenu > .dropdown-toggle::after {
+            display: inline-block;
+            margin-left: 6px;
+            content: '';
+            border-top: 4px solid transparent;
+            border-bottom: 4px solid transparent;
+            border-left: 4px solid rgba(255,255,255,0.4);
+            vertical-align: middle;
+        }
+        .dropdown-submenu:hover > .dropdown-toggle::after { border-left-color: rgba(255,255,255,0.8); }
+
         /* Top-level nav link (non-dropdown) */
         .nav-link {
             color: rgba(255, 255, 255, 0.6) !important;
@@ -256,10 +279,24 @@
                             <i class="bi bi-tools"></i> Operasi
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="datalist-fuel.html"><i class="bi bi-fuel-pump"></i> Fuel</a></li>
-                            <li><a class="dropdown-item" href="rm.html"><i class="bi bi-tools"></i> R&amp;M</a></li>
+                            <li class="dropdown-submenu">
+                                <a class="dropdown-item dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-fuel-pump"></i> Fuel</a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="datalist-fuel.html"><i class="bi bi-list-ul"></i> Fuel Datalist</a></li>
+                                    <li><a class="dropdown-item" href="data-Upload-Fuel.html"><i class="bi bi-cloud-upload"></i> Fuel Upload</a></li>
+                                </ul>
+                            </li>
+                            <li class="dropdown-submenu">
+                                <a class="dropdown-item dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-disc"></i> Tyre</a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="datalist-tyre.html"><i class="bi bi-list-ul"></i> Tyre Datalist</a></li>
+                                    <li><a class="dropdown-item" href="data-Upload-Tyre.html"><i class="bi bi-cloud-upload"></i> Tyre Upload</a></li>
+                                </ul>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="rm.html?v=3"><i class="bi bi-tools"></i> R&amp;M</a></li>
+                            <li><a class="dropdown-item" href="data-Upload-RM.html"><i class="bi bi-cloud-upload"></i> R&amp;M Upload</a></li>
                             <li><a class="dropdown-item" href="fleet.html"><i class="bi bi-car-front"></i> Fleet</a></li>
-                            <li><a class="dropdown-item" href="data-Upload-Tyre.html"><i class="bi bi-disc"></i> Tyre</a></li>
                             <li><a class="dropdown-item" href="inventory.html"><i class="bi bi-boxes"></i> Inventory</a></li>
                         </ul>
                     </li>
@@ -354,25 +391,69 @@
                     </a>
                 </div>
 
-                <!-- Fuel -->
+                <!-- Fuel Datalist -->
+                <div class="col-md-6 col-lg-4">
+                    <a href="datalist-fuel.html" class="menu-card">
+                        <div class="menu-icon fuel">
+                            <i class="bi bi-list-ul"></i>
+                        </div>
+                        <h3>Fuel Datalist</h3>
+                        <p>Lihat & manage data bahan bakar</p>
+                    </a>
+                </div>
+
+                <!-- Fuel Upload -->
                 <div class="col-md-6 col-lg-4">
                     <a href="data-Upload-Fuel.html" class="menu-card">
                         <div class="menu-icon fuel">
-                            <i class="bi bi-fuel-pump"></i>
+                            <i class="bi bi-cloud-upload"></i>
                         </div>
-                        <h3>Fuel Management</h3>
-                        <p>Kelola data penerimaan & pengeluaran bahan bakar</p>
+                        <h3>Fuel Upload</h3>
+                        <p>Upload data bahan bakar dari file Excel</p>
+                    </a>
+                </div>
+
+                <!-- Tyre Datalist -->
+                <div class="col-md-6 col-lg-4">
+                    <a href="datalist-tyre.html" class="menu-card">
+                        <div class="menu-icon tyre">
+                            <i class="bi bi-list-ul"></i>
+                        </div>
+                        <h3>Tyre Datalist</h3>
+                        <p>Lihat & manage data ban kendaraan</p>
+                    </a>
+                </div>
+
+                <!-- Tyre Upload -->
+                <div class="col-md-6 col-lg-4">
+                    <a href="data-Upload-Tyre.html" class="menu-card">
+                        <div class="menu-icon tyre">
+                            <i class="bi bi-cloud-upload"></i>
+                        </div>
+                        <h3>Tyre Upload</h3>
+                        <p>Upload data ban dari file Excel</p>
                     </a>
                 </div>
 
                 <!-- R&M -->
                 <div class="col-md-6 col-lg-4">
-                    <a href="rm.html" class="menu-card">
+                    <a href="rm.html?v=3" class="menu-card">
                         <div class="menu-icon rm">
                             <i class="bi bi-tools"></i>
                         </div>
                         <h3>R&M (Repair & Maintenance)</h3>
                         <p>Catat dan pantau perawatan kendaraan</p>
+                    </a>
+                </div>
+
+                <!-- R&M Upload -->
+                <div class="col-md-6 col-lg-4">
+                    <a href="data-Upload-RM.html" class="menu-card">
+                        <div class="menu-icon" style="background:#0f766e22;color:#0f766e;">
+                            <i class="bi bi-cloud-upload"></i>
+                        </div>
+                        <h3>R&M Upload</h3>
+                        <p>Upload data Work Order, PM, dan Corrective</p>
                     </a>
                 </div>
 
@@ -444,7 +525,7 @@
 
                 <!-- Tyre -->
                 <div class="col-md-6 col-lg-4">
-                    <a href="datalist- tyre.html" class="menu-card">
+                    <a href="datalist-tyre.html" class="menu-card">
                         <div class="menu-icon tyre">
                             <i class="bi bi-disc"></i>
                         </div>

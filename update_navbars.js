@@ -5,7 +5,10 @@ const wwwroot = path.join(__dirname, 'HaulingDemoApp', 'wwwroot');
 const files = fs.readdirSync(wwwroot).filter(f => f.endsWith('.html'));
 
 const NAVBAR_CSS = `
-    /* ===== NEW DROPDOWN NAVBAR STYLES ===== */
+    /* NAVBAR */
+    .navbar { background: var(--navy) !important; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+
+    /* NAVBAR NAV */
     .nav-item.dropdown { position: relative; }
     .nav-item.dropdown .nav-link {
         color: rgba(255, 255, 255, 0.6) !important;
@@ -138,10 +141,12 @@ function makeNavbar(section, currentFile) {
             <ul class="dropdown-menu">
               ${opLink('datalist-fuel.html', 'Fuel List', 'bi-fuel')}
               ${opLink('data-Upload-Fuel.html', 'Fuel Upload', 'bi-cloud-upload')}
-              ${opLink('rm.html', 'R&M', 'bi-wrench')}
-              ${opLink('fleet.html', 'Fleet', 'bi-truck')}
-              ${opLink('datalist-%20tyre.html', 'Tyre List', 'bi-circle')}
+              ${opLink('datalist-tyre.html', 'Tyre List', 'bi-circle')}
               ${opLink('data-Upload-Tyre.html', 'Tyre Upload', 'bi-cloud-upload')}
+              ${divider()}
+              ${opLink('rm.html', 'R&M', 'bi-wrench')}
+              ${opLink('data-Upload-RM.html', 'R&M Upload', 'bi-cloud-upload')}
+              ${opLink('fleet.html', 'Fleet', 'bi-truck')}
               ${divider()}
               ${opLink('inventory.html', 'Inventory', 'bi-box-seam')}
               ${opLink('haul-trip.html', 'Haul Trip', 'bi-arrow-left-right')}
@@ -190,8 +195,9 @@ const pageMap = {
     'datalist-fuel.html':      { section: 'operasi',     label: 'Fuel List' },
     'data-Upload-Fuel.html':   { section: 'operasi',     label: 'Fuel Upload' },
     'rm.html':                 { section: 'operasi',     label: 'R&M' },
+    'data-Upload-RM.html':     { section: 'operasi',     label: 'R&M Upload' },
     'fleet.html':              { section: 'operasi',     label: 'Fleet' },
-    'datalist- tyre.html':     { section: 'operasi',     label: 'Tyre List' },
+    'datalist-tyre.html':     { section: 'operasi',     label: 'Tyre List' },
     'data-Upload-Tyre.html':  { section: 'operasi',     label: 'Tyre Upload' },
     'inventory.html':         { section: 'operasi',     label: 'Inventory' },
     'haul-trip.html':         { section: 'operasi',     label: 'Haul Trip' },
@@ -228,19 +234,38 @@ for (const file of files) {
         console.log('WARN: no navbar found in', file);
     }
 
+    // Fix malformed /*</style> CSS comment.
+    // Original has:  /*</style>   (opens comment, has literal text </style>, never closes)
+    // Fix: replace with: </style><style>  (closes first style block, opens a new one for navbar CSS)
+    content = content.replace(/\/\*<\/style>/, '</style><style>');
+
     // Remove old nav-group CSS
     content = content.replace(/\.nav-group[^}]*\{[^}]*\}/g, '');
     content = content.replace(/\.nav-group-label[^}]*\{[^}]*\}/g, '');
 
-    // Inject navbar CSS before </head> if not already present
-    if (!content.includes('.nav-item.dropdown')) {
-        content = content.replace('</head>', NAVBAR_CSS + '\n    </head>');
+    // Inject navbar CSS — always wraps in <style>...</style> before </head>
+    if (content.includes('.nav-item.dropdown')) {
+        // Dropdown CSS already present; ensure navbar background is injected too
+        if (!content.includes('.navbar { background')) {
+            content = content.replace('</head>', '\n    .navbar { background: var(--navy) !important; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }\n    </style>\n</head>');
+        } else {
+            // Close the second <style> block before </head>
+            content = content.replace('</head>', '\n    </style>\n</head>');
+        }
+    } else {
+        content = content.replace('</head>', NAVBAR_CSS + '\n    </style>\n</head>');
     }
 
     // Ensure Bootstrap JS is present
     if (!content.includes('bootstrap.bundle')) {
         content = content.replace('</body>', '<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>\n</body>');
     }
+
+    // Add navbar-dark class to <nav> element for Bootstrap 5 dark theme support
+    content = content.replace(
+        '<nav class="navbar navbar-expand-lg sticky-top">',
+        '<nav class="navbar navbar-expand-lg sticky-top navbar-dark">'
+    );
 
     fs.writeFileSync(filePath, content, 'utf8');
     console.log('UPDATED:', file, '(section:', section + ')');
