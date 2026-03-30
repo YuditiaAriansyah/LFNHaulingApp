@@ -14,6 +14,8 @@ steps:
       - lfn-hauling
       - --region=asia-southeast1
       - --image=asia-southeast1-docker.pkg.dev/lfn-data-platform/cloud-run-source-deploy/lfn-hauling:latest
+      - --memory=1Gi
+      - --cpu=1
       - --no-traffic
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud

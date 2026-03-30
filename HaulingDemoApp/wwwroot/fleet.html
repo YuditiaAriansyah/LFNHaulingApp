@@ -635,7 +635,12 @@
       {"id": "fl01", "vehicleId": "v01", "siteId": "s01", "assignedDriverId": "drv01", "currentLocation": "Pit A Km 3", "fuelLevel": 75, "odometerReading": 45678, "lastMaintenanceDate": "2024-02-15", "nextMaintenanceDate": "2024-05-15", "status": "ACTIVE"},
       {"id": "fl02", "vehicleId": "v02", "siteId": "s01", "assignedDriverId": "drv02", "currentLocation": "Stockpile 1", "fuelLevel": 45, "odometerReading": 32100, "lastMaintenanceDate": "2024-01-20", "nextMaintenanceDate": "2024-04-20", "status": "ACTIVE"},
       {"id": "fl03", "vehicleId": "v03", "siteId": "s02", "assignedDriverId": "drv03", "currentLocation": "Crusher Station", "fuelLevel": 88, "odometerReading": 12340, "lastMaintenanceDate": "2024-03-01", "nextMaintenanceDate": "2024-06-01", "status": "ACTIVE"},
-      {"id": "fl04", "vehicleId": "v04", "siteId": "s03", "assignedDriverId": "", "currentLocation": "Workshop", "fuelLevel": 20, "odometerReading": 8765, "lastMaintenanceDate": "2024-02-01", "nextMaintenanceDate": "2024-05-01", "status": "MAINTENANCE"}
+      {"id": "fl04", "vehicleId": "v04", "siteId": "s03", "assignedDriverId": "", "currentLocation": "Workshop", "fuelLevel": 20, "odometerReading": 8765, "lastMaintenanceDate": "2024-02-01", "nextMaintenanceDate": "2024-05-01", "status": "MAINTENANCE"},
+      {"id": "fl05", "vehicleId": "v05", "siteId": "s04", "assignedDriverId": "drv04", "currentLocation": "Hauling Route A", "fuelLevel": 60, "odometerReading": 28900, "lastMaintenanceDate": "2024-02-28", "nextMaintenanceDate": "2024-05-28", "status": "ACTIVE"},
+      {"id": "fl06", "vehicleId": "v06", "siteId": "s01", "assignedDriverId": "drv05", "currentLocation": "Pit B Km 5", "fuelLevel": 38, "odometerReading": 51000, "lastMaintenanceDate": "2024-01-15", "nextMaintenanceDate": "2024-04-15", "status": "ACTIVE"},
+      {"id": "fl07", "vehicleId": "v07", "siteId": "s02", "assignedDriverId": "drv06", "currentLocation": "Dumping Area 2", "fuelLevel": 55, "odometerReading": 19800, "lastMaintenanceDate": "2024-03-10", "nextMaintenanceDate": "2024-06-10", "status": "ACTIVE"},
+      {"id": "fl08", "vehicleId": "v08", "siteId": "s03", "assignedDriverId": "", "currentLocation": "Service Bay", "fuelLevel": 10, "odometerReading": 64200, "lastMaintenanceDate": "2024-02-05", "nextMaintenanceDate": "2024-05-05", "status": "MAINTENANCE"},
+      {"id": "fl09", "vehicleId": "v09", "siteId": "s04", "assignedDriverId": "drv07", "currentLocation": "Stockpile 3", "fuelLevel": 82, "odometerReading": 15700, "lastMaintenanceDate": "2024-03-15", "nextMaintenanceDate": "2024-06-15", "status": "ACTIVE"}
     ];
   try{
     if(!localStorage.getItem(k)){
@@ -659,9 +664,14 @@
         const INACTIVE_STYLE = 'background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;';
 
 function switchTab(tab) {
-            document.querySelectorAll('.nav-link').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-tabs .nav-link').forEach(t => {
+                t.classList.remove('active');
+                t.style.cssText = 'background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;';
+            });
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
+            const activeBtn = document.querySelector(`[onclick="switchTab('${tab}')"]`);
+            activeBtn.classList.add('active');
+            activeBtn.style.cssText = 'background:#2563eb!important;color:#fff!important;border:1.5px solid #2563eb!important;border-bottom:none!important;';
             document.getElementById(tab + 'Content').classList.add('active');
         }
 

@@ -3,6 +3,14 @@ using HaulingDemoApp.Models;
 using HaulingDemoApp.Services;
 using Microsoft.EntityFrameworkCore;
 
+// Allow legacy DateTime behavior for PostgreSQL timestamp columns (Npgsql 6.0+)
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+Environment.SetEnvironmentVariable("Npgsql.EnableLegacyTimestampBehavior", "true");
+
+// Helper: returns DateTime as UTC (compatible with PostgreSQL timestamp with time zone)
+static DateTime LocalDate(DateTime? dt) =>
+    dt.HasValue ? DateTime.SpecifyKind(dt.Value, DateTimeKind.Utc) : DateTime.UtcNow;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure Kestrel to listen on PORT environment variable (Cloud Run)
@@ -1961,9 +1969,7 @@ app.UseStaticFiles();
 // API ENDPOINTS
 // =====================================================
 
-// Helper: returns DateTime with Unspecified kind (compatible with PostgreSQL timestamp columns)
-static DateTime LocalDate(DateTime? dt) =>
-    dt.HasValue ? DateTime.SpecifyKind(dt.Value, DateTimeKind.Unspecified) : DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+// (removed duplicate LocalDate - using the one at top of file)
 
 // Health Check
 app.MapGet("/health", () => new
@@ -2209,9 +2215,9 @@ app.MapPost("/api/upload", async (HttpRequest request, AppDbContext db) =>
                 {
                     var noTiket = GetValue(values, headers, "NoTiket");
 
-                    // Cek duplikasi berdasarkan no_tiket
+                    // Cek duplikasi berdasarkan no_tiket + site
                     var existingReceipt = await db.FuelReceipts
-                        .FirstOrDefaultAsync(r => r.NoTiket == noTiket);
+                        .FirstOrDefaultAsync(r => r.NoTiket == noTiket && r.Site.ToLower() == site.ToLower());
 
                     if (existingReceipt != null)
                     {
@@ -2222,28 +2228,24 @@ app.MapPost("/api/upload", async (HttpRequest request, AppDbContext db) =>
 
                     // Parse Tanggal dengan support multiple format
                     var tanggalStr = GetValue(values, headers, "Tanggal");
-                    DateTime tanggal = DateTime.Now;
+                    DateTime tanggal = DateTime.UtcNow;
                     if (!string.IsNullOrWhiteSpace(tanggalStr))
                     {
                         // Coba format Indonesia (dd/MM/yyyy)
                         if (DateTime.TryParseExact(tanggalStr, "d/M/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var tanggalId))
                         {
-                            tanggal = DateTime.SpecifyKind(tanggalId, DateTimeKind.Unspecified);
+                            tanggal = DateTime.SpecifyKind(tanggalId, DateTimeKind.Utc);
                         }
                         // Coba format ISO (yyyy-MM-dd)
                         else if (DateTime.TryParseExact(tanggalStr, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var tanggalIso))
                         {
-                            tanggal = DateTime.SpecifyKind(tanggalIso, DateTimeKind.Unspecified);
+                            tanggal = DateTime.SpecifyKind(tanggalIso, DateTimeKind.Utc);
                         }
                         // Coba parse default
                         else if (DateTime.TryParse(tanggalStr, out var tanggalDefault))
                         {
-                            tanggal = DateTime.SpecifyKind(tanggalDefault, DateTimeKind.Unspecified);
+                            tanggal = DateTime.SpecifyKind(tanggalDefault, DateTimeKind.Utc);
                         }
-                    }
-                    else
-                    {
-                        tanggal = DateTime.Now;
                     }
 
                     // Parse StartTime dengan support format HH:mm atau H:mm
@@ -2284,7 +2286,9 @@ app.MapPost("/api/upload", async (HttpRequest request, AppDbContext db) =>
                         NoTiket = noTiket,
                         StartTime = startTime,
                         EndTime = endTime,
-                        Keterangan = GetValue(values, headers, "Keterangan")
+                        Keterangan = GetValue(values, headers, "Keterangan"),
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
                     };
                     db.FuelReceipts.Add(receipt);
                     insertedCount++;
@@ -2295,28 +2299,24 @@ app.MapPost("/api/upload", async (HttpRequest request, AppDbContext db) =>
 
                     // Parse Tanggal dengan support multiple format
                     var tanggalStr = GetValue(values, headers, "Tanggal");
-                    DateTime tanggal = DateTime.Now;
+                    DateTime tanggal = DateTime.UtcNow;
                     if (!string.IsNullOrWhiteSpace(tanggalStr))
                     {
                         // Coba format Indonesia (dd/MM/yyyy)
                         if (DateTime.TryParseExact(tanggalStr, "d/M/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var tanggalId))
                         {
-                            tanggal = DateTime.SpecifyKind(tanggalId, DateTimeKind.Unspecified);
+                            tanggal = DateTime.SpecifyKind(tanggalId, DateTimeKind.Utc);
                         }
                         // Coba format ISO (yyyy-MM-dd)
                         else if (DateTime.TryParseExact(tanggalStr, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var tanggalIso))
                         {
-                            tanggal = DateTime.SpecifyKind(tanggalIso, DateTimeKind.Unspecified);
+                            tanggal = DateTime.SpecifyKind(tanggalIso, DateTimeKind.Utc);
                         }
                         // Coba parse default
                         else if (DateTime.TryParse(tanggalStr, out var tanggalDefault))
                         {
-                            tanggal = DateTime.SpecifyKind(tanggalDefault, DateTimeKind.Unspecified);
+                            tanggal = DateTime.SpecifyKind(tanggalDefault, DateTimeKind.Utc);
                         }
-                    }
-                    else
-                    {
-                        tanggal = DateTime.Now;
                     }
 
                     // Cek duplikasi berdasarkan site, tanggal, dan unit_no
@@ -2345,7 +2345,9 @@ app.MapPost("/api/upload", async (HttpRequest request, AppDbContext db) =>
                         Pemakaian = decimal.TryParse(GetValue(values, headers, "Pemakaian"), out var pakai) ? pakai : 0,
                         JamKerja = decimal.TryParse(GetValue(values, headers, "JamKerja"), out var jam) ? jam : 0,
                         EFisiensi = decimal.TryParse(GetValue(values, headers, "EFisiensi")?.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var efisiensi) ? efisiensi : 0,
-                        Keterangan = GetValue(values, headers, "Keterangan")
+                        Keterangan = GetValue(values, headers, "Keterangan"),
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
                     };
                     db.FuelUsages.Add(usage);
                     insertedCount++;
@@ -2532,6 +2534,15 @@ app.MapPut("/api/fuel-receipts/{id}", async (int id, FuelReceipt updated, AppDbC
 
     var receipt = await db.FuelReceipts.FindAsync(id);
     if (receipt == null) return Results.NotFound();
+
+    // === DUPLICATE CHECK: NoTiket + Site (exclude current record) ===
+    if (!string.IsNullOrWhiteSpace(updated.NoTiket) && !string.IsNullOrWhiteSpace(updated.Site))
+    {
+        var duplicate = await db.FuelReceipts
+            .FirstOrDefaultAsync(r => r.NoTiket == updated.NoTiket && r.Site == updated.Site && r.Id != id);
+        if (duplicate != null) return Results.BadRequest(new { error = $"NoTiket '{updated.NoTiket}' sudah ada di site '{updated.Site}'" });
+    }
+
     receipt.Tanggal = updated.Tanggal;
     receipt.Site = updated.Site;
     receipt.Vendor = updated.Vendor;
@@ -2588,6 +2599,12 @@ app.MapPut("/api/fuel-usages/{id}", async (int id, FuelUsage updated, AppDbConte
 {
     var usage = await db.FuelUsages.FindAsync(id);
     if (usage == null) return Results.NotFound();
+
+    // === DUPLICATE CHECK: UnitNo + Tanggal.Date (exclude current record) ===
+    var duplicate = await db.FuelUsages
+        .FirstOrDefaultAsync(u => u.UnitNo == updated.UnitNo && u.Tanggal.Date == updated.Tanggal.Date && u.Id != id);
+    if (duplicate != null) return Results.BadRequest(new { error = $"Fuel usage untuk Unit {updated.UnitNo} di tanggal {updated.Tanggal:yyyy-MM-dd} sudah ada (No: {duplicate.No})." });
+
     usage.Tanggal = updated.Tanggal;
     usage.Site = updated.Site;
     usage.UnitNo = updated.UnitNo;
@@ -2631,17 +2648,6 @@ app.MapPost("/api/tyres/po", async (TyrePO tyrePO, AppDbContext db) =>
     db.TyrePOs.Add(tyrePO);
     await db.SaveChangesAsync();
     return Results.Created($"/api/tyres/po/{tyrePO.Id}", tyrePO);
-});
-
-// DEBUG: test EF Core duplicate check directly
-app.MapGet("/api/debug/tyrepo/check", async (string noPO, string site, AppDbContext db) =>
-{
-    if (string.IsNullOrWhiteSpace(noPO) || string.IsNullOrWhiteSpace(site))
-        return Results.BadRequest(new { error = "noPO and site required" });
-    var existing = await db.TyrePOs
-        .Where(t => t.NoPO == noPO && t.Site == site)
-        .ToListAsync();
-    return Results.Ok(new { noPO, site, found = existing.Count, records = existing });
 });
 
 app.MapPut("/api/tyres/po/{id}", async (int id, TyrePO updated, AppDbContext db) =>
@@ -2701,18 +2707,6 @@ app.MapPost("/api/tyres/problems", async (TyreProblem tyreProblem, AppDbContext 
     db.TyreProblems.Add(tyreProblem);
     await db.SaveChangesAsync();
     return Results.Created($"/api/tyres/problems/{tyreProblem.Id}", tyreProblem);
-});
-
-// DEBUG: test EF Core duplicate check for TyreProblem
-app.MapGet("/api/debug/tyreproblem/check", async (string serialNumber, string tanggal, AppDbContext db) =>
-{
-    if (string.IsNullOrWhiteSpace(serialNumber) || string.IsNullOrWhiteSpace(tanggal))
-        return Results.BadRequest(new { error = "serialNumber and tanggal required" });
-    var dt = DateTime.Parse(tanggal);
-    var existing = await db.TyreProblems
-        .Where(t => t.SerialNumber == serialNumber && t.Tanggal.Date == dt.Date)
-        .ToListAsync();
-    return Results.Ok(new { serialNumber, tanggal, found = existing.Count, records = existing });
 });
 
 app.MapPut("/api/tyres/problems/{id}", async (int id, TyreProblem updated, AppDbContext db) =>
@@ -2993,13 +2987,13 @@ app.MapPost("/api/tyres/po-upload", async (HttpRequest request, AppDbContext db)
                 }
 
                 var tanggalStr = GetValue(values, headers, "Tanggal");
-                DateTime tanggal = DateTime.Now;
+                DateTime tanggal = DateTime.UtcNow;
                 if (!string.IsNullOrWhiteSpace(tanggalStr))
                 {
                     if (DateTime.TryParseExact(tanggalStr, "d/M/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var tanggalId))
-                        tanggal = DateTime.SpecifyKind(tanggalId, DateTimeKind.Unspecified);
+                        tanggal = DateTime.SpecifyKind(tanggalId, DateTimeKind.Utc);
                     else if (DateTime.TryParseExact(tanggalStr, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var tanggalIso))
-                        tanggal = DateTime.SpecifyKind(tanggalIso, DateTimeKind.Unspecified);
+                        tanggal = DateTime.SpecifyKind(tanggalIso, DateTimeKind.Utc);
                 }
 
                 var tyrePo = new TyrePO
@@ -3014,7 +3008,9 @@ app.MapPost("/api/tyres/po-upload", async (HttpRequest request, AppDbContext db)
                     Qty = decimal.TryParse(GetValue(values, headers, "Qty"), out var qty) ? qty : 0,
                     UnitPrice = decimal.TryParse(GetValue(values, headers, "UnitPrice"), out var price) ? price : 0,
                     TotalPrice = decimal.TryParse(GetValue(values, headers, "TotalPrice"), out var total) ? total : 0,
-                    Status = GetValue(values, headers, "Status")
+                    Status = GetValue(values, headers, "Status"),
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
                 db.TyrePOs.Add(tyrePo);
                 insertedCount++;
@@ -3074,13 +3070,13 @@ app.MapPost("/api/tyres/problem-upload", async (HttpRequest request, AppDbContex
             {
                 var serialNumber = GetValue(values, headers, "NoSeriTyre");
                 var tanggalStr = GetValue(values, headers, "Tanggal");
-                DateTime tanggal = DateTime.Now;
+                DateTime tanggal = DateTime.UtcNow;
                 if (!string.IsNullOrWhiteSpace(tanggalStr))
                 {
                     if (DateTime.TryParseExact(tanggalStr, "d/M/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var tanggalId))
-                        tanggal = DateTime.SpecifyKind(tanggalId, DateTimeKind.Unspecified);
+                        tanggal = DateTime.SpecifyKind(tanggalId, DateTimeKind.Utc);
                     else if (DateTime.TryParseExact(tanggalStr, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var tanggalIso))
-                        tanggal = DateTime.SpecifyKind(tanggalIso, DateTimeKind.Unspecified);
+                        tanggal = DateTime.SpecifyKind(tanggalIso, DateTimeKind.Utc);
                 }
 
                 if (!string.IsNullOrWhiteSpace(serialNumber))
@@ -3112,7 +3108,9 @@ app.MapPost("/api/tyres/problem-upload", async (HttpRequest request, AppDbContex
                     StartHM = decimal.TryParse(GetValue(values, headers, "HM"), out var startHM) ? startHM : null,
                     EndHM = decimal.TryParse(GetValue(values, headers, "EndHM"), out var endHM) ? endHM : null,
                     TotalHM = decimal.TryParse(GetValue(values, headers, "TotalHM"), out var totalHM) ? totalHM : null,
-                    Cost = decimal.TryParse(GetValue(values, headers, "Cost"), out var cost) ? cost : null
+                    Cost = decimal.TryParse(GetValue(values, headers, "Cost"), out var cost) ? cost : null,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
                 db.TyreProblems.Add(tyreProblem);
                 insertedCount++;
@@ -3193,9 +3191,9 @@ app.MapPost("/api/workorders/upload", async (HttpRequest request, AppDbContext d
                 if (!string.IsNullOrWhiteSpace(woDateStr))
                 {
                     if (DateTime.TryParseExact(woDateStr, "d/M/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d))
-                        woDate = DateTime.SpecifyKind(d, DateTimeKind.Unspecified);
+                        woDate = DateTime.SpecifyKind(d, DateTimeKind.Utc);
                     else if (DateTime.TryParseExact(woDateStr, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d2))
-                        woDate = DateTime.SpecifyKind(d2, DateTimeKind.Unspecified);
+                        woDate = DateTime.SpecifyKind(d2, DateTimeKind.Utc);
                 }
 
                 var scheduledStr = GetValue(values, headers, "ScheduledDate");
@@ -3203,9 +3201,9 @@ app.MapPost("/api/workorders/upload", async (HttpRequest request, AppDbContext d
                 if (!string.IsNullOrWhiteSpace(scheduledStr))
                 {
                     if (DateTime.TryParseExact(scheduledStr, "d/M/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d))
-                        scheduledDate = DateTime.SpecifyKind(d, DateTimeKind.Unspecified);
+                        scheduledDate = DateTime.SpecifyKind(d, DateTimeKind.Utc);
                     else if (DateTime.TryParseExact(scheduledStr, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d2))
-                        scheduledDate = DateTime.SpecifyKind(d2, DateTimeKind.Unspecified);
+                        scheduledDate = DateTime.SpecifyKind(d2, DateTimeKind.Utc);
                 }
 
                 var wo = new WorkOrder
@@ -3222,7 +3220,9 @@ app.MapPost("/api/workorders/upload", async (HttpRequest request, AppDbContext d
                     Status = string.IsNullOrWhiteSpace(GetValue(values, headers, "Status")) ? "OPEN" : GetValue(values, headers, "Status"),
                     ScheduledDate = scheduledDate,
                     EstimatedCost = decimal.TryParse(GetValue(values, headers, "EstimatedCost"), out var ec) ? ec : null,
-                    AssignedTo = GetValue(values, headers, "AssignedTo")
+                    AssignedTo = GetValue(values, headers, "AssignedTo"),
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
                 db.WorkOrders.Add(wo);
                 nextNo++;
@@ -3302,9 +3302,9 @@ app.MapPost("/api/pm/upload", async (HttpRequest request, AppDbContext db) =>
                 if (!string.IsNullOrWhiteSpace(pmDateStr))
                 {
                     if (DateTime.TryParseExact(pmDateStr, "d/M/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d))
-                        pmDate = DateTime.SpecifyKind(d, DateTimeKind.Unspecified);
+                        pmDate = DateTime.SpecifyKind(d, DateTimeKind.Utc);
                     else if (DateTime.TryParseExact(pmDateStr, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d2))
-                        pmDate = DateTime.SpecifyKind(d2, DateTimeKind.Unspecified);
+                        pmDate = DateTime.SpecifyKind(d2, DateTimeKind.Utc);
                 }
 
                 var scheduledStr = GetValue(values, headers, "ScheduledDate");
@@ -3312,9 +3312,9 @@ app.MapPost("/api/pm/upload", async (HttpRequest request, AppDbContext db) =>
                 if (!string.IsNullOrWhiteSpace(scheduledStr))
                 {
                     if (DateTime.TryParseExact(scheduledStr, "d/M/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d))
-                        scheduledDate = DateTime.SpecifyKind(d, DateTimeKind.Unspecified);
+                        scheduledDate = DateTime.SpecifyKind(d, DateTimeKind.Utc);
                     else if (DateTime.TryParseExact(scheduledStr, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d2))
-                        scheduledDate = DateTime.SpecifyKind(d2, DateTimeKind.Unspecified);
+                        scheduledDate = DateTime.SpecifyKind(d2, DateTimeKind.Utc);
                 }
 
                 var pm = new PreventiveMaintenance
@@ -3329,7 +3329,9 @@ app.MapPost("/api/pm/upload", async (HttpRequest request, AppDbContext db) =>
                     Status = "SCHEDULED",
                     ScheduledDate = scheduledDate,
                     HMValue = decimal.TryParse(GetValue(values, headers, "HMValue"), out var hm) ? hm : null,
-                    AssignedTo = GetValue(values, headers, "AssignedTo")
+                    AssignedTo = GetValue(values, headers, "AssignedTo"),
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
                 db.PreventiveMaintenances.Add(pm);
                 nextNo++;
@@ -3409,9 +3411,9 @@ app.MapPost("/api/cm/upload", async (HttpRequest request, AppDbContext db) =>
                 if (!string.IsNullOrWhiteSpace(cmDateStr))
                 {
                     if (DateTime.TryParseExact(cmDateStr, "d/M/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d))
-                        cmDate = DateTime.SpecifyKind(d, DateTimeKind.Unspecified);
+                        cmDate = DateTime.SpecifyKind(d, DateTimeKind.Utc);
                     else if (DateTime.TryParseExact(cmDateStr, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d2))
-                        cmDate = DateTime.SpecifyKind(d2, DateTimeKind.Unspecified);
+                        cmDate = DateTime.SpecifyKind(d2, DateTimeKind.Utc);
                 }
 
                 var bsStr = GetValue(values, headers, "BreakdownStart");
@@ -3419,9 +3421,9 @@ app.MapPost("/api/cm/upload", async (HttpRequest request, AppDbContext db) =>
                 if (!string.IsNullOrWhiteSpace(bsStr))
                 {
                     if (DateTime.TryParseExact(bsStr, "d/M/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d))
-                        bs = DateTime.SpecifyKind(d, DateTimeKind.Unspecified);
+                        bs = DateTime.SpecifyKind(d, DateTimeKind.Utc);
                     else if (DateTime.TryParseExact(bsStr, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d2))
-                        bs = DateTime.SpecifyKind(d2, DateTimeKind.Unspecified);
+                        bs = DateTime.SpecifyKind(d2, DateTimeKind.Utc);
                 }
 
                 var beStr = GetValue(values, headers, "BreakdownEnd");
@@ -3429,9 +3431,9 @@ app.MapPost("/api/cm/upload", async (HttpRequest request, AppDbContext db) =>
                 if (!string.IsNullOrWhiteSpace(beStr))
                 {
                     if (DateTime.TryParseExact(beStr, "d/M/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d))
-                        be = DateTime.SpecifyKind(d, DateTimeKind.Unspecified);
+                        be = DateTime.SpecifyKind(d, DateTimeKind.Utc);
                     else if (DateTime.TryParseExact(beStr, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d2))
-                        be = DateTime.SpecifyKind(d2, DateTimeKind.Unspecified);
+                        be = DateTime.SpecifyKind(d2, DateTimeKind.Utc);
                 }
 
                 var cm = new CorrectiveMaintenance
@@ -3452,7 +3454,9 @@ app.MapPost("/api/cm/upload", async (HttpRequest request, AppDbContext db) =>
                     BreakdownEnd = be,
                     DowntimeHours = decimal.TryParse(GetValue(values, headers, "DowntimeHours"), out var dh) ? dh : null,
                     ReportedBy = GetValue(values, headers, "ReportedBy"),
-                    AssignedTo = GetValue(values, headers, "AssignedTo")
+                    AssignedTo = GetValue(values, headers, "AssignedTo"),
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
                 db.CorrectiveMaintenances.Add(cm);
                 nextNo++;
@@ -7146,6 +7150,15 @@ app.MapGet("/api/work-orders/{id}", async (AppDbContext db, int id) =>
 
 app.MapPost("/api/work-orders", async (AppDbContext db, WorkOrder wo) =>
 {
+    // === DUPLICATE CHECK: WONumber + Site ===
+    if (!string.IsNullOrWhiteSpace(wo.WONumber) && !string.IsNullOrWhiteSpace(wo.Site))
+    {
+        var existing = await db.WorkOrders
+            .FirstOrDefaultAsync(w => w.WONumber == wo.WONumber && w.Site == wo.Site);
+        if (existing != null)
+            return Results.BadRequest(new { error = $"Work Order '{wo.WONumber}' sudah ada di site '{wo.Site}'" });
+    }
+    wo.WODate = DateTime.UtcNow;
     wo.CreatedAt = DateTime.UtcNow;
     wo.UpdatedAt = DateTime.UtcNow;
     db.WorkOrders.Add(wo);
@@ -7157,6 +7170,16 @@ app.MapPut("/api/work-orders/{id}", async (AppDbContext db, int id, WorkOrder in
 {
     var wo = await db.WorkOrders.FindAsync(id);
     if (wo == null) return Results.NotFound();
+
+    // === DUPLICATE CHECK: WONumber + Site (exclude current record) ===
+    if (!string.IsNullOrWhiteSpace(input.WONumber) && !string.IsNullOrWhiteSpace(input.Site))
+    {
+        var existing = await db.WorkOrders
+            .FirstOrDefaultAsync(w => w.WONumber == input.WONumber && w.Site == input.Site && w.Id != id);
+        if (existing != null)
+            return Results.BadRequest(new { error = $"Work Order '{input.WONumber}' sudah ada di site '{input.Site}'" });
+    }
+
     wo.WONumber = input.WONumber; wo.Site = input.Site;
     wo.UnitNo = input.UnitNo; wo.MerkType = input.MerkType;
     wo.Category = input.Category; wo.WOType = input.WOType;
@@ -7194,6 +7217,15 @@ app.MapGet("/api/preventive-maintenance/{id}", async (AppDbContext db, int id) =
 
 app.MapPost("/api/preventive-maintenance", async (AppDbContext db, PreventiveMaintenance pm) =>
 {
+    // === DUPLICATE CHECK: PMNumber + Site ===
+    if (!string.IsNullOrWhiteSpace(pm.PMNumber) && !string.IsNullOrWhiteSpace(pm.Site))
+    {
+        var existing = await db.PreventiveMaintenances
+            .FirstOrDefaultAsync(p => p.PMNumber == pm.PMNumber && p.Site == pm.Site);
+        if (existing != null)
+            return Results.BadRequest(new { error = $"PM '{pm.PMNumber}' sudah ada di site '{pm.Site}'" });
+    }
+    pm.PMDate = DateTime.UtcNow;
     pm.CreatedAt = DateTime.UtcNow;
     pm.UpdatedAt = DateTime.UtcNow;
     db.PreventiveMaintenances.Add(pm);
@@ -7241,6 +7273,15 @@ app.MapGet("/api/corrective-maintenance/{id}", async (AppDbContext db, int id) =
 
 app.MapPost("/api/corrective-maintenance", async (AppDbContext db, CorrectiveMaintenance cm) =>
 {
+    // === DUPLICATE CHECK: CMNumber + Site ===
+    if (!string.IsNullOrWhiteSpace(cm.CMNumber) && !string.IsNullOrWhiteSpace(cm.Site))
+    {
+        var existing = await db.CorrectiveMaintenances
+            .FirstOrDefaultAsync(c => c.CMNumber == cm.CMNumber && c.Site == cm.Site);
+        if (existing != null)
+            return Results.BadRequest(new { error = $"Corrective '{cm.CMNumber}' sudah ada di site '{cm.Site}'" });
+    }
+    cm.CMDate = DateTime.UtcNow;
     cm.CreatedAt = DateTime.UtcNow;
     cm.UpdatedAt = DateTime.UtcNow;
     db.CorrectiveMaintenances.Add(cm);

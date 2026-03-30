@@ -134,12 +134,6 @@
     .dropdown-item .bi { font-size: 0.9rem; }
 
     </style>
-
-    </style>
-
-    </style>
-
-    </style>
 </head>
 <body>
     <div id="loadingOverlay" class="loading-overlay" style="display:none">
@@ -374,7 +368,7 @@
         } catch(e) {}
     }
     showLoading(false);
-    if (typeof updateStats === "function") updateStats();
+    if (typeof renderStats === "function") renderStats(data);
     if (typeof renderTable === "function") renderTable(data);
 }
 
@@ -387,7 +381,20 @@ function renderTable(data) {
                 return;
             }
             noData.style.display = "none";
-            tbody.innerHTML = data.map(r => `<tr><td>{r.taxCode ?? '-'}</td><td>{r.taxName ?? '-'}</td><td>{r.taxType ?? '-'}</td><td>{r.taxRate ?? '-'}</td><td>{r.taxRateType ?? '-'}</td><td>{r.taxBase ?? '-'}</td><td>{r.coaCode ?? '-'}</td><td><span class="${badgeClass(r.status) || 'badge-active'}">${r.status}</span></td><td><button class="btn btn-sm btn-outline-primary me-1" onclick="editRow(r.id)"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-outline-danger" onclick="deleteRow(r.id)"><i class="bi bi-trash"></i></button></td></tr>`).join("");
+            tbody.innerHTML = data.map(r => `<tr>
+                <td>${r.taxCode ?? '-'}</td>
+                <td>${r.taxName ?? '-'}</td>
+                <td>${r.taxType ?? '-'}</td>
+                <td>${r.taxRate ?? '-'}</td>
+                <td>${r.taxRateType ?? '-'}</td>
+                <td>${r.taxBase ?? '-'}</td>
+                <td>${r.coaCode ?? '-'}</td>
+                <td><span class="${badgeClass(r.status) || 'badge-active'}">${r.status}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="editRow('${r.id}')"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteRow('${r.id}')"><i class="bi bi-trash"></i></button>
+                </td>
+            </tr>`).join("");
         }
 
         function renderStats(data) {
@@ -414,15 +421,15 @@ function renderTable(data) {
             const res = await fetch(API + "/" + id);
             if (!res.ok) return;
             const r = await res.json();
-            document.getElementById('fTaxCode').value = r.TaxCode ?? '';
-            document.getElementById('fTaxName').value = r.TaxName ?? '';
-            document.getElementById('fTaxType').value = r.TaxType ?? '';
-            document.getElementById('fTaxRate').value = r.TaxRate ?? '';
-            document.getElementById('fTaxRateType').value = r.TaxRateType ?? '';
-            document.getElementById('fTaxBase').value = r.TaxBase ?? '';
-            document.getElementById('fApplicableTo').value = r.ApplicableTo ?? '';
-            document.getElementById('fCoaCode').value = r.CoaCode ?? '';
-            document.getElementById('fRemarks').value = r.Remarks ?? '';
+            document.getElementById('fTaxCode').value = r.taxCode ?? '';
+            document.getElementById('fTaxName').value = r.taxName ?? '';
+            document.getElementById('fTaxType').value = r.taxType ?? '';
+            document.getElementById('fTaxRate').value = r.taxRate ?? '';
+            document.getElementById('fTaxRateType').value = r.taxRateType ?? '';
+            document.getElementById('fTaxBase').value = r.taxBase ?? '';
+            document.getElementById('fApplicableTo').value = r.applicableTo ?? '';
+            document.getElementById('fCoaCode').value = r.coaCode ?? '';
+            document.getElementById('fRemarks').value = r.remarks ?? '';
         }
 
         async function editRow(id) { openForm(id); }
@@ -440,7 +447,7 @@ function renderTable(data) {
             body.TaxCode = document.getElementById('fTaxCode').value || null;
             body.TaxName = document.getElementById('fTaxName').value || null;
             body.TaxType = document.getElementById('fTaxType').value || null;
-            body.TaxRate = document.getElementById('fTaxRate').value || null;
+            body.TaxRate = parseFloat(document.getElementById('fTaxRate').value) || null;
             body.TaxRateType = document.getElementById('fTaxRateType').value || null;
             body.TaxBase = document.getElementById('fTaxBase').value || null;
             body.ApplicableTo = document.getElementById('fApplicableTo').value || null;
