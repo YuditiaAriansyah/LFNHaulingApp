@@ -211,6 +211,11 @@
     </style>
 </head>
 <body>
+    <div id="loadingOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.85);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
+        <div style="width:40px;height:40px;border:4px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin .8s linear infinite"></div>
+        <span style="color:#64748b;font-weight:500">Memuat...</span>
+    </div>
+    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
     <nav class="navbar navbar-expand-lg fixed-top navbar-dark">
         <div class="container">
             <a class="navbar-brand" href="/"><i class="bi bi-car-front me-2"></i>LFN Fleet</a>
@@ -675,7 +680,62 @@ function switchTab(tab) {
             document.getElementById(tab + 'Content').classList.add('active');
         }
 
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        }
+
+        function updateStats(data) {
+            if (!data || !data.length) return;
+            const active = data.filter(v => v.status === 'ACTIVE').length;
+            const totalHM = data.reduce((s, v) => s + (parseFloat(v.hmAkhir) || 0), 0);
+            const totalKM = data.reduce((s, v) => s + (parseFloat(v.kmAkhir) || 0), 0);
+            document.getElementById('statTotalUnit').textContent = data.length;
+            document.getElementById('statTotalHM').textContent = Math.round(totalHM).toLocaleString();
+            document.getElementById('statTotalKM').textContent = Math.round(totalKM).toLocaleString();
+            document.getElementById('statTotalFuel').textContent = '-';
+            document.getElementById('statAvgHM').textContent = '-';
+            document.getElementById('statFuelRatio').textContent = '-';
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('fleetTableBody');
+            if (!data || !data.length) {
+                tbody.innerHTML = '<tr><td colspan="15" class="text-center text-muted py-4"><i class="bi bi-inbox fs-3 d-block mb-2"></i>Belum ada data kendaraan.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.map((v, i) => {
+                const totalHM = (parseFloat(v.hmAkhir) || 0) - (parseFloat(v.hmAwal) || 0);
+                const totalKM = (parseFloat(v.kmAkhir) || 0) - (parseFloat(v.kmAwal) || 0);
+                const badge = v.status === 'ACTIVE'
+                    ? '<span class="badge badge-active">Active</span>'
+                    : v.status === 'MAINTENANCE'
+                    ? '<span class="badge badge-pending">Maintenance</span>'
+                    : '<span class="badge badge-inactive">Inactive</span>';
+                return `<tr>
+                    <td>${i + 1}</td>
+                    <td><strong>${v.unitNo || '-'}</strong></td>
+                    <td>${v.unitDescription || '-'}</td>
+                    <td>${v.site || '-'}</td>
+                    <td>${v.merkType || '-'}</td>
+                    <td>${v.hmAwal ?? '-'}</td>
+                    <td>${v.hmAkhir ?? '-'}</td>
+                    <td><strong>${totalHM > 0 ? totalHM.toFixed(1) : '-'}</strong></td>
+                    <td>${v.kmAwal ?? '-'}</td>
+                    <td>${v.kmAkhir ?? '-'}</td>
+                    <td><strong>${totalKM > 0 ? Math.round(totalKM).toLocaleString() : '-'}</strong></td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>${badge}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="editVehicle('${v.id}')"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteVehicle('${v.id}')"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
         async function loadFleet() {
+            showLoading(true);
             const site = document.getElementById('filterSite').value;
             const status = document.getElementById('filterStatus').value;
             const category = document.getElementById('filterCategory').value;
@@ -694,8 +754,9 @@ function switchTab(tab) {
                 } catch(e) {}
             }
 
+            showLoading(false);
             if (typeof updateStats === "function") updateStats();
-            if (typeof renderTable === "function") renderTable();
+            if (typeof renderTable === "function") renderTable(vehicles);
         }
                 document.getElementById('statTotalUnit').textContent = stats.totalUnit || 0;
                 document.getElementById('statTotalHM').textContent = formatNumber(stats.totalHM);
