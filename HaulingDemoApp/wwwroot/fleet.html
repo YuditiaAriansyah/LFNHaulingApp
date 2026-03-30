@@ -755,16 +755,8 @@ function switchTab(tab) {
             }
 
             showLoading(false);
-            if (typeof updateStats === "function") updateStats();
+            if (typeof updateStats === "function") updateStats(vehicles);
             if (typeof renderTable === "function") renderTable(vehicles);
-        }
-                document.getElementById('statTotalUnit').textContent = stats.totalUnit || 0;
-                document.getElementById('statTotalHM').textContent = formatNumber(stats.totalHM);
-                document.getElementById('statTotalKM').textContent = formatNumber(stats.totalKM);
-                document.getElementById('statTotalFuel').textContent = formatNumber(stats.totalFuel);
-                document.getElementById('statAvgHM').textContent = formatNumber(stats.avgHMHari);
-                document.getElementById('statFuelRatio').textContent = formatNumber(stats.fuelRatio);
-            } catch (error) { console.error('Error loading stats:', error); }
         }
 
         async function loadSummary() {
@@ -966,21 +958,21 @@ function switchTab(tab) {
                 switchTab('list');
                 loadFleet();
             } catch (error) {
-            try {
-                var _d_ = JSON.parse(localStorage.getItem(_key_));
-            } catch(e) {}
-            if (window[_var_] && window[_var_].length > 0) {
-                if (typeof updateStats === "function") updateStats();
-                if (typeof renderTable === "function") renderTable();
-            } else {
-
-                console.error('Error:', error);
-                Swal.fire('Error', error.message || 'Upload failed', 'error');
+                try {
+                    var _d_ = JSON.parse(localStorage.getItem(_key_));
+                } catch(e) {}
+                if (window[_var_] && window[_var_].length > 0) {
+                    if (typeof updateStats === "function") updateStats();
+                    if (typeof renderTable === "function") renderTable(vehicles);
+                } else {
+                    console.error('Error:', error);
+                    Swal.fire('Error', error.message || 'Upload failed', 'error');
+                }
             } finally {
                 document.getElementById('btnUpload').disabled = false;
                 document.getElementById('btnUpload').innerHTML = '<i class="bi bi-cloud-upload"></i> Upload to Server';
-                        }
-            return;}
+            }
+            return;
         }
 
         function downloadTemplate() {
@@ -1033,19 +1025,23 @@ function switchTab(tab) {
                 loadFleet();
                 loadCategories();
             } catch (error) {
-            try {
-                var _d_ = JSON.parse(localStorage.getItem(_key_));
-            } catch(e) {}
-            if (window[_var_] && window[_var_].length > 0) {
-                if (typeof updateStats === "function") updateStats();
-                if (typeof renderTable === "function") renderTable();
-            } else {
-
-                console.error('Error:', error);
-                Swal.fire('Error', 'Failed to save vehicle', 'error');
-                        }
-            return;}
-        });
+                try {
+                    var _d_ = JSON.parse(localStorage.getItem(_key_));
+                } catch(e) {}
+                if (window[_var_] && window[_var_].length > 0) {
+                    if (typeof updateStats === "function") updateStats(vehicles);
+                    if (typeof renderTable === "function") renderTable(vehicles);
+                } else {
+                    console.error('Error:', error);
+                    Swal.fire('Error', error.message || 'Failed to save vehicle', 'error');
+                }
+            } finally {
+                document.getElementById('btnUpload').disabled = false;
+                document.getElementById('btnUpload').innerHTML = '<i class="bi bi-cloud-upload"></i> Upload to Server';
+            }
+            return;
+            }
+        }
 
         function formatDate(date) {
             if (!date) return '-';
@@ -1054,7 +1050,6 @@ function switchTab(tab) {
 
         function formatNumber(num) {
             return (num || 0).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-        });
         }
 
         document.addEventListener('DOMContentLoaded', function() {
