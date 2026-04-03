@@ -67,6 +67,20 @@
         .role-dot.manager { background: #f59e0b; }
         .role-dot.user { background: #3b82f6; }
         .role-dot.viewer { background: #94a3b8; }
+        .filter-row th input {
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 5px 8px;
+            font-size: 0.78rem;
+            background: #f8fafc;
+            color: #1e293b;
+        }
+        .filter-row th input:focus {
+            border-color: #7c3aed;
+            background: #fff;
+            outline: none;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
@@ -566,9 +580,30 @@
             return (name || 'U').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
         }
 
+        // Per-column filter state and function
+        const masterColFilters = {__keys__: {"0": "fullName", "1": "username", "2": "email", "3": "role", "4": "siteCode", "7": "isActive"}};
+        function applyMasterColFilter(colIdx, key, val) {
+            masterColFilters[colIdx] = val.trim().toLowerCase();
+            loadData();
+        }
+        function applyMasterClientFilter(data) {
+            if (!data) return [];
+            const active = Object.keys(masterColFilters).filter(k => masterColFilters[k]);
+            if (active.length === 0) return data;
+            const keys = Object.keys(masterColFilters.__keys__ || {});
+            return data.filter(row => active.every(idx => {
+                const key = masterColFilters.__keys__ ? masterColFilters.__keys__[idx] : null;
+                if (!key) return true;
+                const v = row[key];
+                return v != null && String(v).toLowerCase().includes(masterColFilters[idx]);
+            }));
+        }
+
+
+
         function renderTable() {
             const search = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = allUsers.filter(u =>
+            const filtered = applyMasterClientFilter(allUsers).filter(u =>
                 (u.username || '').toLowerCase().includes(search) ||
                 (u.fullName || '').toLowerCase().includes(search) ||
                 (u.email || '').toLowerCase().includes(search)

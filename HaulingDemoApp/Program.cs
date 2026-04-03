@@ -2404,6 +2404,7 @@ app.MapGet("/download-template/{type}", (string type) =>
         "rm-workorder" => Path.Combine("wwwroot/templates", "rm_workorder_template.csv"),
         "rm-pm" => Path.Combine("wwwroot/templates", "rm_pm_template.csv"),
         "rm-cm" => Path.Combine("wwwroot/templates", "rm_cm_template.csv"),
+        "fleet" => Path.Combine("wwwroot/templates", "fleet_template_v1.csv"),
         _ => null
     };
 
@@ -2751,6 +2752,13 @@ app.MapDelete("/api/tyres/problems/{id}", async (int id, AppDbContext db) =>
     return Results.NoContent();
 });
 
+app.MapDelete("/api/tyres/problems", async (AppDbContext db) =>
+{
+    db.TyreProblems.RemoveRange(db.TyreProblems);
+    await db.SaveChangesAsync();
+    return Results.NoContent();
+});
+
 // =====================================================
 // HELPER FUNCTIONS
 // =====================================================
@@ -3001,6 +3009,7 @@ app.MapPost("/api/tyres/po-upload", async (HttpRequest request, AppDbContext db)
                     No = int.TryParse(GetValue(values, headers, "No"), out var no) ? no : i,
                     Tanggal = tanggal,
                     Site = site,
+                    LokasiProblem = GetValue(values, headers, "LokasiProblem"),
                     Vendor = GetValue(values, headers, "Vendor"),
                     NoPO = noPO,
                     MerkType = GetValue(values, headers, "MerkType"),
@@ -3097,15 +3106,19 @@ app.MapPost("/api/tyres/problem-upload", async (HttpRequest request, AppDbContex
                     No = int.TryParse(GetValue(values, headers, "No"), out var no) ? no : i,
                     Tanggal = tanggal,
                     Site = site,
-                    Post = string.IsNullOrWhiteSpace(GetValue(values, headers, "Pos")) ? post : GetValue(values, headers, "Pos"),
+                    Post = string.IsNullOrWhiteSpace(GetValue(values, headers, "LokasiProblem")) ? post : GetValue(values, headers, "LokasiProblem"),
                     UnitNo = GetValue(values, headers, "UnitNo"),
                     SerialNumber = serialNumber,
-                    MerkType = GetValue(values, headers, "MerkBan"),
+                    MerkType = GetValue(values, headers, "MerkType"),
                     Size = GetValue(values, headers, "Size"),
-                    Problem = GetValue(values, headers, "ProblemDescription"),
-                    Kerusakan = GetValue(values, headers, "ActionTaken"),
-                    Location = GetValue(values, headers, "Location"),
-                    StartHM = decimal.TryParse(GetValue(values, headers, "HM"), out var startHM) ? startHM : null,
+                    Problem = GetValue(values, headers, "Problem"),
+                    Kerusakan = GetValue(values, headers, "Kerusakan"),
+                    Location = GetValue(values, headers, "LokasiBanProblem"),
+                    AreaLokasiProblem = GetValue(values, headers, "AreaLokasiProblem"),
+                    ModelUnit = GetValue(values, headers, "ModelUnit"),
+                    MerekBanLama = GetValue(values, headers, "MerekBanLama"),
+                    MerekBanBaru = GetValue(values, headers, "MerekBanBaru"),
+                    StartHM = decimal.TryParse(GetValue(values, headers, "StartHM"), out var startHM) ? startHM : null,
                     EndHM = decimal.TryParse(GetValue(values, headers, "EndHM"), out var endHM) ? endHM : null,
                     TotalHM = decimal.TryParse(GetValue(values, headers, "TotalHM"), out var totalHM) ? totalHM : null,
                     Cost = decimal.TryParse(GetValue(values, headers, "Cost"), out var cost) ? cost : null,
@@ -4086,6 +4099,14 @@ app.MapDelete("/api/fleet/{id}", async (int id, AppDbContext db) =>
     }
 });
 
+app.MapDelete("/api/fleet", async (AppDbContext db) =>
+{
+    var emptyRecords = await db.FleetVehicles.Where(f => string.IsNullOrEmpty(f.UnitNo)).ToListAsync();
+    db.FleetVehicles.RemoveRange(emptyRecords);
+    await db.SaveChangesAsync();
+    return Results.Ok(new { message = $"Deleted {emptyRecords.Count} empty records" });
+});
+
 app.MapGet("/api/fleet/stats", async (AppDbContext db, string? site = null) =>
 {
     var query = db.FleetVehicles.AsQueryable();
@@ -4167,23 +4188,50 @@ app.MapPost("/api/fleet/upload", async (HttpRequest request, AppDbContext db) =>
         if (file == null || file.Length == 0)
             return Results.BadRequest(new { error = "No file uploaded" });
 
-        using var reader = new StreamReader(file.OpenReadStream());
-        var content = await reader.ReadToEndAsync();
+        // Only accept CSV format
+        var ext = Path.GetExtension(file.FileName).ToLower();
+        if (ext != ".csv")
+            return Results.BadRequest(new { error = "Hanya file CSV yang dapat diproses. Silakan export file Excel ke format CSV terlebih dahulu sebelum upload." });
+
+        using var ms = new MemoryStream();
+        await file.OpenReadStream().CopyToAsync(ms);
+        var bytes = ms.ToArray();
+
+        // Strip UTF-8 BOM if present
+        var content = "";
+        if (bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
+            content = System.Text.Encoding.UTF8.GetString(bytes, 3, bytes.Length - 3);
+        else
+            content = System.Text.Encoding.UTF8.GetString(bytes);
+
         var lines = content.Split('\n', StringSplitOptions.RemoveEmptyEntries);
 
         if (lines.Length < 2)
-            return Results.BadRequest(new { error = "File is empty or invalid" });
+            return Results.BadRequest(new { error = "File is empty atau tidak ada data. Pastikan file CSV memiliki header dan minimal 1 baris data." });
 
-        var headers = lines[0].Split(';');
+        var headers = lines[0].Split(';').Select(h => h.Trim()).ToArray();
+
+        // Validate required headers
+        var requiredHeaders = new[] { "UnitNo", "Site", "MerkType", "Category" };
+        var missingHeaders = requiredHeaders.Where(r => !headers.Any(h => h.Equals(r, StringComparison.OrdinalIgnoreCase))).ToList();
+        if (missingHeaders.Any())
+            return Results.BadRequest(new { error = $"Kolom header tidak ditemukan: {string.Join(", ", missingHeaders)}. Pastikan file CSV menggunakan header yang benar (UnitNo, Site, MerkType, Category, dst).", foundHeaders = headers });
+
         int insertedCount = 0;
+        var errors = new List<string>();
 
         for (int i = 1; i < lines.Length; i++)
         {
-            var values = lines[i].Split(';');
-            if (values.Length < headers.Length) continue;
+            var line = lines[i].Trim();
+            if (string.IsNullOrEmpty(line)) continue;
+            var values = line.Split(';');
+            if (values.Length < headers.Length) { errors.Add($"Baris {i + 1}: jumlah kolom tidak cocok"); continue; }
 
             try
             {
+                var unitNo = GetValue(values, headers, "UnitNo").Trim();
+                if (string.IsNullOrEmpty(unitNo)) { errors.Add($"Baris {i + 1}: UnitNo kosong, dilewati"); continue; }
+
                 var hmAwal = decimal.TryParse(GetValue(values, headers, "HMAwal"), out var hm1) ? hm1 : 0;
                 var hmAkhir = decimal.TryParse(GetValue(values, headers, "HMakhir"), out var hm2) ? hm2 : 0;
                 var kmAwal = decimal.TryParse(GetValue(values, headers, "KMAwal"), out var km1) ? km1 : 0;
@@ -4198,11 +4246,11 @@ app.MapPost("/api/fleet/upload", async (HttpRequest request, AppDbContext db) =>
 
                 var vehicle = new FleetVehicle
                 {
-                    UnitNo = GetValue(values, headers, "UnitNo"),
-                    UnitDescription = GetValue(values, headers, "UnitDescription"),
-                    Site = GetValue(values, headers, "Site"),
-                    MerkType = GetValue(values, headers, "MerkType"),
-                    Category = GetValue(values, headers, "Category"),
+                    UnitNo = unitNo,
+                    UnitDescription = GetValue(values, headers, "UnitDescription").Trim(),
+                    Site = GetValue(values, headers, "Site").Trim(),
+                    MerkType = GetValue(values, headers, "MerkType").Trim(),
+                    Category = GetValue(values, headers, "Category").Trim(),
                     HMAwal = hmAwal,
                     KMAwal = kmAwal,
                     HMakhir = hmAkhir,
@@ -4221,11 +4269,16 @@ app.MapPost("/api/fleet/upload", async (HttpRequest request, AppDbContext db) =>
                 db.FleetVehicles.Add(vehicle);
                 insertedCount++;
             }
-            catch { }
+            catch (Exception rowEx) { errors.Add($"Baris {i + 1}: {rowEx.Message}"); }
         }
 
         await db.SaveChangesAsync();
-        return Results.Ok(new { message = $"Uploaded {insertedCount} vehicles", inserted = insertedCount });
+        return Results.Ok(new {
+            message = $"Berhasil upload {insertedCount} kendaraan",
+            inserted = insertedCount,
+            skipped = errors.Count,
+            errors = errors.Count > 0 ? errors.Take(10).ToList() : null
+        });
     }
     catch (Exception ex)
     {
@@ -4663,6 +4716,7 @@ using (var scope = app.Services.CreateScope())
                     ""No"" INTEGER NOT NULL,
                     ""Tanggal"" timestamp NOT NULL,
                     ""Site"" VARCHAR(100) NOT NULL,
+                    ""LokasiProblem"" VARCHAR(50),
                     ""Vendor"" VARCHAR(200),
                     ""NoPO"" VARCHAR(50),
                     ""MerkType"" VARCHAR(100),
@@ -4674,6 +4728,7 @@ using (var scope = app.Services.CreateScope())
                     ""CreatedAt"" timestamp DEFAULT CURRENT_TIMESTAMP,
                     ""UpdatedAt"" timestamp DEFAULT CURRENT_TIMESTAMP
                 );
+                ALTER TABLE ""tyres_po"" ADD COLUMN IF NOT EXISTS ""LokasiProblem"" VARCHAR(50);
 
                 CREATE TABLE IF NOT EXISTS ""tyres_problems"" (
                     ""Id"" SERIAL PRIMARY KEY,
@@ -4695,6 +4750,9 @@ using (var scope = app.Services.CreateScope())
                 ALTER TABLE ""tyres_problems"" ADD COLUMN IF NOT EXISTS ""Problem"" VARCHAR(500);
                 ALTER TABLE ""tyres_problems"" ADD COLUMN IF NOT EXISTS ""Kerusakan"" VARCHAR(100);
                 ALTER TABLE ""tyres_problems"" ADD COLUMN IF NOT EXISTS ""Location"" VARCHAR(100);
+                ALTER TABLE ""tyres_problems"" ADD COLUMN IF NOT EXISTS ""ModelUnit"" VARCHAR(100);
+                ALTER TABLE ""tyres_problems"" ADD COLUMN IF NOT EXISTS ""MerekBanLama"" VARCHAR(100);
+                ALTER TABLE ""tyres_problems"" ADD COLUMN IF NOT EXISTS ""MerekBanBaru"" VARCHAR(100);
                 ALTER TABLE ""tyres_problems"" ADD COLUMN IF NOT EXISTS ""StartHM"" numeric(18,4);
                 ALTER TABLE ""tyres_problems"" ADD COLUMN IF NOT EXISTS ""EndHM"" numeric(18,4);
                 ALTER TABLE ""tyres_problems"" ADD COLUMN IF NOT EXISTS ""TotalHM"" numeric(18,4);
@@ -4704,6 +4762,7 @@ using (var scope = app.Services.CreateScope())
                 UPDATE ""tyres_problems"" SET ""StartHM"" = 0 WHERE ""StartHM"" IS NULL;
                 UPDATE ""tyres_problems"" SET ""EndHM"" = 0 WHERE ""EndHM"" IS NULL;
                 UPDATE ""tyres_problems"" SET ""TotalHM"" = 0 WHERE ""TotalHM"" IS NULL;
+                ALTER TABLE ""tyres_problems"" ADD COLUMN IF NOT EXISTS ""AreaLokasiProblem"" VARCHAR(100);
             ");
             Console.WriteLine("Tyre tables created!");
         }

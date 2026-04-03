@@ -60,6 +60,20 @@
         .modal-header { border-bottom: 1px solid var(--border-color); padding: 20px 24px; }
         .modal-body { padding: 24px; }
         .modal-footer { border-top: 1px solid var(--border-color); padding: 16px 24px; }
+        .filter-row th input {
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 5px 8px;
+            font-size: 0.78rem;
+            background: #f8fafc;
+            color: #1e293b;
+        }
+        .filter-row th input:focus {
+            border-color: #7c3aed;
+            background: #fff;
+            outline: none;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
@@ -466,9 +480,30 @@
             document.getElementById('statRegion').textContent = regions.length;
         }
 
+        // Per-column filter state and function
+        const masterColFilters = {__keys__: {"0": "siteCode", "1": "siteName", "2": "region", "3": "siteType", "4": "city", "5": "status"}};
+        function applyMasterColFilter(colIdx, key, val) {
+            masterColFilters[colIdx] = val.trim().toLowerCase();
+            loadData();
+        }
+        function applyMasterClientFilter(data) {
+            if (!data) return [];
+            const active = Object.keys(masterColFilters).filter(k => masterColFilters[k]);
+            if (active.length === 0) return data;
+            const keys = Object.keys(masterColFilters.__keys__ || {});
+            return data.filter(row => active.every(idx => {
+                const key = masterColFilters.__keys__ ? masterColFilters.__keys__[idx] : null;
+                if (!key) return true;
+                const v = row[key];
+                return v != null && String(v).toLowerCase().includes(masterColFilters[idx]);
+            }));
+        }
+
+
+
         function renderTable() {
             const search = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = allSites.filter(s =>
+            const filtered = applyMasterClientFilter(allSites).filter(s =>
                 s.siteCode.toLowerCase().includes(search) ||
                 (s.siteName || '').toLowerCase().includes(search) ||
                 (s.region || '').toLowerCase().includes(search)

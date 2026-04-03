@@ -97,6 +97,24 @@
         .card-header { background: #fff; border-bottom: 1px solid var(--border-color); font-weight: 600; padding: 16px 20px; }
         .card-body { padding: 20px; }
 
+        /* Column filter row */
+        .table thead tr.filter-row th {
+            padding: 4px 6px !important;
+            background: #f1f5f9;
+        }
+        .table thead tr.filter-row th input {
+            font-size: 0.72rem;
+            padding: 3px 6px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            width: 100%;
+        }
+        .table thead tr.filter-row th input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+            outline: none;
+        }
+
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
@@ -448,7 +466,7 @@
                 <div class="data-table" id="parsedDataTableSection">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0" id="parsedDataTable">
-                            <thead>
+                            <thead id="parsedTableHead">
                                 <tr id="parsedTableHeader">
                                     <th style="width:5%">No</th>
                                     <th style="width:12%">Tanggal</th>
@@ -458,6 +476,16 @@
                                     <th style="width:10%">No Tiket</th>
                                     <th style="width:8%; text-align:right">Total Harga</th>
                                     <th style="width:12%">Actions</th>
+                                </tr>
+                                <tr class="filter-row" id="penerimaanFilterRow">
+                                    <th><input type="text" placeholder="..." onkeyup="applyFuelColFilter('penerimaan',0,this.value)"></th>
+                                    <th><input type="text" placeholder="..." onkeyup="applyFuelColFilter('penerimaan',1,this.value)"></th>
+                                    <th><input type="text" placeholder="..." onkeyup="applyFuelColFilter('penerimaan',2,this.value)"></th>
+                                    <th><input type="text" placeholder="..." onkeyup="applyFuelColFilter('penerimaan',3,this.value)"></th>
+                                    <th><input type="text" placeholder="..." onkeyup="applyFuelColFilter('penerimaan',4,this.value)"></th>
+                                    <th><input type="text" placeholder="..." onkeyup="applyFuelColFilter('penerimaan',5,this.value)"></th>
+                                    <th><input type="text" placeholder="..." onkeyup="applyFuelColFilter('penerimaan',6,this.value)"></th>
+                                    <th><input type="text" placeholder="..." disabled></th>
                                 </tr>
                             </thead>
                             <tbody id="parsedTableBody">
@@ -499,7 +527,7 @@
                 <div class="data-table" id="parsedPengeluaranTableSection">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0" id="parsedPengeluaranTable">
-                            <thead>
+                            <thead id="parsedPengeluaranTableHead">
                                 <tr id="parsedPengeluaranTableHeader">
                                     <th style="width:5%">No</th>
                                     <th style="width:10%">Tanggal</th>
@@ -512,6 +540,19 @@
                                     <th style="width:7%; text-align:right">Jam Kerja</th>
                                     <th style="width:7%; text-align:right">Efisiensi</th>
                                     <th style="width:12%">Actions</th>
+                                </tr>
+                                <tr class="filter-row" id="pengeluaranFilterRow">
+                                    <th><input type="text" placeholder="..." onkeyup="applyFuelColFilter('pengeluaran',0,this.value)"></th>
+                                    <th><input type="text" placeholder="..." onkeyup="applyFuelColFilter('pengeluaran',1,this.value)"></th>
+                                    <th><input type="text" placeholder="..." onkeyup="applyFuelColFilter('pengeluaran',2,this.value)"></th>
+                                    <th><input type="text" placeholder="..." onkeyup="applyFuelColFilter('pengeluaran',3,this.value)"></th>
+                                    <th><input type="text" placeholder="..." onkeyup="applyFuelColFilter('pengeluaran',4,this.value)"></th>
+                                    <th><input type="text" placeholder="..." onkeyup="applyFuelColFilter('pengeluaran',5,this.value)"></th>
+                                    <th><input type="text" placeholder="..." onkeyup="applyFuelColFilter('pengeluaran',6,this.value)"></th>
+                                    <th><input type="text" placeholder="..." onkeyup="applyFuelColFilter('pengeluaran',7,this.value)"></th>
+                                    <th><input type="text" placeholder="..." onkeyup="applyFuelColFilter('pengeluaran',8,this.value)"></th>
+                                    <th><input type="text" placeholder="..." onkeyup="applyFuelColFilter('pengeluaran',9,this.value)"></th>
+                                    <th><input type="text" placeholder="..." disabled></th>
                                 </tr>
                             </thead>
                             <tbody id="parsedPengeluaranTableBody">
@@ -916,6 +957,52 @@
 
             allData = currentData;
             displayGCSData(currentData);
+        }
+
+        function handleFuelSearch(type) {
+            const inputId = type === 'penerimaan' ? 'penerimaanSearchInput' : 'pengeluaranSearchInput';
+            const keyword = document.getElementById(inputId).value.toLowerCase().trim();
+            const rawData = type === 'penerimaan' ? parsedCSVData : parsedPengeluaranData;
+
+            if (!keyword) {
+                if (type === 'penerimaan') displayData(rawData);
+                else displayPengeluaranData(rawData);
+                return;
+            }
+
+            const filtered = rawData.filter(r =>
+                Object.values(r).some(v => v != null && String(v).toLowerCase().includes(keyword))
+            );
+
+            if (type === 'penerimaan') displayData(filtered);
+            else displayPengeluaranData(filtered);
+        }
+
+        // Column filters state for fuel data
+        const penerimaanColFilters = {};
+        const pengeluaranColFilters = {};
+        // Object keys match the dynamic header column order
+        const penerimaanColKeys = ['no','tanggal','site','vendor','liter','noTiket','totalHarga'];
+        const pengeluaranColKeys = ['no','tanggal','site','unitNo','operator','hm','km','pemakaian','jamKerja','eFisiensi'];
+
+        function applyFuelColFilter(type, colIndex, keyword) {
+            const filters = type === 'penerimaan' ? penerimaanColFilters : pengeluaranColFilters;
+            const keys    = type === 'penerimaan' ? penerimaanColKeys : pengeluaranColKeys;
+            const rawData = type === 'penerimaan' ? parsedCSVData : parsedPengeluaranData;
+
+            filters[colIndex] = keyword.toLowerCase().trim();
+
+            const filtered = rawData.filter(r => {
+                return keys.every((key, ki) => {
+                    const kw = filters[ki] || '';
+                    if (!kw) return true;
+                    const val = r[key];
+                    return val != null && String(val).toLowerCase().includes(kw);
+                });
+            });
+
+            if (type === 'penerimaan') displayData(filtered);
+            else displayPengeluaranData(filtered);
         }
 
         function displayData(data) {

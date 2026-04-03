@@ -97,6 +97,23 @@
         .upload-zone.dragover { border-color: var(--success-color); background: #d1fae5; }
         .table-responsive { max-height: 500px; overflow-y: auto; }
         @media (max-width: 768px) { .stats-card .number { font-size: 1.25rem; } }
+        /* Column filter row */
+        .table thead tr.filter-row th {
+            padding: 4px 6px !important;
+            background: #f1f5f9;
+        }
+        .table thead tr.filter-row th input {
+            font-size: 0.72rem;
+            padding: 3px 6px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            width: 100%;
+        }
+        .table thead tr.filter-row th input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+            outline: none;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
@@ -164,12 +181,6 @@
     .dropdown-item i { font-size: 0.9rem; width: 16px; text-align: center; opacity: 0.7; }
     .dropdown-item:hover i { opacity: 1; }
     .dropdown-item .bi { font-size: 0.9rem; }
-
-    </style>
-
-    </style>
-
-    </style>
 
     </style>
 </head>
@@ -350,17 +361,13 @@
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="d-flex justify-content-between mb-3">
-                    <div>
-                        <button class="btn btn-success" onclick="switchTab('addItem'); resetForm();">
-                            <i class="bi bi-plus-circle"></i> Add New Item
-                        </button>
-                    </div>
-                    <div>
-                        <button class="btn btn-outline-secondary" onclick="downloadTemplate()">
-                            <i class="bi bi-file-earmark-arrow-down"></i> Download Template
-                        </button>
-                    </div>
+                <div class="d-flex justify-content-end mb-3">
+                    <button class="btn btn-success" onclick="switchTab('addItem'); resetForm();">
+                        <i class="bi bi-plus-circle"></i> Add New Item
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="downloadTemplate()">
+                        <i class="bi bi-file-earmark-arrow-down"></i> Download Template
+                    </button>
                 </div>
 
                 <!-- Data Table -->
@@ -381,6 +388,21 @@
                                 <th>Unit Price</th>
                                 <th>Last PO Price</th>
                                 <th>Actions</th>
+                            </tr>
+                            <tr class="filter-row">
+                                <th><input type="text" placeholder="..." onkeyup="applyInventoryColFilter(0,this.value)"></th>
+                                <th><input type="text" placeholder="..." onkeyup="applyInventoryColFilter(1,this.value)"></th>
+                                <th><input type="text" placeholder="..." onkeyup="applyInventoryColFilter(2,this.value)"></th>
+                                <th><input type="text" placeholder="..." onkeyup="applyInventoryColFilter(3,this.value)"></th>
+                                <th><input type="text" placeholder="..." onkeyup="applyInventoryColFilter(4,this.value)"></th>
+                                <th><input type="text" placeholder="..." onkeyup="applyInventoryColFilter(5,this.value)"></th>
+                                <th><input type="text" placeholder="..." onkeyup="applyInventoryColFilter(6,this.value)"></th>
+                                <th><input type="text" placeholder="..." onkeyup="applyInventoryColFilter(7,this.value)"></th>
+                                <th><input type="text" placeholder="..." onkeyup="applyInventoryColFilter(8,this.value)"></th>
+                                <th><input type="text" placeholder="..." onkeyup="applyInventoryColFilter(9,this.value)"></th>
+                                <th><input type="text" placeholder="..." onkeyup="applyInventoryColFilter(10,this.value)"></th>
+                                <th><input type="text" placeholder="..." onkeyup="applyInventoryColFilter(11,this.value)"></th>
+                                <th><input type="text" placeholder="..." disabled></th>
                             </tr>
                         </thead>
                         <tbody id="inventoryTableBody">
@@ -675,6 +697,78 @@ function switchTab(tabName) {
             return { badge: '<span class="badge badge-ok"><i class="bi bi-check-circle"></i> OK</span>', class: '' };
         }
 
+        // Render inventory table
+        function handleInventorySearch() {
+            const keyword = document.getElementById('inventorySearchInput').value.toLowerCase().trim();
+            if (!keyword) {
+                renderTable(inventoryData);
+                return;
+            }
+            const filtered = inventoryData.filter(r =>
+                Object.values(r).some(v => v != null && String(v).toLowerCase().includes(keyword))
+            );
+            renderTable(filtered);
+        }
+
+        // Column filter state for inventory
+        const inventoryColFilters = {};
+        const inventoryColKeys = ['id','partNumber','materialDescription','unit','location','minStock','maxStock','stock','status','stockValue','unitPrice','lastPOPrice'];
+
+        function applyInventoryColFilter(colIndex, keyword) {
+            inventoryColFilters[colIndex] = keyword.toLowerCase().trim();
+            const filtered = inventoryData.filter(r => {
+                return inventoryColKeys.every((key, ki) => {
+                    const kw = inventoryColFilters[ki] || '';
+                    if (!kw) return true;
+                    const val = r[key];
+                    return val != null && String(val).toLowerCase().includes(kw);
+                });
+            });
+            renderTable(filtered);
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('inventoryTableBody');
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="13" class="text-center text-muted py-4"><i class="bi bi-inbox fs-3 d-block mb-2"></i>No data found</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.map((item, index) => {
+                const stock = item.stock ?? item.quantity ?? 0;
+                const minStock = item.minStock ?? 0;
+                const maxStock = item.maxStock ?? 0;
+                const stockValue = item.stockValue ?? item.totalValue ?? 0;
+                const unitPrice = item.unitPrice ?? item.unitCost ?? 0;
+                const lastPOPrice = item.lastPOPrice ?? 0;
+                const partNumber = item.partNumber || item.itemCode || '';
+                const materialDesc = item.materialDescription || item.itemName || '';
+                const unit = item.unit || item.uomId || '';
+                const location = item.location || '';
+                const status = getStockStatus({ stock, minStock, maxStock });
+                const stockVal = stockValue > 0 ? stockValue : stock * unitPrice;
+
+                return `<tr class="${status.class}">
+                    <td>${index + 1}</td>
+                    <td>${partNumber}</td>
+                    <td>${materialDesc}</td>
+                    <td>${unit}</td>
+                    <td>${location}</td>
+                    <td>${formatNumber(minStock)}</td>
+                    <td>${formatNumber(maxStock)}</td>
+                    <td>${formatNumber(stock)}</td>
+                    <td>${status.badge}</td>
+                    <td>${formatCurrency(stockVal)}</td>
+                    <td>${formatNumber(unitPrice)}</td>
+                    <td>${formatNumber(lastPOPrice)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editItem('${item.id}')"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-danger" onclick="confirmDelete('${item.id}', '${partNumber}')"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
         // Update stats
         function updateStats(data) {
             if (!data) return;
@@ -756,18 +850,9 @@ function switchTab(tabName) {
                 switchTab('stockCard');
                 loadInventory();
             } catch (error) {
-            try {
-                var _d_ = JSON.parse(localStorage.getItem(_key_));
-            } catch(e) {}
-            if (window[_var_] && window[_var_].length > 0) {
-                if (typeof updateStats === "function") updateStats();
-                if (typeof renderTable === "function") renderTable();
-            } else {
-
                 console.error('Error saving:', error);
                 Swal.fire('Error', 'Failed to save item', 'error');
-                        }
-            return;}
+            }
         });
 
         // Edit item
@@ -798,18 +883,9 @@ function switchTab(tabName) {
                 document.getElementById('formTitle').textContent = 'Edit Item';
                 switchTab('addItem');
             } catch (error) {
-            try {
-                var _d_ = JSON.parse(localStorage.getItem(_key_));
-            } catch(e) {}
-            if (window[_var_] && window[_var_].length > 0) {
-                if (typeof updateStats === "function") updateStats();
-                if (typeof renderTable === "function") renderTable();
-            } else {
-
                 console.error('Error loading item:', error);
                 Swal.fire('Error', 'Failed to load item data', 'error');
-                        }
-            return;}
+            }
         }
 
         // Confirm delete
@@ -835,18 +911,9 @@ function switchTab(tabName) {
                 bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
                 loadInventory();
             } catch (error) {
-            try {
-                var _d_ = JSON.parse(localStorage.getItem(_key_));
-            } catch(e) {}
-            if (window[_var_] && window[_var_].length > 0) {
-                if (typeof updateStats === "function") updateStats();
-                if (typeof renderTable === "function") renderTable();
-            } else {
-
                 console.error('Error deleting:', error);
                 Swal.fire('Error', 'Failed to delete item', 'error');
-                        }
-            return;}
+            }
         });
 
         // Reset form
@@ -947,21 +1014,12 @@ function switchTab(tabName) {
                 switchTab('stockCard');
                 loadInventory();
             } catch (error) {
-            try {
-                var _d_ = JSON.parse(localStorage.getItem(_key_));
-            } catch(e) {}
-            if (window[_var_] && window[_var_].length > 0) {
-                if (typeof updateStats === "function") updateStats();
-                if (typeof renderTable === "function") renderTable();
-            } else {
-
                 console.error('Error uploading:', error);
                 Swal.fire('Error', error.message || 'Failed to upload file', 'error');
             } finally {
                 document.getElementById('btnUpload').disabled = false;
                 document.getElementById('btnUpload').innerHTML = '<i class="bi bi-cloud-upload"></i> Upload to Server';
-                        }
-            return;}
+            }
         }
 
         // Download template
@@ -979,7 +1037,6 @@ function switchTab(tabName) {
         // Format helpers
         function formatNumber(num) {
             return (num || 0).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-        });
         }
 
         function formatCurrency(num) {

@@ -65,6 +65,20 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .no-data { text-align: center; padding: 48px; color: var(--text-secondary); }
         .no-data i { font-size: 3rem; opacity: 0.3; margin-bottom: 12px; }
+        .filter-row th input {
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 5px 8px;
+            font-size: 0.78rem;
+            background: #f8fafc;
+            color: #1e293b;
+        }
+        .filter-row th input:focus {
+            border-color: #7c3aed;
+            background: #fff;
+            outline: none;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
@@ -264,7 +278,20 @@
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table mb-0">
-                        <thead><tr><th>Kode</th><th>Nama Pajak</th><th>Tipe</th><th>Tarif (%)</th><th>Jenis</th><th>Basis</th><th>Akun COA</th><th>Status</th><th style='width:110px'>Aksi</th></tr></thead>
+                        <thead>
+            <tr><th>Kode</th><th>Nama Pajak</th><th>Tipe</th><th>Tarif (%)</th><th>Jenis</th><th>Basis</th><th>Akun COA</th><th>Status</th><th style='width:110px'>Aksi</th></tr>
+            <tr class="filter-row">
+                <th><input type="text" placeholder="..." onkeyup="applyMasterColFilter(0,'taxCode',this.value)"></th>
+                <th><input type="text" placeholder="..." onkeyup="applyMasterColFilter(1,'taxName',this.value)"></th>
+                <th><input type="text" placeholder="..." onkeyup="applyMasterColFilter(2,'taxType',this.value)"></th>
+                <th><input type="text" placeholder="..." onkeyup="applyMasterColFilter(3,'taxRate',this.value)"></th>
+                <th><input type="text" placeholder="..." onkeyup="applyMasterColFilter(4,'taxRateType',this.value)"></th>
+                <th><input type="text" placeholder="..." onkeyup="applyMasterColFilter(5,'taxBase',this.value)"></th>
+                <th><input type="text" placeholder="..." onkeyup="applyMasterColFilter(6,'coaCode',this.value)"></th>
+                <th><input type="text" placeholder="..." onkeyup="applyMasterColFilter(7,'status',this.value)"></th>
+                <th></th>
+            </tr>
+        </thead>
                         <tbody id="tableBody"></tbody>
                     </table>
                     <div id="noData" class="no-data" style="display:none">
@@ -345,6 +372,27 @@
             return "";
         }
 
+        // Per-column filter state and function
+        const masterColFilters = {__keys__: {"0": "taxCode", "1": "taxName", "2": "taxType", "3": "taxRate", "4": "taxRateType", "5": "taxBase", "6": "coaCode", "7": "status"}};
+        function applyMasterColFilter(colIdx, key, val) {
+            masterColFilters[colIdx] = val.trim().toLowerCase();
+            loadData();
+        }
+        function applyMasterClientFilter(data) {
+            if (!data) return [];
+            const active = Object.keys(masterColFilters).filter(k => masterColFilters[k]);
+            if (active.length === 0) return data;
+            const keys = Object.keys(masterColFilters.__keys__ || {});
+            return data.filter(row => active.every(idx => {
+                const key = masterColFilters.__keys__ ? masterColFilters.__keys__[idx] : null;
+                if (!key) return true;
+                const v = row[key];
+                return v != null && String(v).toLowerCase().includes(masterColFilters[idx]);
+            }));
+        }
+
+
+
         async function loadData() {
     showLoading(true);
     var data;
@@ -369,7 +417,8 @@
     }
     showLoading(false);
     if (typeof renderStats === "function") renderStats(data);
-    if (typeof renderTable === "function") renderTable(data);
+    const _f_ = applyMasterClientFilter(data);
+            if (typeof renderTable === "function") renderTable(_f_);
 }
 
 function renderTable(data) {

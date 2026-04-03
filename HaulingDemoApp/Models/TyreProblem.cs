@@ -22,6 +22,10 @@ namespace HaulingDemoApp.Models
 
         public string? Kerusakan { get; set; }
         public string? Location { get; set; }
+        public string? AreaLokasiProblem { get; set; }
+        public string? ModelUnit { get; set; }
+        public string? MerekBanLama { get; set; }
+        public string? MerekBanBaru { get; set; }
         public decimal? StartHM { get; set; }
         public decimal? EndHM { get; set; }
         public decimal? TotalHM { get; set; }

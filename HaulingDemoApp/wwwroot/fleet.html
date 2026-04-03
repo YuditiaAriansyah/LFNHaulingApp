@@ -72,7 +72,8 @@
         .btn-danger { background: var(--danger-color); color: white; }
         .btn-danger:hover { background: #dc2626; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(239,68,68,0.35); }
         .btn-warning { background: var(--warning-color); color: white; }
-        .table-responsive { border-radius: 12px; overflow: hidden; }
+        .table-responsive { border-radius: 12px; overflow-x: auto; overflow-y: hidden; }
+        .table-scroll { min-width: 1200px; }
         .table { margin-bottom: 0; font-size: 0.875rem; }
         .table thead th { background: var(--bg-page); color: var(--text-secondary); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--border-color) !important; padding: 12px 16px; white-space: nowrap; }
         .table tbody tr { transition: background-color 0.15s ease; border-bottom: 1px solid var(--border-color); }
@@ -133,6 +134,24 @@
         .nav-tabs .nav-link.active i { opacity: 1; }
         .nav-pills .nav-link { border-radius: 10px; }
         .nav-pills .nav-link.active { background: var(--accent); color: #fff !important; }
+
+        /* Column filter row */
+        .table thead tr.filter-row th {
+            padding: 4px 6px !important;
+            background: #f1f5f9;
+        }
+        .table thead tr.filter-row th input {
+            font-size: 0.72rem;
+            padding: 3px 6px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            width: 100%;
+        }
+        .table thead tr.filter-row th input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+            outline: none;
+        }
 
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -269,7 +288,8 @@
                             <li class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="rm.html"><i class="bi bi-wrench"></i> R&M</a></li>
                             <li><a class="dropdown-item" href="data-Upload-RM.html"><i class="bi bi-cloud-upload"></i> R&M Upload</a></li>
-                            <li><a class="dropdown-item active-page" href="fleet.html"><i class="bi bi-truck"></i> Fleet</a></li>
+                            <li><a class="dropdown-item" href="fleet.html"><i class="bi bi-truck"></i> Fleet</a></li>
+                            <li><a class="dropdown-item" href="data-Upload-Fleet.html"><i class="bi bi-cloud-upload"></i> Fleet Upload</a></li>
                             <li class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="inventory.html"><i class="bi bi-box-seam"></i> Inventory</a></li>
                             <li><a class="dropdown-item" href="haul-trip.html"><i class="bi bi-arrow-left-right"></i> Haul Trip</a></li>
@@ -355,11 +375,6 @@
                         <i class="bi bi-plus-circle me-2"></i>Add Vehicle
                     </button>
                 </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="uploadTab" onclick="switchTab('upload')" type="button" role="tab" style="background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;">
-                        <i class="bi bi-cloud-arrow-up me-2"></i>Upload Data
-                    </button>
-                </li>
             </ul>
 
             <!-- List Tab -->
@@ -370,11 +385,7 @@
                         <div class="col-md-3">
                             <label class="form-label">Site</label>
                             <select class="form-select" id="filterSite">
-                                <option value="all">All Sites</option>
-                                <option value="Sungai Dua">Sungai Dua</option>
-                                <option value="Sebamban">Sebamban</option>
-                                <option value="Mandala">Mandala</option>
-                                <option value="Tanjung">Tanjung</option>
+                                <option value="all" selected>All Sites</option>
                             </select>
                         </div>
                         <div class="col-md-3">
@@ -398,19 +409,35 @@
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-between mb-3">
+                <div class="d-flex justify-content-end mb-3">
                     <button class="btn btn-primary" onclick="switchTab('create'); resetForm();"><i class="bi bi-plus-circle"></i> Add Vehicle</button>
-                    <button class="btn btn-outline-secondary" onclick="downloadTemplate()"><i class="bi bi-download"></i> Download Template</button>
+                    <a href="data-Upload-Fleet.html" class="btn btn-outline-secondary"><i class="bi bi-cloud-arrow-up"></i> Upload Fleet</a>
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table" id="fleetTable">
+                    <table class="table table-scroll" id="fleetTable">
                         <thead>
                             <tr>
                                 <th>No</th><th>Unit No</th><th>Description</th><th>Site</th><th>Merk Type</th>
                                 <th>HM Awal</th><th>HM Akhir</th><th>Total Jam</th>
                                 <th>KM Awal</th><th>KM Akhir</th><th>Total KM</th>
                                 <th>Fuel Ratio</th><th>HM/Hari</th><th>Status</th><th>Actions</th>
+                            </tr>
+                            <tr class="filter-row">
+                                <th><input type="text" placeholder="..." onkeyup="applyFleetColFilter(0,this.value)"></th>
+                                <th><input type="text" placeholder="..." onkeyup="applyFleetColFilter(1,this.value)"></th>
+                                <th><input type="text" placeholder="..." onkeyup="applyFleetColFilter(2,this.value)"></th>
+                                <th><input type="text" placeholder="..." onkeyup="applyFleetColFilter(3,this.value)"></th>
+                                <th><input type="text" placeholder="..." onkeyup="applyFleetColFilter(4,this.value)"></th>
+                                <th><input type="text" placeholder="..." onkeyup="applyFleetColFilter(5,this.value)"></th>
+                                <th><input type="text" placeholder="..." onkeyup="applyFleetColFilter(6,this.value)"></th>
+                                <th><input type="text" placeholder="..." onkeyup="applyFleetColFilter(7,this.value)"></th>
+                                <th><input type="text" placeholder="..." onkeyup="applyFleetColFilter(8,this.value)"></th>
+                                <th><input type="text" placeholder="..." onkeyup="applyFleetColFilter(9,this.value)"></th>
+                                <th><input type="text" placeholder="..." onkeyup="applyFleetColFilter(10,this.value)"></th>
+                                <th><input type="text" placeholder="..." onkeyup="applyFleetColFilter(11,this.value)"></th>
+                                <th><input type="text" placeholder="..." onkeyup="applyFleetColFilter(12,this.value)"></th>
+                                <th><input type="text" placeholder="..." disabled></th>
                             </tr>
                         </thead>
                         <tbody id="fleetTableBody">
@@ -551,44 +578,6 @@
             </div>
 
             <!-- Upload Tab -->
-            <div class="tab-content" id="uploadContent">
-                <div class="row justify-content-center">
-                    <div class="col-lg-8">
-                        <div class="upload-zone" id="uploadZone">
-                            <i class="bi bi-cloud-arrow-up"></i>
-                            <h5>Drag & Drop CSV File</h5>
-                            <p class="text-muted">or click to browse</p>
-                            <input type="file" id="fileInput" accept=".csv" style="display: none;">
-                            <button class="btn btn-primary mt-3" onclick="document.getElementById('fileInput').click()">
-                                <i class="bi bi-folder-open"></i> Browse File
-                            </button>
-                        </div>
-
-                        <div class="mt-3" id="uploadPreview" style="display: none;">
-                            <div class="alert alert-info">
-                                <i class="bi bi-file-text me-2"></i>
-                                <span id="fileName"></span>
-                            </div>
-                        </div>
-
-                        <div class="mt-3">
-                            <button class="btn btn-success" id="btnUpload" onclick="uploadFile()" disabled>
-                                <i class="bi bi-cloud-upload"></i> Upload to Server
-                            </button>
-                        </div>
-
-                        <div class="card mt-4">
-                            <div class="card-header">
-                                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>CSV Format</h6>
-                            </div>
-                            <div class="card-body">
-                                <code class="d-block bg-light p-2 rounded mb-2">UnitNo;UnitDescription;Site;MerkType;Category;HMAwal;HMakhir;KMAwal;KMakhir;TotalFuel</code>
-                                <p class="text-muted small mb-0">Use semicolon (;) as delimiter.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -662,11 +651,28 @@
 
         let editingId = null;
         let deleteId = null;
-        let uploadedFile = null;
-
-        
         const ACTIVE_STYLE   = 'background:#2563eb!important;color:#fff!important;border:1.5px solid #2563eb!important;border-bottom:none!important;';
         const INACTIVE_STYLE = 'background:#f1f5f9!important;color:#1e293b!important;border:1.5px solid #e2e8f0!important;border-bottom:none!important;';
+
+        // Load sites filter dynamically
+        async function loadSiteFilters() {
+            const filterSite = document.getElementById('filterSite');
+            try {
+                const res = await fetch('/api/sites');
+                if (res.ok) {
+                    const sites = await res.json();
+                    sites.forEach(s => {
+                        const name = s.siteName || s.siteCode || s.SiteName || s.SiteCode || s;
+                        const opt = document.createElement('option');
+                        opt.value = name;
+                        opt.textContent = name;
+                        filterSite.appendChild(opt);
+                    });
+                }
+            } catch (e) { console.warn('loadSiteFilters failed:', e.message); }
+        }
+
+        loadSiteFilters();
 
 function switchTab(tab) {
             document.querySelectorAll('.nav-tabs .nav-link').forEach(t => {
@@ -687,14 +693,43 @@ function switchTab(tab) {
         function updateStats(data) {
             if (!data || !data.length) return;
             const active = data.filter(v => v.status === 'ACTIVE').length;
-            const totalHM = data.reduce((s, v) => s + (parseFloat(v.hmAkhir) || 0), 0);
-            const totalKM = data.reduce((s, v) => s + (parseFloat(v.kmAkhir) || 0), 0);
+            const totalHM = data.reduce((s, v) => s + (parseFloat(v.hMakhir) || 0), 0);
+            const totalKM = data.reduce((s, v) => s + (parseFloat(v.kMakhir) || 0), 0);
             document.getElementById('statTotalUnit').textContent = data.length;
             document.getElementById('statTotalHM').textContent = Math.round(totalHM).toLocaleString();
             document.getElementById('statTotalKM').textContent = Math.round(totalKM).toLocaleString();
             document.getElementById('statTotalFuel').textContent = '-';
             document.getElementById('statAvgHM').textContent = '-';
             document.getElementById('statFuelRatio').textContent = '-';
+        }
+
+        function handleFleetSearch() {
+            const keyword = document.getElementById('fleetSearchInput').value.toLowerCase().trim();
+            if (!keyword) {
+                renderTable(vehicles);
+                return;
+            }
+            const filtered = vehicles.filter(r =>
+                Object.values(r).some(v => v != null && String(v).toLowerCase().includes(keyword))
+            );
+            renderTable(filtered);
+        }
+
+        // Column filter state for fleet
+        const fleetColFilters = {};
+        const fleetColKeys = ['unitNo','unitDescription','site','merkType','hmAwal','hMakhir','totalJam','kmAwal','kMakhir','totalKM','fuelRatio','avgHMHari','status'];
+
+        function applyFleetColFilter(colIndex, keyword) {
+            fleetColFilters[colIndex] = keyword.toLowerCase().trim();
+            const filtered = vehicles.filter(r => {
+                return fleetColKeys.every((key, ki) => {
+                    const kw = fleetColFilters[ki] || '';
+                    if (!kw) return true;
+                    const val = r[key];
+                    return val != null && String(val).toLowerCase().includes(kw);
+                });
+            });
+            renderTable(filtered);
         }
 
         function renderTable(data) {
@@ -704,8 +739,8 @@ function switchTab(tab) {
                 return;
             }
             tbody.innerHTML = data.map((v, i) => {
-                const totalHM = (parseFloat(v.hmAkhir) || 0) - (parseFloat(v.hmAwal) || 0);
-                const totalKM = (parseFloat(v.kmAkhir) || 0) - (parseFloat(v.kmAwal) || 0);
+                const totalHM = (parseFloat(v.hMakhir) || 0) - (parseFloat(v.hmAwal) || 0);
+                const totalKM = (parseFloat(v.kMakhir) || 0) - (parseFloat(v.kmAwal) || 0);
                 const badge = v.status === 'ACTIVE'
                     ? '<span class="badge badge-active">Active</span>'
                     : v.status === 'MAINTENANCE'
@@ -718,10 +753,10 @@ function switchTab(tab) {
                     <td>${v.site || '-'}</td>
                     <td>${v.merkType || '-'}</td>
                     <td>${v.hmAwal ?? '-'}</td>
-                    <td>${v.hmAkhir ?? '-'}</td>
+                    <td>${v.hMakhir ?? '-'}</td>
                     <td><strong>${totalHM > 0 ? totalHM.toFixed(1) : '-'}</strong></td>
                     <td>${v.kmAwal ?? '-'}</td>
-                    <td>${v.kmAkhir ?? '-'}</td>
+                    <td>${v.kMakhir ?? '-'}</td>
                     <td><strong>${totalKM > 0 ? Math.round(totalKM).toLocaleString() : '-'}</strong></td>
                     <td>-</td>
                     <td>-</td>
@@ -838,13 +873,13 @@ function switchTab(tab) {
                     <h6>Hour Meter & KM</h6>
                     <div class="row">
                         <div class="col-md-3"><div class="mb-2"><strong>HM Awal:</strong> ${formatNumber(v.hmAwal)}</div></div>
-                        <div class="col-md-3"><div class="mb-2"><strong>HM Akhir:</strong> ${formatNumber(v.hmAkhir)}</div></div>
+                        <div class="col-md-3"><div class="mb-2"><strong>HM Akhir:</strong> ${formatNumber(v.hMakhir)}</div></div>
                         <div class="col-md-3"><div class="mb-2"><strong>Total Jam:</strong> ${formatNumber(v.totalJam)}</div></div>
                         <div class="col-md-3"><div class="mb-2"><strong>HM Usage:</strong> ${formatNumber(v.hmUsage)}</div></div>
                     </div>
                     <div class="row">
                         <div class="col-md-3"><div class="mb-2"><strong>KM Awal:</strong> ${formatNumber(v.kmAwal)}</div></div>
-                        <div class="col-md-3"><div class="mb-2"><strong>KM Akhir:</strong> ${formatNumber(v.kmAkhir)}</div></div>
+                        <div class="col-md-3"><div class="mb-2"><strong>KM Akhir:</strong> ${formatNumber(v.kMakhir)}</div></div>
                         <div class="col-md-3"><div class="mb-2"><strong>Total KM:</strong> ${formatNumber(v.totalKM)}</div></div>
                         <div class="col-md-3"><div class="mb-2"><strong>Total Fuel:</strong> ${formatNumber(v.totalFuel)} L</div></div>
                     </div>
@@ -868,9 +903,9 @@ function switchTab(tab) {
                 document.getElementById('category').value = v.category || '';
                 document.getElementById('pemasanganDate').value = v.pemasanganDate ? v.pemasanganDate.split('T')[0] : '';
                 document.getElementById('hmAwal').value = v.hmAwal || 0;
-                document.getElementById('hmAkhir').value = v.hmAkhir || 0;
+                document.getElementById('hmAkhir').value = v.hMakhir || 0;
                 document.getElementById('kmAwal').value = v.kmAwal || 0;
-                document.getElementById('kmAkhir').value = v.kmAkhir || 0;
+                document.getElementById('kmAkhir').value = v.kMakhir || 0;
                 document.getElementById('totalFuel').value = v.totalFuel || 0;
                 document.getElementById('hmUsage').value = v.hmUsage || 0;
                 document.getElementById('status').value = v.status;
@@ -935,57 +970,6 @@ function switchTab(tab) {
             document.getElementById('btnUpload').disabled = false;
         }
 
-        async function uploadFile() {
-            if (!uploadedFile) return;
-
-            const formData = new FormData();
-            formData.append('file', uploadedFile);
-
-            document.getElementById('btnUpload').disabled = true;
-            document.getElementById('btnUpload').innerHTML = '<i class="bi bi-hourglass-split"></i> Uploading...';
-
-            try {
-                const response = await fetch('/api/fleet/upload', { method: 'POST', body: formData });
-                const result = await response.json();
-
-                if (!response.ok) throw new Error(result.error);
-
-                Swal.fire('Success', result.message, 'success');
-                uploadedFile = null;
-                document.getElementById('uploadPreview').style.display = 'none';
-                document.getElementById('btnUpload').disabled = true;
-                fileInput.value = '';
-                switchTab('list');
-                loadFleet();
-            } catch (error) {
-                try {
-                    var _d_ = JSON.parse(localStorage.getItem(_key_));
-                } catch(e) {}
-                if (window[_var_] && window[_var_].length > 0) {
-                    if (typeof updateStats === "function") updateStats();
-                    if (typeof renderTable === "function") renderTable(vehicles);
-                } else {
-                    console.error('Error:', error);
-                    Swal.fire('Error', error.message || 'Upload failed', 'error');
-                }
-            } finally {
-                document.getElementById('btnUpload').disabled = false;
-                document.getElementById('btnUpload').innerHTML = '<i class="bi bi-cloud-upload"></i> Upload to Server';
-            }
-            return;
-        }
-
-        function downloadTemplate() {
-            const template = 'UnitNo;UnitDescription;Site;MerkType;Category;HMAwal;HMakhir;KMAwal;KMakhir;TotalFuel\nSD-001;Dump Truck;Sungai Dua;Volvo;Dump Truck;0;1000;0;5000;500';
-            const blob = new Blob([template], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'fleet_template.csv';
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-
         document.getElementById('fleetForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
@@ -997,9 +981,9 @@ function switchTab(tab) {
                 category: document.getElementById('category').value,
                 pemasanganDate: document.getElementById('pemasanganDate').value || null,
                 hmAwal: parseFloat(document.getElementById('hmAwal').value) || 0,
-                hmAkhir: parseFloat(document.getElementById('hmAkhir').value) || 0,
+                hMakhir: parseFloat(document.getElementById('hmAkhir').value) || 0,
                 kmAwal: parseFloat(document.getElementById('kmAwal').value) || 0,
-                kmAkhir: parseFloat(document.getElementById('kmAkhir').value) || 0,
+                kMakhir: parseFloat(document.getElementById('kmAkhir').value) || 0,
                 totalFuel: parseFloat(document.getElementById('totalFuel').value) || 0,
                 hmUsage: parseFloat(document.getElementById('hmUsage').value) || 0,
                 status: document.getElementById('status').value,
@@ -1035,13 +1019,13 @@ function switchTab(tab) {
                     console.error('Error:', error);
                     Swal.fire('Error', error.message || 'Failed to save vehicle', 'error');
                 }
-            } finally {
+            }
+            finally {
                 document.getElementById('btnUpload').disabled = false;
                 document.getElementById('btnUpload').innerHTML = '<i class="bi bi-cloud-upload"></i> Upload to Server';
             }
             return;
-            }
-        }
+        });
 
         function formatDate(date) {
             if (!date) return '-';

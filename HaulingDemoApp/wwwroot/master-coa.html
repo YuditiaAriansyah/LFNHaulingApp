@@ -65,6 +65,20 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .no-data { text-align: center; padding: 48px; color: var(--text-secondary); }
         .no-data i { font-size: 3rem; opacity: 0.3; margin-bottom: 12px; }
+        .filter-row th input {
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 5px 8px;
+            font-size: 0.78rem;
+            background: #f8fafc;
+            color: #1e293b;
+        }
+        .filter-row th input:focus {
+            border-color: #7c3aed;
+            background: #fff;
+            outline: none;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
@@ -270,7 +284,21 @@
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table mb-0">
-                        <thead><tr><th>Kode Akun</th><th>Nama Akun</th><th>Tipe</th><th>Kategori</th><th>Level</th><th>Induk</th><th>Saldo</th><th>CC?</th><th>Status</th><th style='width:110px'>Aksi</th></tr></thead>
+                        <thead>
+            <tr><th>Kode Akun</th><th>Nama Akun</th><th>Tipe</th><th>Kategori</th><th>Level</th><th>Induk</th><th>Saldo</th><th>CC?</th><th>Status</th><th style='width:110px'>Aksi</th></tr>
+            <tr class="filter-row">
+                <th><input type="text" placeholder="..." onkeyup="applyMasterColFilter(0,'accountCode',this.value)"></th>
+                <th><input type="text" placeholder="..." onkeyup="applyMasterColFilter(1,'accountName',this.value)"></th>
+                <th><input type="text" placeholder="..." onkeyup="applyMasterColFilter(2,'accountType',this.value)"></th>
+                <th><input type="text" placeholder="..." onkeyup="applyMasterColFilter(3,'accountCategory',this.value)"></th>
+                <th><input type="text" placeholder="..." onkeyup="applyMasterColFilter(4,'accountLevel',this.value)"></th>
+                <th><input type="text" placeholder="..." onkeyup="applyMasterColFilter(5,'parentAccountCode',this.value)"></th>
+                <th><input type="text" placeholder="..." onkeyup="applyMasterColFilter(6,'normalBalance',this.value)"></th>
+                <th><input type="text" placeholder="..." onkeyup="applyMasterColFilter(7,'costCenterRequired',this.value)"></th>
+                <th><input type="text" placeholder="..." onkeyup="applyMasterColFilter(8,'status',this.value)"></th>
+                <th></th>
+            </tr>
+        </thead>
                         <tbody id="tableBody"></tbody>
                     </table>
                     <div id="noData" class="no-data" style="display:none">
@@ -354,6 +382,27 @@
             return "";
         }
 
+        // Per-column filter state and function
+        const masterColFilters = {__keys__: {"0": "accountCode", "1": "accountName", "2": "accountType", "3": "accountCategory", "4": "accountLevel", "5": "parentAccountCode", "6": "normalBalance", "7": "costCenterRequired", "8": "status"}};
+        function applyMasterColFilter(colIdx, key, val) {
+            masterColFilters[colIdx] = val.trim().toLowerCase();
+            loadData();
+        }
+        function applyMasterClientFilter(data) {
+            if (!data) return [];
+            const active = Object.keys(masterColFilters).filter(k => masterColFilters[k]);
+            if (active.length === 0) return data;
+            const keys = Object.keys(masterColFilters.__keys__ || {});
+            return data.filter(row => active.every(idx => {
+                const key = masterColFilters.__keys__ ? masterColFilters.__keys__[idx] : null;
+                if (!key) return true;
+                const v = row[key];
+                return v != null && String(v).toLowerCase().includes(masterColFilters[idx]);
+            }));
+        }
+
+
+
         async function loadData() {
     showLoading(true);
     var data;
@@ -378,7 +427,8 @@
     }
     showLoading(false);
     if (typeof updateStats === "function") updateStats();
-    if (typeof renderTable === "function") renderTable(data);
+    const _f_ = applyMasterClientFilter(data);
+            if (typeof renderTable === "function") renderTable(_f_);
 }
 
 function renderTable(data) {

@@ -57,95 +57,119 @@
         .btn-primary:hover { background: #d97706; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
 
         /* Table */
-        .table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 0.875rem; }
+        .table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 0.875rem; min-width: 900px; }
         .table thead th { background: #f8fafc; color: var(--text-secondary); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 14px; border-bottom: 2px solid var(--border-color); white-space: nowrap; }
-        .table tbody td { padding: 13px 14px; border-bottom: 1px solid var(--border-color); vertical-align: middle; color: var(--text-primary); }
+        .table tbody td { padding: 13px 14px; border-bottom: 1px solid var(--border-color); vertical-align: middle; color: var(--text-primary); white-space: nowrap; }
         .table tbody tr:hover { background: #f8fafc; }
-        .table-responsive { border-radius: 10px; overflow: hidden; border: 1px solid var(--border-color); }
+
+        /* Horizontal scroll container */
+        .table-scroll-wrapper {
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            position: relative;
+        }
+        .table-scroll-container {
+            overflow-x: auto;
+            overflow-y: hidden;
+            max-height: 65vh;
+            position: relative;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+        .table-scroll-container::-webkit-scrollbar { height: 8px; width: 8px; }
+        .table-scroll-container::-webkit-scrollbar-track { background: transparent; }
+        .table-scroll-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .table-scroll-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Sticky columns — No (col 1) and Actions (last col) */
+        .table thead th.sticky-col,
+        .table tbody td.sticky-col {
+            position: sticky;
+            background: #f8fafc;
+            z-index: 2;
+        }
+        .table thead th.sticky-col { z-index: 4; }
+        .table thead th.sticky-left { left: 0; box-shadow: 2px 0 4px rgba(0,0,0,0.05); }
+        .table tbody td.sticky-left { left: 0; background: #fff; z-index: 1; }
+        .table tbody tr:hover td.sticky-left { background: #f8fafc; }
+        .table thead th.sticky-right { right: 0; box-shadow: -2px 0 4px rgba(0,0,0,0.05); z-index: 4; }
+        .table tbody td.sticky-right { right: 0; background: #fff; z-index: 1; }
+        .table tbody tr:hover td.sticky-right { background: #f8fafc; }
+
+        /* Pagination */
+        .pagination-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #fff;
+            border-top: 1px solid var(--border-color);
+            border-radius: 0 0 10px 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .pagination-info { font-size: 0.82rem; color: var(--text-secondary); }
+        .pagination-controls { display: flex; align-items: center; gap: 4px; }
+        .pagination-controls .page-btn {
+            min-width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border-color);
+            background: #fff;
+            color: var(--text-primary);
+            font-size: 0.82rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s;
+            padding: 0 8px;
+        }
+        .pagination-controls .page-btn:hover:not(:disabled) {
+            background: var(--accent-light);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .pagination-controls .page-btn.active {
+            background: var(--accent) !important;
+            border-color: var(--accent) !important;
+            color: #fff !important;
+            font-weight: 700;
+        }
+        .pagination-controls .page-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .pagination-ellipsis { padding: 0 4px; color: var(--text-secondary); font-size: 0.82rem; }
 
         /* Badges */
         .badge { border-radius: 50px; font-weight: 600; font-size: 0.72rem; padding: 4px 10px; letter-spacing: 0.3px; }
         .badge-po { background: rgba(20, 184, 166, 0.12); color: #0f766e; }
         .badge-problem { background: rgba(239, 68, 68, 0.12); color: #b91c1c; }
 
-    </style>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <style>    /* NAVBAR */
-    .navbar { background: var(--navy) !important; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
-    /* NAVBAR NAV */
-    .nav-item.dropdown { position: relative; }
-    .nav-item.dropdown .nav-link {
-        color: rgba(255, 255, 255, 0.6) !important;
-        font-weight: 500;
-        font-size: 0.82rem;
-        padding: 0.45rem 0.7rem !important;
-        border-radius: 8px;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        white-space: nowrap;
-        text-decoration: none;
-    }
-    .nav-item.dropdown .nav-link:hover { color: rgba(255,255,255,0.9) !important; background: rgba(255,255,255,0.08); }
-    .nav-item.dropdown .nav-link.dropdown-toggle::after {
-        display: inline-block;
-        margin-left: 4px;
-        content: '';
-        border: 0;
-        border-top: 4px solid rgba(255,255,255,0.4);
-        border-right: 4px solid transparent;
-        border-bottom: 0;
-        border-left: 4px solid transparent;
-        vertical-align: middle;
-    }
-    .nav-item.dropdown:hover .nav-link.dropdown-toggle::after { border-top-color: rgba(255,255,255,0.7); }
-    .dropdown-menu {
-        background: rgba(15, 23, 42, 0.98) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 12px !important;
-        padding: 6px !important;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
-        min-width: 220px !important;
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        animation: dropdownFade 0.15s ease;
-        margin-top: 4px !important;
-    }
-    @keyframes dropdownFade {
-        from { opacity: 0; transform: translateY(-6px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    .dropdown-divider { border-color: rgba(255,255,255,0.08) !important; margin: 4px 0; }
-    .dropdown-item {
-        color: rgba(255, 255, 255, 0.7) !important;
-        font-size: 0.82rem;
-        font-weight: 500;
-        padding: 8px 12px !important;
-        border-radius: 8px !important;
-        transition: all 0.15s ease;
-        display: flex !important;
-        align-items: center;
-        gap: 8px;
-        white-space: nowrap;
-    }
-    .dropdown-item:hover { color: #fff !important; background: rgba(59, 130, 246, 0.25) !important; }
-    .dropdown-item.active-page { color: #fff !important; background: rgba(59, 130, 246, 0.4) !important; }
-    .dropdown-item i { font-size: 0.9rem; width: 16px; text-align: center; opacity: 0.7; }
-    .dropdown-item:hover i { opacity: 1; }
-    .dropdown-item .bi { font-size: 0.9rem; }
-
-    </style>
-
-    </style>
-
-    </style>
+        /* Column filter row */
+        .table thead tr.filter-row th {
+            padding: 4px 6px !important;
+            background: #f1f5f9;
+        }
+        .table thead tr.filter-row th input {
+            font-size: 0.72rem;
+            padding: 3px 6px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            width: 100%;
+        }
+        .table thead tr.filter-row th input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-dim);
+            outline: none;
+        }
 
     </style>
 </head>
 <body>
-    <!-- Navigation -->
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg sticky-top navbar-dark">
         <div class="container">
@@ -309,29 +333,47 @@
                         <i class="bi bi-plus-circle"></i> Add New PO
                     </button>
                 </div>
-                <div class="card">
-                    <div class="card-body table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>No</th>
-                                    <th>Tanggal</th>
-                                    <th>Site</th>
-                                    <th>Vendor</th>
-                                    <th>No PO</th>
-                                    <th>Merk/Type</th>
-                                    <th>Size</th>
-                                    <th>Qty</th>
-                                    <th>Total Price</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="poTableBody">
-                                <tr><td colspan="11" class="text-center">Loading...</td></tr>
-                            </tbody>
-                        </table>
+                <div class="card p-0">
+                    <div class="table-scroll-wrapper">
+                        <div class="table-scroll-container" id="poScrollContainer">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th class="sticky-col sticky-left" style="min-width:50px">No</th>
+                                        <th style="min-width:110px">Tanggal</th>
+                                        <th style="min-width:110px">Site</th>
+                                        <th style="min-width:130px">Lokasi Problem</th>
+                                        <th style="min-width:180px">Vendor</th>
+                                        <th style="min-width:160px">No PO</th>
+                                        <th style="min-width:150px">Merk/Type</th>
+                                        <th style="min-width:100px">Size</th>
+                                        <th style="min-width:70px">Qty</th>
+                                        <th style="min-width:150px">Total Price</th>
+                                        <th style="min-width:100px">Status</th>
+                                        <th class="sticky-col sticky-right" style="min-width:100px">Actions</th>
+                                    </tr>
+                                    <tr class="filter-row">
+                                        <th class="sticky-col sticky-left"><input type="text" placeholder="..." onkeyup="applyTyreColFilter('po',0,this.value)"></th>
+                                        <th><input type="text" placeholder="..." onkeyup="applyTyreColFilter('po',1,this.value)"></th>
+                                        <th><input type="text" placeholder="..." onkeyup="applyTyreColFilter('po',2,this.value)"></th>
+                                        <th><input type="text" placeholder="..." onkeyup="applyTyreColFilter('po',3,this.value)"></th>
+                                        <th><input type="text" placeholder="..." onkeyup="applyTyreColFilter('po',4,this.value)"></th>
+                                        <th><input type="text" placeholder="..." onkeyup="applyTyreColFilter('po',5,this.value)"></th>
+                                        <th><input type="text" placeholder="..." onkeyup="applyTyreColFilter('po',6,this.value)"></th>
+                                        <th><input type="text" placeholder="..." onkeyup="applyTyreColFilter('po',7,this.value)"></th>
+                                        <th><input type="text" placeholder="..." onkeyup="applyTyreColFilter('po',8,this.value)"></th>
+                                        <th><input type="text" placeholder="..." onkeyup="applyTyreColFilter('po',9,this.value)"></th>
+                                        <th><input type="text" placeholder="..." onkeyup="applyTyreColFilter('po',10,this.value)"></th>
+                                        <th class="sticky-col sticky-right"><input type="text" placeholder="..." disabled></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="poTableBody">
+                                    <tr><td colspan="12" class="text-center">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
+                    <div class="pagination-wrapper" id="poPagination"></div>
                 </div>
             </div>
             <div class="tab-pane fade show active" id="problem">
@@ -340,30 +382,53 @@
                         <i class="bi bi-plus-circle"></i> Add New Problem
                     </button>
                 </div>
-                <div class="card">
-                    <div class="card-body table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>No</th>
-                                    <th>Tanggal</th>
-                                    <th>Site</th>
-                                    <th>Unit No</th>
-                                    <th>Pos</th>
-                                    <th>HM</th>
-                                    <th>Merk Ban</th>
-                                    <th>No Seri Tyre</th>
-                                    <th>Problem</th>
-                                    <th>Action Taken</th>
-                                    <th>Cost</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="problemTableBody">
-                                <tr><td colspan="12" class="text-center">Loading...</td></tr>
-                            </tbody>
-                        </table>
+                <div class="card p-0">
+                    <div class="table-scroll-wrapper">
+                        <div class="table-scroll-container" id="problemScrollContainer">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th class="sticky-col sticky-left" style="min-width:50px">No</th>
+                                        <th style="min-width:110px">Tanggal</th>
+                                        <th style="min-width:110px">Site</th>
+                                        <th style="min-width:150px">Area Lokasi Problem</th>
+                                        <th style="min-width:120px">Unit No</th>
+                                        <th style="min-width:90px">HM</th>
+                                        <th style="min-width:160px">Model Unit</th>
+                                        <th style="min-width:130px">Lokasi Ban Problem</th>
+                                        <th style="min-width:160px">Merek Ban Lama</th>
+                                        <th style="min-width:160px">Merek Ban Baru</th>
+                                        <th style="min-width:170px">No Seri Tyre</th>
+                                        <th style="min-width:180px">Problem</th>
+                                        <th style="min-width:140px">Action Taken</th>
+                                        <th style="min-width:140px">Cost</th>
+                                        <th class="sticky-col sticky-right" style="min-width:100px">Actions</th>
+                                    </tr>
+                                    <tr class="filter-row">
+                                        <th class="sticky-col sticky-left"><input type="text" placeholder="..." onkeyup="applyTyreColFilter('problem',0,this.value)"></th>
+                                        <th><input type="text" placeholder="..." onkeyup="applyTyreColFilter('problem',1,this.value)"></th>
+                                        <th><input type="text" placeholder="..." onkeyup="applyTyreColFilter('problem',2,this.value)"></th>
+                                        <th><input type="text" placeholder="..." onkeyup="applyTyreColFilter('problem',3,this.value)"></th>
+                                        <th><input type="text" placeholder="..." onkeyup="applyTyreColFilter('problem',4,this.value)"></th>
+                                        <th><input type="text" placeholder="..." onkeyup="applyTyreColFilter('problem',5,this.value)"></th>
+                                        <th><input type="text" placeholder="..." onkeyup="applyTyreColFilter('problem',6,this.value)"></th>
+                                        <th><input type="text" placeholder="..." onkeyup="applyTyreColFilter('problem',7,this.value)"></th>
+                                        <th><input type="text" placeholder="..." onkeyup="applyTyreColFilter('problem',8,this.value)"></th>
+                                        <th><input type="text" placeholder="..." onkeyup="applyTyreColFilter('problem',9,this.value)"></th>
+                                        <th><input type="text" placeholder="..." onkeyup="applyTyreColFilter('problem',10,this.value)"></th>
+                                        <th><input type="text" placeholder="..." onkeyup="applyTyreColFilter('problem',11,this.value)"></th>
+                                        <th><input type="text" placeholder="..." onkeyup="applyTyreColFilter('problem',12,this.value)"></th>
+                                        <th><input type="text" placeholder="..." onkeyup="applyTyreColFilter('problem',13,this.value)"></th>
+                                        <th class="sticky-col sticky-right"><input type="text" placeholder="..." disabled></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="problemTableBody">
+                                    <tr><td colspan="15" class="text-center">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
+                    <div class="pagination-wrapper" id="problemPagination"></div>
                 </div>
             </div>
         </div>
@@ -392,6 +457,18 @@
                                 <option value="Sebamban">Sebamban</option>
                                 <option value="Mandala">Mandala</option>
                                 <option value="Tanjung">Tanjung</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Lokasi Ban Problem</label>
+                            <select class="form-select" id="poLokasiProblem">
+                                <option value="">-- Pilih Posisi --</option>
+                                <option value="FL">FL (Depan Kiri)</option>
+                                <option value="FR">FR (Depan Kanan)</option>
+                                <option value="RL">RL (Belakang Kiri)</option>
+                                <option value="RR">RR (Belakang Kanan)</option>
+                                <option value="ML">ML (Tengah Kiri)</option>
+                                <option value="MR">MR (Tengah Kanan)</option>
                             </select>
                         </div>
                         <div class="col-md-6">
@@ -469,20 +546,40 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Unit No</label>
-                            <input type="text" class="form-control" id="problemUnitNo" placeholder="Enter Unit No" required>
+                            <label class="form-label">Area Lokasi Problem</label>
+                            <input type="text" class="form-control" id="problemAreaLokasiProblem" placeholder="e.g. Pit A, Dump Yard">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Pos</label>
-                            <input type="text" class="form-control" id="problemPost" placeholder="e.g. POST 01">
+                            <label class="form-label">Unit No</label>
+                            <input type="text" class="form-control" id="problemUnitNo" placeholder="Enter Unit No" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">HM</label>
                             <input type="number" step="0.01" class="form-control" id="problemStartHM" placeholder="Hours Meter">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Merk Ban</label>
-                            <input type="text" class="form-control" id="problemMerkType" placeholder="e.g. Michelin">
+                            <label class="form-label">Model Unit</label>
+                            <input type="text" class="form-control" id="problemModelUnit" placeholder="e.g. HINO FM 260">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">MerekBanLama</label>
+                            <input type="text" class="form-control" id="problemMerekBanLama" placeholder="Merek ban lama">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">MerekBanBaru</label>
+                            <input type="text" class="form-control" id="problemMerekBanBaru" placeholder="Merek ban baru">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Lokasi Ban Problem</label>
+                            <select class="form-select" id="problemLokasiProblem" aria-label="Lokasi Ban Problem">
+                                <option value="">-- Pilih Posisi --</option>
+                                <option value="FL">FL (Depan Kiri)</option>
+                                <option value="FR">FR (Depan Kanan)</option>
+                                <option value="RL">RL (Belakang Kiri)</option>
+                                <option value="RR">RR (Belakang Kanan)</option>
+                                <option value="ML">ML (Tengah Kiri)</option>
+                                <option value="MR">MR (Tengah Kanan)</option>
+                            </select>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">No Seri Tyre</label>
@@ -522,27 +619,20 @@
 
 
 <script>
-// Demo seed: populate localStorage with sample data
-(function(){
-  var k="lfn_tyre";
-  var d=[
-      {"id": "tyre01", "serialNumber": "TYRE-YR01-001", "tyreCode": "BRIDGESTONE-R200-18.00-33", "vehicleId": "v01", "position": "FL", "siteId": "s01", "installedDate": "2024-01-15", "initialTreadDepth": 32, "currentTreadDepth": 26, "maxTreadDepth": 18, "totalKm": 12450, "status": "IN_USE"},
-      {"id": "tyre02", "serialNumber": "TYRE-YR01-002", "tyreCode": "BRIDGESTONE-R200-18.00-33", "vehicleId": "v01", "position": "FR", "siteId": "s01", "installedDate": "2024-01-15", "initialTreadDepth": 32, "currentTreadDepth": 22, "maxTreadDepth": 18, "totalKm": 12450, "status": "IN_USE"},
-      {"id": "tyre03", "serialNumber": "TYRE-YR02-001", "tyreCode": "MICHELIN-XDR-18.00-33", "vehicleId": "v02", "position": "RL", "siteId": "s01", "installedDate": "2024-02-01", "initialTreadDepth": 35, "currentTreadDepth": 30, "maxTreadDepth": 18, "totalKm": 8900, "status": "IN_USE"},
-      {"id": "tyre04", "serialNumber": "TYRE-YR03-001", "tyreCode": "GOODYEAR-R200-18.00-33", "vehicleId": "v03", "position": "FL", "siteId": "s02", "installedDate": "2023-11-10", "initialTreadDepth": 30, "currentTreadDepth": 14, "maxTreadDepth": 18, "totalKm": 15600, "status": "CRITICAL"}
-    ];
-  try{
-    if(!localStorage.getItem(k)){
-      localStorage.setItem(k,JSON.stringify(d));
-    }
-  }catch(e){}
-})();
-</script>
-<script src="tyre-problem-seed.js?v=20260329b"></script>
-<script>
+        // Demo seed cleared for production rollout
+        (function(){
+          try {
+            localStorage.removeItem('lfn_tyre_po');
+            localStorage.removeItem('lfn_tyre_problems');
+          } catch(e) {}
+        })();
+
         const API_BASE = window.location.origin;
         let poData = [];
         let problemData = [];
+        let poPage = 1;
+        let problemPage = 1;
+        const PAGE_SIZE = 10;
 
         async function loadStats() {
             try {
@@ -555,82 +645,186 @@
                 poData = await poRes.json();
                 problemData = await probRes.json();
             } catch (e) {
-                console.error('API error, using localStorage fallback:', e.message);
-                // Load from localStorage as fallback
+                console.warn('API unavailable — using localStorage fallback:', e.message);
                 try {
-                    var _raw_ = localStorage.getItem('lfn_tyre_problems');
-                    problemData = _raw_ ? JSON.parse(_raw_) : [];
-                    poData = [];
+                    var _prob_ = localStorage.getItem('lfn_tyre_problems');
+                    problemData = _prob_ ? JSON.parse(_prob_) : [];
+                    var _po_ = localStorage.getItem('lfn_tyre_po');
+                    poData = _po_ ? JSON.parse(_po_) : [];
                 } catch(e2) { problemData = []; poData = []; }
-                document.getElementById('problemTableBody').innerHTML =
-                    '<tr><td colspan="12" class="text-center text-warning">Using offline data (API unavailable)</td></tr>';
             }
 
             document.getElementById('totalPO').textContent = poData.length;
             document.getElementById('totalProblem').textContent = problemData.length;
             const totalCost = problemData.reduce((sum, p) => sum + (parseFloat(p.cost) || 0), 0);
             document.getElementById('totalCost').textContent = 'Rp ' + totalCost.toLocaleString('id-ID');
+            // Reset to page 1 when data changes
+            poPage = 1;
+            problemPage = 1;
+        }
+
+        // Column filters state
+        const poColFilters  = {};   // { colIndex: keyword }
+        const probColFilters = {};  // { colIndex: keyword }
+
+        // PO column keys (match thead order, excluding Actions)
+        const poColKeys  = ['no','tanggal','site','lokasiProblem','vendor','noPO','merkType','size','qty','totalPrice','status'];
+        // Problem column keys (match thead order, excluding Actions)
+        const probColKeys = ['no','tanggal','site','areaLokasiProblem','unitNo','startHM','modelUnit','lokasiBanProblem','merekBanLama','merekBanBaru','serialNumber','problem','kerusakan','cost'];
+
+        function applyTyreColFilter(type, colIndex, keyword) {
+            const filters = type === 'po' ? poColFilters : probColFilters;
+            const keys     = type === 'po' ? poColKeys : probColKeys;
+            filters[colIndex] = keyword.toLowerCase().trim();
+
+            const rawData = type === 'po' ? poData : problemData;
+            const filtered = rawData.filter(r => {
+                return keys.every((key, ki) => {
+                    const kw = filters[ki] || '';
+                    if (!kw) return true;
+                    const val = r[key];
+                    return val != null && String(val).toLowerCase().includes(kw);
+                });
+            });
+
+            if (type === 'po') { poPage = 1; renderPOTable(filtered); }
+            else { problemPage = 1; renderProblemTable(filtered); }
+        }
+
+        function clearTyreFilters(type) {
+            const filters = type === 'po' ? poColFilters : probColFilters;
+            const tbodyId = type === 'po' ? 'poTableBody' : 'problemTableBody';
+            Object.keys(filters).forEach(k => delete filters[k]);
+            document.querySelectorAll(`#${tbodyId}`)
+                .closest('.table').querySelectorAll('.filter-row input').forEach(i => i.value = '');
+            const rawData = type === 'po' ? poData : problemData;
+            if (type === 'po') { poPage = 1; renderPOTable(rawData); }
+            else { problemPage = 1; renderProblemTable(rawData); }
         }
 
         function renderPOTable(data) {
             const tbody = document.getElementById('poTableBody');
-            if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="11" class="text-center">No data</td></tr>';
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="12" class="text-center py-4"><i class="bi bi-inbox fs-3 d-block mb-2 text-muted"></i>No data available</td></tr>';
+                document.getElementById('poPagination').innerHTML = '';
                 return;
             }
-            tbody.innerHTML = data.map(p => `
+            const totalPages = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
+            if (poPage > totalPages) poPage = totalPages;
+            const start = (poPage - 1) * PAGE_SIZE;
+            const pageData = data.slice(start, start + PAGE_SIZE);
+
+            tbody.innerHTML = pageData.map((p, i) => `
                 <tr>
-                    <td>${p.no}</td>
-                    <td>${new Date(p.tanggal).toLocaleDateString('id-ID')}</td>
-                    <td><span class="badge bg-secondary">${p.site}</span></td>
+                    <td class="sticky-left">${start + i + 1}</td>
+                    <td>${p.tanggal ? new Date(p.tanggal).toLocaleDateString('id-ID') : '-'}</td>
+                    <td><span class="badge bg-secondary">${p.site || '-'}</span></td>
+                    <td><span class="badge bg-warning text-dark">${p.lokasiProblem || '-'}</span></td>
                     <td>${p.vendor || '-'}</td>
                     <td>${p.noPO || '-'}</td>
                     <td>${p.merkType || '-'}</td>
                     <td>${p.size || '-'}</td>
                     <td>${p.qty || 0}</td>
-                    <td>${parseFloat(p.totalPrice || 0).toLocaleString('id-ID')}</td>
+                    <td>${p.totalPrice != null ? 'Rp ' + parseFloat(p.totalPrice).toLocaleString('id-ID') : '-'}</td>
                     <td><span class="badge badge-po">${p.status || '-'}</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="editPO(${p.id})" title="Edit">
+                    <td class="sticky-right">
+                        <button class="btn btn-sm btn-outline-primary" onclick="editPO('${p.id}')" title="Edit">
                             <i class="bi bi-pencil"></i>
                         </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deletePO(${p.id})" title="Delete">
+                        <button class="btn btn-sm btn-outline-danger" onclick="deletePO('${p.id}')" title="Delete">
                             <i class="bi bi-trash"></i>
                         </button>
                     </td>
                 </tr>
             `).join('');
+
+            renderPagination('poPagination', poPage, totalPages, data.length, start, 'poPage');
         }
 
         function renderProblemTable(data) {
             const tbody = document.getElementById('problemTableBody');
-            if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="12" class="text-center">No data</td></tr>';
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="15" class="text-center py-4"><i class="bi bi-inbox fs-3 d-block mb-2 text-muted"></i>No data available</td></tr>';
+                document.getElementById('problemPagination').innerHTML = '';
                 return;
             }
-            tbody.innerHTML = data.map(p => `
+            const totalPages = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
+            if (problemPage > totalPages) problemPage = totalPages;
+            const start = (problemPage - 1) * PAGE_SIZE;
+            const pageData = data.slice(start, start + PAGE_SIZE);
+
+            tbody.innerHTML = pageData.map((p, i) => `
                 <tr>
-                    <td>${p.no || '-'}</td>
+                    <td class="sticky-left">${start + i + 1}</td>
                     <td>${p.tanggal ? new Date(p.tanggal).toLocaleDateString('id-ID') : '-'}</td>
                     <td><span class="badge bg-secondary">${p.site || '-'}</span></td>
+                    <td>${p.areaLokasiProblem || '-'}</td>
                     <td>${p.unitNo || '-'}</td>
-                    <td>${p.post || '-'}</td>
                     <td>${p.startHM != null ? parseFloat(p.startHM).toLocaleString('id-ID') : '-'}</td>
-                    <td>${p.merkType || '-'}</td>
+                    <td>${p.modelUnit || '-'}</td>
+                    <td><span class="badge bg-warning text-dark">${p.location || '-'}</span></td>
+                    <td>${p.merekBanLama || '-'}</td>
+                    <td>${p.merekBanBaru || '-'}</td>
                     <td><small>${p.serialNumber || '-'}</small></td>
                     <td>${p.problem || '-'}</td>
                     <td>${p.kerusakan || '-'}</td>
                     <td style="text-align:right">${p.cost != null ? 'Rp ' + parseFloat(p.cost).toLocaleString('id-ID') : '-'}</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="editProblem(${p.id})" title="Edit">
+                    <td class="sticky-right">
+                        <button class="btn btn-sm btn-outline-primary" onclick="editProblem('${p.id}')" title="Edit">
                             <i class="bi bi-pencil"></i>
                         </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteProblem(${p.id})" title="Delete">
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteProblem('${p.id}')" title="Delete">
                             <i class="bi bi-trash"></i>
                         </button>
                     </td>
                 </tr>
             `).join('');
+
+            renderPagination('problemPagination', problemPage, totalPages, data.length, start, 'problemPage');
+        }
+
+        // Render pagination controls
+        function renderPagination(elId, currentPage, totalPages, totalItems, startIdx, pageVar) {
+            const container = document.getElementById(elId);
+            if (!container || totalItems <= PAGE_SIZE) {
+                if (container) container.innerHTML = '';
+                return;
+            }
+            const endIdx = Math.min(startIdx + PAGE_SIZE, totalItems);
+            const pages = [];
+            if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) pages.push(i);
+            } else {
+                pages.push(1);
+                if (currentPage > 3) pages.push('...');
+                for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) pages.push(i);
+                if (currentPage < totalPages - 2) pages.push('...');
+                pages.push(totalPages);
+            }
+
+            let html = `<div class="pagination-info">Show ${startIdx + 1}–${endIdx} of ${totalItems}</div>`;
+            html += `<div class="pagination-controls">`;
+            html += `<button class="page-btn" onclick="goToPage('${pageVar}', ${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}><i class="bi bi-chevron-left"></i></button>`;
+            pages.forEach(p => {
+                if (p === '...') {
+                    html += `<span class="pagination-ellipsis">…</span>`;
+                } else {
+                    html += `<button class="page-btn ${p === currentPage ? 'active' : ''}" onclick="goToPage('${pageVar}', ${p})">${p}</button>`;
+                }
+            });
+            html += `<button class="page-btn" onclick="goToPage('${pageVar}', ${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}><i class="bi bi-chevron-right"></i></button>`;
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        function goToPage(pageVar, page) {
+            if (pageVar === 'poPage') {
+                poPage = page;
+                renderPOTable(poData);
+            } else {
+                problemPage = page;
+                renderProblemTable(problemData);
+            }
         }
 
         async function applyFilter() {
@@ -669,6 +863,7 @@
                         if (item) {
                             document.getElementById('poTanggal').value = item.tanggal ? item.tanggal.split('T')[0] : '';
                             document.getElementById('poSite').value = item.site || '';
+                            document.getElementById('poLokasiProblem').value = item.lokasiProblem || '';
                             document.getElementById('poVendor').value = item.vendor || '';
                             document.getElementById('poNoPO').value = item.noPO || '';
                             document.getElementById('poMerkType').value = item.merkType || '';
@@ -682,6 +877,7 @@
             } else {
                 document.getElementById('poTanggal').value = new Date().toISOString().split('T')[0];
                 document.getElementById('poSite').value = '';
+                document.getElementById('poLokasiProblem').value = '';
                 document.getElementById('poVendor').value = '';
                 document.getElementById('poNoPO').value = '';
                 document.getElementById('poMerkType').value = '';
@@ -704,6 +900,7 @@
             const data = {
                 tanggal: document.getElementById('poTanggal').value,
                 site: document.getElementById('poSite').value,
+                lokasiProblem: document.getElementById('poLokasiProblem').value,
                 vendor: document.getElementById('poVendor').value,
                 noPO: document.getElementById('poNoPO').value,
                 merkType: document.getElementById('poMerkType').value,
@@ -779,13 +976,16 @@
                             document.getElementById('problemTanggal').value = item.tanggal ? item.tanggal.split('T')[0] : '';
                             document.getElementById('problemSite').value = item.site || '';
                             document.getElementById('problemUnitNo').value = item.unitNo || '';
-                            document.getElementById('problemPost').value = item.post || '';
+                            document.getElementById('problemStartHM').value = item.startHM || '';
+                            document.getElementById('problemModelUnit').value = item.modelUnit || '';
+                            document.getElementById('problemMerekBanLama').value = item.merekBanLama || '';
+                            document.getElementById('problemMerekBanBaru').value = item.merekBanBaru || '';
+                            document.getElementById('problemLokasiProblem').value = item.location || '';
+                            document.getElementById('problemAreaLokasiProblem').value = item.areaLokasiProblem || '';
                             document.getElementById('problemSerialNumber').value = item.serialNumber || '';
-                            document.getElementById('problemMerkType').value = item.merkType || '';
                             document.getElementById('problemSize').value = item.size || '';
                             document.getElementById('problemProblem').value = item.problem || '';
                             document.getElementById('problemKerusakan').value = item.kerusakan || '';
-                            document.getElementById('problemStartHM').value = item.startHM || '';
                             document.getElementById('problemCost').value = item.cost || '';
                         }
                     });
@@ -793,13 +993,16 @@
                 document.getElementById('problemTanggal').value = new Date().toISOString().split('T')[0];
                 document.getElementById('problemSite').value = '';
                 document.getElementById('problemUnitNo').value = '';
-                document.getElementById('problemPost').value = '';
+                document.getElementById('problemStartHM').value = '';
+                document.getElementById('problemModelUnit').value = '';
+                document.getElementById('problemMerekBanLama').value = '';
+                document.getElementById('problemMerekBanBaru').value = '';
+                document.getElementById('problemLokasiProblem').value = '';
+                document.getElementById('problemAreaLokasiProblem').value = '';
                 document.getElementById('problemSerialNumber').value = '';
-                document.getElementById('problemMerkType').value = '';
                 document.getElementById('problemSize').value = '';
                 document.getElementById('problemProblem').value = '';
                 document.getElementById('problemKerusakan').value = '';
-                document.getElementById('problemStartHM').value = '';
                 document.getElementById('problemCost').value = '';
             }
             problemModal.show();
@@ -814,13 +1017,16 @@
                 tanggal: document.getElementById('problemTanggal').value,
                 site: document.getElementById('problemSite').value,
                 unitNo: document.getElementById('problemUnitNo').value,
-                post: document.getElementById('problemPost').value,
+                startHM: parseFloat(document.getElementById('problemStartHM').value) || 0,
+                modelUnit: document.getElementById('problemModelUnit').value,
+                merekBanLama: document.getElementById('problemMerekBanLama').value,
+                merekBanBaru: document.getElementById('problemMerekBanBaru').value,
+                location: document.getElementById('problemLokasiProblem').value,
+                areaLokasiProblem: document.getElementById('problemAreaLokasiProblem').value,
                 serialNumber: document.getElementById('problemSerialNumber').value,
-                merkType: document.getElementById('problemMerkType').value,
                 size: document.getElementById('problemSize').value,
                 problem: document.getElementById('problemProblem').value,
                 kerusakan: document.getElementById('problemKerusakan').value,
-                startHM: parseFloat(document.getElementById('problemStartHM').value) || 0,
                 cost: parseFloat(document.getElementById('problemCost').value) || 0
             };
 
